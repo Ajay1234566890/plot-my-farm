@@ -1,0 +1,214 @@
+import FarmerBottomNav from "@/app/components/FarmerBottomNav";
+import {
+    ArrowLeft,
+    MapPin,
+    MessageSquare,
+    Mic,
+    Phone,
+    Search,
+    SlidersHorizontal,
+    Star,
+} from "lucide-react-native";
+import React from "react";
+import {
+    Dimensions,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+
+const { width } = Dimensions.get("window");
+
+export default function NearbyBuyers() {
+  // Mock data for nearby buyers with enhanced details
+  const buyers = [
+    {
+      id: 1,
+      name: "Anand Kumar",
+      location: "Delhi, India",
+      distance: "5km",
+      rating: 4.8,
+      reviews: 124,
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
+      lastActive: "2 hours ago",
+      verified: true,
+    },
+    {
+      id: 2,
+      name: "Priya Sharma",
+      location: "Mumbai, India",
+      distance: "12km",
+      rating: 4.9,
+      reviews: 89,
+      avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
+      lastActive: "5 hours ago",
+      verified: true,
+    },
+    {
+      id: 3,
+      name: "Rajesh Singh",
+      location: "Bangalore, India",
+      distance: "18km",
+      rating: 4.5,
+      reviews: 67,
+      avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
+      lastActive: "1 day ago",
+      verified: false,
+    },
+  ];
+
+  return (
+    <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
+      {/* Curved Header Section */}
+      <View
+        className="px-6 pt-12 pb-8"
+        style={{
+          backgroundColor: '#7C8B3A', // Olive/army green matching farmer-home
+          borderBottomLeftRadius: 40,
+          borderBottomRightRadius: 40,
+        }}
+      >
+        <View className="flex-row items-center mb-4">
+          <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4">
+            <ArrowLeft size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text className="text-xl font-bold text-white">Nearby Buyers</Text>
+        </View>
+        <Text className="text-white/80 mb-4">
+          Find buyers for your crops
+        </Text>
+
+        {/* Enhanced Search Bar */}
+        <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
+          <Search size={20} color="#4B5563" />
+          <TextInput
+            placeholder="Search buyers, locations..."
+            className="flex-1 ml-3 text-base text-gray-800"
+            placeholderTextColor="#9CA3AF"
+          />
+          <View className="flex-row">
+            <TouchableOpacity className="p-1 mr-2">
+              <Mic size={20} color="#4B5563" />
+            </TouchableOpacity>
+            <TouchableOpacity className="p-1">
+              <SlidersHorizontal size={20} color="#4B5563" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {/* Map Preview with Card Style */}
+      <View className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg">
+        <View className="h-48 bg-gradient-to-r from-emerald-50 to-cyan-50 relative">
+          <Image
+            source={{
+              uri: "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
+            }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+          <View className="absolute bottom-4 left-4 bg-white/90 px-3 py-1 rounded-full">
+            <Text className="text-sm font-semibold text-gray-800">Live Map View</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Buyers List with Enhanced Design */}
+      <View className="flex-1 px-4 mt-6">
+        <View className="flex-row items-center justify-between mb-4">
+          <Text className="text-lg font-bold text-gray-900">Nearby Buyers (3)</Text>
+          <TouchableOpacity className="flex-row items-center bg-gray-100 px-3 py-1 rounded-full">
+            <Text className="text-sm font-medium text-gray-700 mr-1">
+              Sort by Distance
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false} className="pb-4">
+          {buyers.map((buyer) => (
+            <View
+              key={buyer.id}
+              className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100"
+            >
+              {/* Buyer Header */}
+              <View className="flex-row items-center">
+                <View className="relative">
+                  <Image
+                    source={{ uri: buyer.avatar }}
+                    className="w-16 h-16 rounded-full"
+                    resizeMode="cover"
+                  />
+                  {buyer.verified && (
+                    <View className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-1 border-2 border-white">
+                      <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
+                    </View>
+                  )}
+                </View>
+                
+                <View className="flex-1 ml-4">
+                  <View className="flex-row items-center">
+                    <Text className="text-lg font-bold text-gray-900">
+                      {buyer.name}
+                    </Text>
+                    {buyer.verified && (
+                      <View className="ml-2 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        <Text className="text-xs font-semibold text-emerald-700">Verified</Text>
+                      </View>
+                    )}
+                  </View>
+                  
+                  <View className="flex-row items-center mt-1">
+                    <MapPin size={14} color="#6B7280" />
+                    <Text className="text-sm text-gray-500 ml-1">
+                      {buyer.location}
+                    </Text>
+                    <View className="w-1 h-1 rounded-full bg-gray-300 mx-2" />
+                    <Text className="text-sm text-emerald-600 font-medium">
+                      {buyer.distance}
+                    </Text>
+                  </View>
+                  
+                  <View className="flex-row items-center mt-1">
+                    <View className="flex-row items-center">
+                      <Star size={14} color="#FBBF24" fill="#FBBF24" />
+                      <Text className="text-sm font-semibold text-gray-900 ml-1">
+                        {buyer.rating}
+                      </Text>
+                    </View>
+                    <Text className="text-sm text-gray-500 ml-2">
+                      ({buyer.reviews} reviews)
+                    </Text>
+                    <View className="w-1 h-1 rounded-full bg-gray-300 mx-2" />
+                    <Text className="text-xs text-gray-500">
+                      Active {buyer.lastActive}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Action Buttons */}
+              <View className="flex-row mt-4 gap-3">
+                <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3.5 shadow-sm">
+                  <Phone size={18} color="#FFFFFF" />
+                  <Text className="text-white font-semibold ml-2">Call</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-emerald-50 rounded-xl py-3.5 shadow-sm">
+                  <MessageSquare size={18} color="#059669" />
+                  <Text className="text-emerald-700 font-semibold ml-2">
+                    Message
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Bottom Navigation */}
+      <FarmerBottomNav activeTab="farms" />
+    </View>
+  );
+}
