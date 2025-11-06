@@ -1,28 +1,28 @@
 import React, { useState } from "react";
 import {
-  Animated,
-  Dimensions,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Animated,
+    Dimensions,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'expo-router';
 import {
-  Bell,
-  DollarSign,
-  Heart,
-  MapPin,
-  MessageSquare,
-  Package,
-  Search,
-  ShoppingCart,
-  TrendingUp
+    Bell,
+    DollarSign,
+    Heart,
+    MapPin,
+    MessageSquare,
+    Package,
+    Search,
+    ShoppingCart,
+    TrendingUp
 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -253,40 +253,28 @@ export default function BuyerHome() {
         }}
       >
         <View
-          className="bg-white/90 backdrop-blur-lg rounded-3xl p-5 shadow-lg overflow-hidden"
+          className="bg-white/90 backdrop-blur-lg rounded-3xl overflow-hidden shadow-lg"
           style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.1,
             shadowRadius: 12,
             elevation: 8,
+            height: 220,
           }}
         >
-          {/* Map Image */}
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1597591073752-bc931222ff0d?w=900&auto=format&fit=crop&q=60",
+          {/* Real MapLibre Map */}
+          <MapLibreView
+            showFarmers={true}
+            showBuyers={false}
+            radiusInMeters={RADIUS_PRESETS.DEFAULT}
+            onUserPress={(farmer) => {
+              router.push({
+                pathname: "/nearby-farmers",
+                params: { selectedFarmerId: farmer.id }
+              });
             }}
-            style={{ width: '100%', height: 180 }}
-            className="rounded-2xl mb-4"
           />
-
-          {/* Map Pins */}
-          <View className="absolute top-8 left-8 right-8 bottom-8 flex-row justify-between items-center">
-            {mockNearbyFarmers.map((farmer) => (
-              <TouchableOpacity
-                key={farmer.id}
-                className="bg-white rounded-full p-2 shadow-md"
-              >
-                <View
-                  className="w-8 h-8 rounded-full items-center justify-center"
-                  style={{ backgroundColor: '#B27E4C20' }}
-                >
-                  <MapPin size={16} color="#B27E4C" />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
       </Animated.View>
 

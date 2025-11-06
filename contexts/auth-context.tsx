@@ -1,3 +1,4 @@
+import { startLocationAutoUpdate, updateLocationNow } from '@/services/location-auto-update';
 import { supabase } from '@/utils/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -57,7 +58,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedRole = await AsyncStorage.getItem('selectedRole');
 
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+
+          // Start location auto-update for logged-in user
+          if (parsedUser?.id) {
+            console.log('🗺️ [AUTH] Starting location auto-update for user:', parsedUser.id);
+            try {
+              await updateLocationNow(parsedUser.id);
+              await startLocationAutoUpdate(parsedUser.id, 5); // Update every 5 minutes
+            } catch (error) {
+              console.error('❌ [AUTH] Failed to start location auto-update:', error);
+            }
+          }
         }
         if (storedLanguage) {
           setSelectedLanguage(storedLanguage as Language);
@@ -308,6 +321,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       console.log('🚪 Logging out user...');
+
+      // Stop location auto-update
+      await stopLocationAutoUpdate();
+      console.log('🗺️ [AUTH] Stopped location auto-update');
 
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut();

@@ -42,6 +42,8 @@
     },
     "plugins": [
       "expo-router",
+      "expo-dev-client",
+      "@maplibre/maplibre-react-native",
       [
         "expo-splash-screen",
         {
@@ -64,6 +66,12 @@
       "checkAutomatically": "NEVER",
       "fallbackToCacheTimeout": 0
     },
-    "runtimeVersion": "1.0.0"
+    "runtimeVersion": "1.0.0",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4287f44c-e707-4463-97bd-c44c80521229"
+      }
+    }
   }
 }

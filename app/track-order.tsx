@@ -1,4 +1,6 @@
 import BuyerBottomNav from '@/app/components/BuyerBottomNav';
+import MapLibreView from '@/components/MapLibreView';
+import { RADIUS_PRESETS } from '@/utils/haversine';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Home, Package, Phone, Truck } from 'lucide-react-native';
 import React from 'react';
@@ -30,12 +32,15 @@ export default function TrackOrder() {
       </View>
 
       <ScrollView className="flex-1">
-        {/* Map View */}
-        <View className="w-full h-[250px] bg-gray-100">
-          <Image 
-            source={{ uri: "https://placehold.co/800x400/e5e7eb/a3a3a3.png?text=Map+View" }}
-            className="w-full h-full"
-            resizeMode="cover"
+        {/* Real MapLibre Map for Tracking */}
+        <View className="w-full" style={{ height: 300 }}>
+          <MapLibreView
+            showFarmers={true}
+            showBuyers={true}
+            radiusInMeters={RADIUS_PRESETS.CLOSE}
+            onUserPress={(user) => {
+              console.log('Tracking user:', user.full_name);
+            }}
           />
         </View>
 

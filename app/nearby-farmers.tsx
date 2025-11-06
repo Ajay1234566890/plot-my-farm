@@ -1,28 +1,29 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  Dimensions,
-  SafeAreaView,
-} from "react-native";
-import {
-  ArrowLeft,
-  Search,
-  MapPin,
-  Star,
-  SlidersHorizontal,
-  Mic,
-  Home,
-  Sprout,
-  MessageCircle,
-  User,
-} from "lucide-react-native";
+import MapLibreView from "@/components/MapLibreView";
+import { RADIUS_PRESETS } from "@/utils/haversine";
 import { LinearGradient } from 'expo-linear-gradient';
+import {
+    ArrowLeft,
+    Home,
+    MessageCircle,
+    Mic,
+    Search,
+    SlidersHorizontal,
+    Sprout,
+    Star,
+    User
+} from "lucide-react-native";
 import { cssInterop } from "nativewind";
+import React from "react";
+import {
+    Dimensions,
+    Image,
+    SafeAreaView,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 // Enable className support for LinearGradient
 cssInterop(LinearGradient, {
@@ -100,20 +101,17 @@ export default function NearbyFarmers() {
         </View>
       </LinearGradient>
 
-      {/* Map Preview */}
-      <View className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg">
-        <View className="h-48 bg-gradient-to-r from-blue-50 to-cyan-50 relative">
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
-            }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-          <View className="absolute bottom-4 left-4 bg-blue-500/90 px-3 py-1 rounded-full">
-            <Text className="text-sm font-semibold text-white">Live Map View</Text>
-          </View>
-        </View>
+      {/* Real MapLibre Map */}
+      <View className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg" style={{ height: 250 }}>
+        <MapLibreView
+          showFarmers={true}
+          showBuyers={false}
+          radiusInMeters={RADIUS_PRESETS.DEFAULT}
+          onUserPress={(farmer) => {
+            console.log('Selected farmer:', farmer.full_name);
+            // Can navigate to farmer details here
+          }}
+        />
       </View>
 
       {/* Farmers List */}

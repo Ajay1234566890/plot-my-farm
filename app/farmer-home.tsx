@@ -1,6 +1,8 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
+import MapLibreView from "@/components/MapLibreView";
 import { useAuth } from "@/contexts/auth-context";
 import { useWeather } from "@/contexts/weather-context";
+import { RADIUS_PRESETS } from "@/utils/haversine";
 import { formatLocation, getIconColor, getTextColorClass, getWeatherBackground } from "@/utils/weather-utils";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -300,7 +302,36 @@ export default function FarmerHome() {
         }}
       >
 
-
+        {/* Nearby Buyers Map */}
+        <View className="px-6 mb-6">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-xl font-bold text-gray-800">
+              Nearby Buyers
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/nearby-buyers")}
+              className="px-4 py-2 rounded-full"
+              style={{ backgroundColor: '#7C8B3A' }}
+            >
+              <Text className="text-sm font-semibold text-white">
+                View All
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View className="rounded-3xl overflow-hidden shadow-lg" style={{ height: 280 }}>
+            <MapLibreView
+              showFarmers={false}
+              showBuyers={true}
+              radiusInMeters={RADIUS_PRESETS.DEFAULT}
+              onUserPress={(buyer) => {
+                router.push({
+                  pathname: "/nearby-buyers",
+                  params: { selectedBuyerId: buyer.id }
+                });
+              }}
+            />
+          </View>
+        </View>
 
         {/* Market Prices - Redesigned with olive green accent */}
         <View className="mb-6">

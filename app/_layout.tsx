@@ -111,6 +111,9 @@ function RootLayoutNav() {
       <Stack.Screen name="buyer-offers" options={{ headerShown: false }} />
       <Stack.Screen name="add-offer" options={{ headerShown: false }} />
       <Stack.Screen name="wishlist" options={{ headerShown: false }} />
+
+      {/* Map Integration */}
+      <Stack.Screen name="map-test" options={{ headerShown: false }} />
     </Stack>
   );
 }

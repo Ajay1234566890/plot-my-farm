@@ -1,4 +1,6 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
+import MapLibreView from "@/components/MapLibreView";
+import { RADIUS_PRESETS } from "@/utils/haversine";
 import {
     ArrowLeft,
     MapPin,
@@ -100,20 +102,17 @@ export default function NearbyBuyers() {
         </View>
       </View>
 
-      {/* Map Preview with Card Style */}
-      <View className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg">
-        <View className="h-48 bg-gradient-to-r from-emerald-50 to-cyan-50 relative">
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
-            }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-          <View className="absolute bottom-4 left-4 bg-white/90 px-3 py-1 rounded-full">
-            <Text className="text-sm font-semibold text-gray-800">Live Map View</Text>
-          </View>
-        </View>
+      {/* Real MapLibre Map */}
+      <View className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg" style={{ height: 250 }}>
+        <MapLibreView
+          showFarmers={false}
+          showBuyers={true}
+          radiusInMeters={RADIUS_PRESETS.DEFAULT}
+          onUserPress={(buyer) => {
+            console.log('Selected buyer:', buyer.full_name);
+            // Can navigate to buyer details here
+          }}
+        />
       </View>
 
       {/* Buyers List with Enhanced Design */}
