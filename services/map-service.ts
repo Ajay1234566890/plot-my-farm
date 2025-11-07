@@ -3,8 +3,8 @@
  * Integrates with location service and haversine filtering
  */
 
+import { addDistanceToLocations, filterByRadius, RADIUS_PRESETS, sortByDistance } from '@/utils/haversine';
 import { supabase } from '@/utils/supabase';
-import { filterByRadius, addDistanceToLocations, sortByDistance, RADIUS_PRESETS } from '@/utils/haversine';
 
 export interface MapUser {
   id: string;
@@ -14,7 +14,7 @@ export interface MapUser {
   latitude: number | null;
   longitude: number | null;
   location: string | null;
-  profile_image_url: string | null;
+  avatar_url: string | null;
   is_verified: boolean;
 }
 
@@ -35,7 +35,7 @@ export async function fetchAllUsersWithLocation(): Promise<MapUser[]> {
   try {
     const { data, error } = await supabase
       .from('users')
-      .select('id, email, full_name, role, latitude, longitude, location, profile_image_url, is_verified')
+      .select('id, email, full_name, role, latitude, longitude, location, avatar_url, is_verified')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null);
 

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     location TEXT,
     phone TEXT,
     avatar_url TEXT,
+    is_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -53,6 +54,22 @@ BEGIN
         WHERE table_name = 'users' AND column_name = 'role'
     ) THEN
         ALTER TABLE users ADD COLUMN role TEXT;
+    END IF;
+
+    -- Add is_verified column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'is_verified'
+    ) THEN
+        ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT FALSE;
+    END IF;
+
+    -- Add avatar_url column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'avatar_url'
+    ) THEN
+        ALTER TABLE users ADD COLUMN avatar_url TEXT;
     END IF;
 END $$;
 

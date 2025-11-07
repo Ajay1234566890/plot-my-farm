@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     location TEXT,
     phone TEXT,
     avatar_url TEXT,
+    is_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
