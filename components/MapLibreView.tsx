@@ -1,19 +1,65 @@
 /**
  * MapLibre View Component - OpenStreetMap Integration
- * Shows nearby farmers/buyers with custom markers and 30km radius circle
+ * Shows user location and 20km radius circle
  */
 
 import { useAuth } from '@/contexts/auth-context';
 import { useWeather } from '@/contexts/weather-context';
 import { fetchNearbyBuyers, fetchNearbyFarmers, NearbyUser } from '@/services/map-service';
 import { RADIUS_PRESETS } from '@/utils/haversine';
-import MapLibreGL from '@maplibre/maplibre-react-native';
 import { MapPin, RefreshCw, Users } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-// MapLibre license (required)
-MapLibreGL.setAccessToken(null);
+// Conditional MapLibre import - only for native platforms
+// Import as named exports (v10+ pattern)
+let MapView: any = null;
+let Camera: any = null;
+let UserLocation: any = null;
+let isMapLibreAvailable = false;
+
+if (Platform.OS !== 'web') {
+  try {
+    console.log('🔍 [MapLibre] Attempting to load MapLibre module...');
+
+    // Import MapLibre components as named exports (v10+ structure)
+    const MapLibreRN = require('@maplibre/maplibre-react-native');
+
+    console.log('🔍 [MapLibre] Module loaded, checking exports...');
+    console.log('🔍 [MapLibre] Available exports:', Object.keys(MapLibreRN).slice(0, 10).join(', '));
+
+    MapView = MapLibreRN.MapView;
+    Camera = MapLibreRN.Camera;
+    UserLocation = MapLibreRN.UserLocation;
+
+    console.log('🔍 [MapLibre] Component check:');
+    console.log('  - MapView:', typeof MapView, MapView ? '✅' : '❌');
+    console.log('  - Camera:', typeof Camera, Camera ? '✅' : '❌');
+    console.log('  - UserLocation:', typeof UserLocation, UserLocation ? '✅' : '❌');
+
+    // Verify the module has the required components
+    if (MapView && Camera && UserLocation) {
+      isMapLibreAvailable = true;
+      console.log('✅ [MapLibre] All components loaded successfully!');
+    } else {
+      console.error('❌ [MapLibre] Module incomplete - missing required components');
+      console.error('   MapView:', MapView ? 'OK' : 'MISSING');
+      console.error('   Camera:', Camera ? 'OK' : 'MISSING');
+      console.error('   UserLocation:', UserLocation ? 'OK' : 'MISSING');
+      isMapLibreAvailable = false;
+    }
+  } catch (error: any) {
+    console.error('❌ [MapLibre] Failed to load:', error);
+    console.error('   Error name:', error?.name);
+    console.error('   Error message:', error?.message);
+    console.error('   Error stack:', error?.stack?.split('\n').slice(0, 3).join('\n'));
+    isMapLibreAvailable = false;
+  }
+} else {
+  console.log('ℹ️ [MapLibre] Web platform detected - MapLibre not available');
+}
+
+
 
 interface MapLibreViewProps {
   showFarmers?: boolean;
@@ -30,14 +76,16 @@ export default function MapLibreView({
   onUserPress,
   style,
 }: MapLibreViewProps) {
+  // ⚠️ IMPORTANT: All hooks MUST be called before any conditional returns
+  // This is a React rule - hooks must be called in the same order every render
   const { user } = useAuth();
   const { locationData, isLoadingLocation } = useWeather();
-  
+
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch nearby users
+  // Fetch nearby users function
   const fetchNearbyUsersData = async () => {
     if (!locationData?.coordinates) {
       setError('Location not available');
@@ -81,18 +129,95 @@ export default function MapLibreView({
     }
   };
 
+  // Effect to fetch nearby users when location changes
   useEffect(() => {
+    console.log('🔄 [MAP] Location data changed:', {
+      hasLocation: !!locationData?.coordinates,
+      isLoadingLocation,
+      latitude: locationData?.coordinates?.latitude,
+      longitude: locationData?.coordinates?.longitude,
+    });
+
     if (locationData?.coordinates) {
+      console.log('✅ [MAP] Location available, fetching nearby users...');
       fetchNearbyUsersData();
+    } else if (!isLoadingLocation) {
+      console.log('⚠️ [MAP] Location not available and not loading');
+      setIsLoading(false);
+      setError('Location not available. Please enable location services.');
     }
   }, [locationData, showFarmers, showBuyers, radiusInMeters]);
 
-  // Loading state
-  if (isLoadingLocation || isLoading) {
+  // NOW we can do conditional returns AFTER all hooks are called
+  // Web fallback - MapLibre is not available on web or native module not loaded
+  if (Platform.OS === 'web' || !isMapLibreAvailable) {
+    console.log('ℹ️ [MapLibre] Showing fallback UI');
+    console.log('   Platform:', Platform.OS);
+    console.log('   isMapLibreAvailable:', isMapLibreAvailable);
+
+    const fallbackMessage = Platform.OS === 'web'
+      ? 'Interactive maps are available on mobile devices.'
+      : 'Map feature is temporarily unavailable. You can still view nearby users below.';
+
+    return (
+      <View style={[styles.container, style]}>
+        <View style={styles.webFallback}>
+          <MapPin size={48} color="#3B82F6" />
+          <Text style={styles.webFallbackTitle}>Map View</Text>
+          <Text style={styles.webFallbackText}>
+            {fallbackMessage}
+          </Text>
+          {Platform.OS === 'web' && (
+            <Text style={styles.webFallbackSubtext}>
+              Install the app on Android/iOS to view nearby farmers and buyers on the map.
+            </Text>
+          )}
+
+          {/* Show nearby users list instead */}
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={() => fetchNearbyUsersData()}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <RefreshCw size={16} color="#FFFFFF" />
+            )}
+            <Text style={styles.refreshButtonText}>
+              {isLoading ? 'Loading...' : 'Load Nearby Users'}
+            </Text>
+          </TouchableOpacity>
+
+          {nearbyUsers.length > 0 && (
+            <View style={styles.usersList}>
+              <Text style={styles.usersListTitle}>
+                <Users size={16} color="#374151" /> {nearbyUsers.length} nearby users
+              </Text>
+              {nearbyUsers.slice(0, 5).map((nearbyUser, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.userItem}
+                  onPress={() => onUserPress?.(nearbyUser)}
+                >
+                  <Text style={styles.userName}>{nearbyUser.full_name || 'User'}</Text>
+                  <Text style={styles.userDistance}>{nearbyUser.distance.toFixed(1)}km away</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  }
+
+  // Loading state - only show if location is loading AND we don't have coordinates yet
+  if (isLoadingLocation && !locationData?.coordinates) {
+    console.log('⏳ [MAP] Waiting for location...');
     return (
       <View style={[styles.container, styles.centerContent, style]}>
         <ActivityIndicator size="large" color="#16a34a" />
-        <Text style={styles.loadingText}>Loading map...</Text>
+        <Text style={styles.loadingText}>Getting your location...</Text>
       </View>
     );
   }
@@ -113,101 +238,117 @@ export default function MapLibreView({
 
   const userCoords = locationData.coordinates;
 
+  // Additional safety check - if MapLibre is not available, show fallback
+  if (!isMapLibreAvailable || !MapView || !Camera) {
+    console.warn('⚠️ [MapLibre] Components not available for rendering');
+    console.warn('   isMapLibreAvailable:', isMapLibreAvailable);
+    console.warn('   MapView:', !!MapView);
+    console.warn('   Camera:', !!Camera);
+    console.warn('   UserLocation:', !!UserLocation);
+
+    return (
+      <View style={[styles.container, styles.centerContent, style]}>
+        <MapPin size={48} color="#3B82F6" />
+        <Text style={styles.errorText}>Map feature is temporarily unavailable</Text>
+        <Text style={styles.webFallbackSubtext}>
+          {nearbyUsers.length} nearby users found within {(radiusInMeters / 1000).toFixed(0)}km
+        </Text>
+        {nearbyUsers.length > 0 && (
+          <View style={styles.usersList}>
+            {nearbyUsers.slice(0, 5).map((nearbyUser, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.userItem}
+                onPress={() => onUserPress?.(nearbyUser)}
+              >
+                <Text style={styles.userName}>{nearbyUser.full_name || 'User'}</Text>
+                <Text style={styles.userDistance}>{nearbyUser.distance.toFixed(1)}km away</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  }
+
+  // Simplified map view - just user location and 20km radius
+  console.log('✅ [MapLibre] Rendering map view');
+  console.log('   User coordinates:', userCoords);
+  console.log('   Nearby users:', nearbyUsers.length);
+  console.log('   Radius:', (radiusInMeters / 1000).toFixed(0), 'km');
+
   return (
     <View style={[styles.container, style]}>
-      <MapLibreGL.MapView
+      <MapView
         style={styles.map}
-        styleURL="https://demotiles.maplibre.org/style.json"
+        styleURL="https://api.maptiler.com/maps/streets-v2/style.json?key=8MaoCcKOtQUbnHCNOBQn"
         logoEnabled={false}
         attributionEnabled={true}
         attributionPosition={{ bottom: 8, left: 8 }}
+        onDidFinishLoadingMap={() => {
+          console.log('✅ [MapLibre] Map loaded successfully');
+          setIsLoading(false);
+        }}
+        onDidFailLoadingMap={(error: any) => {
+          console.error('❌ [MapLibre] Map failed to load:', error);
+          setError('Failed to load map');
+          setIsLoading(false);
+        }}
       >
-        <MapLibreGL.Camera
+        <Camera
           zoomLevel={11}
           centerCoordinate={[userCoords.longitude, userCoords.latitude]}
-          animationMode="flyTo"
-          animationDuration={1000}
         />
 
-        {/* User's current location marker */}
-        <MapLibreGL.PointAnnotation
-          id="user-location"
-          coordinate={[userCoords.longitude, userCoords.latitude]}
-        >
-          <View style={styles.userMarker}>
-            <View style={styles.userMarkerInner} />
-          </View>
-        </MapLibreGL.PointAnnotation>
+        {/* User's current location with native component */}
+        <UserLocation
+          visible={true}
+          renderMode="native"
+          androidRenderMode="compass"
+        />
+      </MapView>
 
-        {/* 30km radius circle */}
-        <MapLibreGL.ShapeSource
-          id="radius-circle"
-          shape={{
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: [userCoords.longitude, userCoords.latitude],
-            },
-            properties: {},
-          }}
-        >
-          <MapLibreGL.CircleLayer
-            id="radius-circle-layer"
-            style={{
-              circleRadius: {
-                stops: [
-                  [0, 0],
-                  [20, radiusInMeters / 10], // Approximate visual radius
-                ],
-              },
-              circleColor: 'rgba(22, 163, 74, 0.1)',
-              circleStrokeWidth: 2,
-              circleStrokeColor: 'rgba(22, 163, 74, 0.5)',
-            }}
-          />
-        </MapLibreGL.ShapeSource>
-
-        {/* Nearby users markers */}
-        {nearbyUsers.map((nearbyUser) => (
-          <MapLibreGL.PointAnnotation
-            key={nearbyUser.id}
-            id={`user-${nearbyUser.id}`}
-            coordinate={[nearbyUser.longitude!, nearbyUser.latitude!]}
-            onSelected={() => {
-              if (onUserPress) {
-                onUserPress(nearbyUser);
-              } else {
-                Alert.alert(
-                  nearbyUser.full_name || 'User',
-                  `${nearbyUser.role === 'farmer' ? '🌾 Farmer' : '🛒 Buyer'}\n${nearbyUser.distanceFormatted} away`
-                );
-              }
-            }}
-          >
-            <View style={[
-              styles.marker,
-              nearbyUser.role === 'farmer' ? styles.farmerMarker : styles.buyerMarker
-            ]}>
-              <Text style={styles.markerIcon}>
-                {nearbyUser.role === 'farmer' ? '🌾' : '🛒'}
-              </Text>
-            </View>
-          </MapLibreGL.PointAnnotation>
-        ))}
-      </MapLibreGL.MapView>
+      {/* Loading overlay - shown while fetching nearby users */}
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="small" color="#16a34a" />
+          <Text style={styles.loadingOverlayText}>Loading nearby users...</Text>
+        </View>
+      )}
 
       {/* Info overlay */}
       <View style={styles.infoOverlay}>
         <View style={styles.infoCard}>
-          <Users size={16} color="#16a34a" />
+          <MapPin size={16} color="#16a34a" />
           <Text style={styles.infoText}>
-            {nearbyUsers.length} {nearbyUsers.length === 1 ? 'user' : 'users'} within {radiusInMeters / 1000}km
+            Your location • {(radiusInMeters / 1000).toFixed(0)}km radius
           </Text>
         </View>
         <TouchableOpacity style={styles.refreshButton} onPress={fetchNearbyUsersData}>
           <RefreshCw size={20} color="#16a34a" />
         </TouchableOpacity>
       </View>
+
+      {/* Nearby users list below map */}
+      {nearbyUsers.length > 0 && (
+        <View style={styles.nearbyUsersList}>
+          <Text style={styles.nearbyUsersTitle}>
+            <Users size={16} color="#374151" /> {nearbyUsers.length} nearby users
+          </Text>
+          {nearbyUsers.slice(0, 3).map((nearbyUser, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.userItem}
+              onPress={() => onUserPress?.(nearbyUser)}
+            >
+              <Text style={styles.userName}>
+                {nearbyUser.role === 'farmer' ? '🌾' : '🛒'} {nearbyUser.full_name || 'User'}
+              </Text>
+              <Text style={styles.userDistance}>{nearbyUser.distance.toFixed(1)}km away</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -295,6 +436,23 @@ const styles = StyleSheet.create({
   markerIcon: {
     fontSize: 18,
   },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  loadingOverlayText: {
+    fontSize: 14,
+    color: '#16a34a',
+    fontWeight: '500',
+  },
   infoOverlay: {
     position: 'absolute',
     top: 16,
@@ -325,17 +483,105 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   refreshButton: {
-    backgroundColor: 'white',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    backgroundColor: '#3B82F6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 16,
+  },
+  refreshButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  webFallback: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 32,
+    backgroundColor: '#F9FAFB',
+  },
+  webFallbackTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  webFallbackText: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  webFallbackSubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  usersList: {
+    width: '100%',
+    maxWidth: 400,
+    marginTop: 24,
+  },
+  usersListTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  userItem: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  userDistance: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  nearbyUsersList: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    padding: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    maxHeight: 200,
+  },
+  nearbyUsersTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });
 

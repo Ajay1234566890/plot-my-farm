@@ -15,13 +15,14 @@ import {
 
 export default function Login() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, selectedRole } = useAuth();
   const [mobileNumber, setMobileNumber] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
+  const [debugTapCount, setDebugTapCount] = useState(0);
 
   const handleSendOTP = async () => {
     setError('');
@@ -56,27 +57,104 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      // login() now returns the role that was set
+      // login() returns the role for existing users, null for new users
       const userRole = await login(mobileNumber, otp);
-      console.log('DEBUG: handleVerifyOTP() - login returned role:', userRole);
+      console.log('🔐 [LOGIN] handleVerifyOTP() - login returned role:', userRole);
+      console.log('🔐 [LOGIN] handleVerifyOTP() - selectedRole from context:', selectedRole);
 
-      // Navigate to role-specific registration
       if (userRole === 'farmer') {
-        console.log('DEBUG: Navigating to farmer-registration');
-        router.replace('/farmer-registration');
+        // Existing farmer - navigate to home
+        console.log('✅ [LOGIN] Existing farmer detected, navigating to farmer-home');
+        router.replace('/farmer-home');
       } else if (userRole === 'buyer') {
-        console.log('DEBUG: Navigating to buyer-profile-setup');
-        router.replace('/buyer-profile-setup');
+        // Existing buyer - navigate to home
+        console.log('✅ [LOGIN] Existing buyer detected, navigating to buyer-home');
+        router.replace('/buyer-home');
       } else {
-        // Fallback to farmer registration if role not set
-        console.log('DEBUG: userRole is null/undefined, defaulting to farmer-registration');
-        router.replace('/farmer-registration');
+        // New user (userRole is null) - navigate to registration based on selectedRole
+        console.log('⚠️ [LOGIN] New user detected (userRole is null)');
+        console.log('🔍 [LOGIN] Checking selectedRole for registration routing...');
+
+        if (selectedRole === 'farmer') {
+          console.log('✅ [LOGIN] New farmer user, navigating to farmer-registration');
+          router.replace({
+            pathname: '/farmer-registration',
+            params: { phone: mobileNumber }
+          });
+        } else if (selectedRole === 'buyer') {
+          console.log('✅ [LOGIN] New buyer user, navigating to buyer-profile-setup');
+          router.replace({
+            pathname: '/buyer-profile-setup',
+            params: { phone: mobileNumber }
+          });
+        } else {
+          // Fallback - shouldn't happen if user came from select-role
+          console.error('❌ [LOGIN] ERROR: No selectedRole found! This should not happen.');
+          console.error('❌ [LOGIN] selectedRole value:', selectedRole);
+          console.error('❌ [LOGIN] Defaulting to farmer-registration as fallback');
+          Alert.alert(
+            'Role Not Selected',
+            'Please select your role (Farmer or Buyer) first.',
+            [
+              {
+                text: 'Select Role',
+                onPress: () => router.replace('/select-role')
+              }
+            ]
+          );
+          return;
+        }
       }
     } catch (err) {
       setError('Invalid OTP. Please try again.');
-      console.error('Verify OTP error:', err);
+      console.error('❌ [LOGIN] Verify OTP error:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Debug functions for testing database connectivity
+  const handleDebugTap = async () => {
+    const newCount = debugTapCount + 1;
+    setDebugTapCount(newCount);
+
+    if (newCount >= 5) {
+      // Show debug menu after 5 taps
+      Alert.alert(
+        'Debug Menu',
+        'Choose debug action:',
+        [
+          {
+            text: 'Test DB Connection',
+            onPress: async () => {
+              const result = await testDatabaseConnection();
+              Alert.alert('DB Connection', result.message);
+            }
+          },
+          {
+            text: 'List All Users',
+            onPress: async () => {
+              const result = await listAllUsers();
+              console.log('All users:', result.data);
+              Alert.alert('Users Listed', result.message + '\nCheck console for details');
+            }
+          },
+          {
+            text: 'Check Phone',
+            onPress: () => {
+              if (mobileNumber) {
+                checkPhoneExists(mobileNumber).then(result => {
+                  Alert.alert('Phone Check', result.message);
+                });
+              } else {
+                Alert.alert('Error', 'Enter a phone number first');
+              }
+            }
+          },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+      setDebugTapCount(0);
     }
   };
 
@@ -111,9 +189,11 @@ export default function Login() {
         </TouchableOpacity>
 
         {/* Title */}
-        <Text className="text-2xl font-bold text-gray-900 mb-2">
-          {isOtpSent ? 'Verify OTP' : 'Login'}
-        </Text>
+        <TouchableOpacity onPress={handleDebugTap}>
+          <Text className="text-2xl font-bold text-gray-900 mb-2">
+            {isOtpSent ? 'Verify OTP' : 'Login'}
+          </Text>
+        </TouchableOpacity>
         <Text className="text-gray-600 mb-8">
           {isOtpSent
             ? 'Enter the OTP sent to your mobile'

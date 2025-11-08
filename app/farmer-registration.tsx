@@ -3,9 +3,9 @@ import {
     validateFarmerRegistration,
     validateOTP
 } from '@/utils/validation';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Camera, ChevronLeft } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -19,6 +19,7 @@ import {
 export default function FarmerRegistration() {
   const router = useRouter();
   const { register } = useAuth();
+  const params = useLocalSearchParams();
   const [step, setStep] = useState<'details' | 'otp' | 'profile'>('details');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,6 +31,14 @@ export default function FarmerRegistration() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [resendTimer, setResendTimer] = useState(0);
+
+  // Set phone from params if provided
+  useEffect(() => {
+    if (params.phone && typeof params.phone === 'string') {
+      console.log('📱 [FARMER-REG] Received phone from login:', params.phone);
+      setMobileNumber(params.phone);
+    }
+  }, [params.phone]);
 
   const handleSendOtp = async () => {
     setErrors({});

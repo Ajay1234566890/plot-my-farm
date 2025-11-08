@@ -28,6 +28,7 @@ export interface AuthContextType {
   isLoading: boolean;
   isSignedIn: boolean;
   userRole: UserRole;
+  selectedRole: UserRole; // Add selectedRole to context
   selectedLanguage: Language;
   hasSeenSplash: boolean;
   login: (phone: string, otp: string) => Promise<UserRole>; // Now returns the role
@@ -74,12 +75,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         if (storedLanguage) {
           setSelectedLanguage(storedLanguage as Language);
+          console.log('✅ [AUTH] Restored language:', storedLanguage);
         }
         if (storedSplash) {
           setHasSeenSplash(JSON.parse(storedSplash));
+          console.log('✅ [AUTH] Restored splash seen status:', storedSplash);
         }
         if (storedRole) {
           setSelectedRole(storedRole as UserRole);
+          console.log('✅ [AUTH] Restored selectedRole from AsyncStorage:', storedRole);
+        } else {
+          console.log('ℹ️ [AUTH] No selectedRole found in AsyncStorage');
         }
       } catch (e) {
         console.error('Failed to restore token', e);
@@ -132,35 +138,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let userProfile = null;
       let userRole: UserRole = null;
 
+      console.log('🔍 Looking for user profile with Supabase ID:', supabaseUser.id);
+
       // First check farmers table
-      const { data: farmerProfile } = await supabase
+      const { data: farmerProfile, error: farmerError } = await supabase
         .from('farmers')
         .select('*')
         .eq('id', supabaseUser.id)
         .single();
 
+      console.log('🔍 Farmer lookup result:', { farmerProfile, farmerError });
+
       if (farmerProfile) {
         userProfile = farmerProfile;
         userRole = 'farmer';
-        console.log('✅ Existing farmer profile found');
+        console.log('✅ Existing farmer profile found:', farmerProfile);
       } else {
         // Check buyers table
-        const { data: buyerProfile } = await supabase
+        const { data: buyerProfile, error: buyerError } = await supabase
           .from('buyers')
           .select('*')
           .eq('id', supabaseUser.id)
           .single();
 
+        console.log('🔍 Buyer lookup result:', { buyerProfile, buyerError });
+
         if (buyerProfile) {
           userProfile = buyerProfile;
           userRole = 'buyer';
-          console.log('✅ Existing buyer profile found');
+          console.log('✅ Existing buyer profile found:', buyerProfile);
         }
       }
 
-      // If no profile found, user needs to complete registration
+      // If no profile found by ID, try lookup by phone number
       if (!userProfile) {
-        console.log('⚠️ No existing profile found - user needs to complete registration');
+        console.log('⚠️ No profile found by ID, trying phone lookup...');
+
+        // Try farmers table by phone
+        const { data: farmerByPhone, error: farmerPhoneError } = await supabase
+          .from('farmers')
+          .select('*')
+          .eq('phone', phone)
+          .single();
+
+        console.log('🔍 Farmer phone lookup result:', { farmerByPhone, farmerPhoneError });
+
+        if (farmerByPhone) {
+          userProfile = farmerByPhone;
+          userRole = 'farmer';
+          console.log('✅ Found farmer profile by phone:', farmerByPhone);
+        } else {
+          // Try buyers table by phone
+          const { data: buyerByPhone, error: buyerPhoneError } = await supabase
+            .from('buyers')
+            .select('*')
+            .eq('phone', phone)
+            .single();
+
+          console.log('🔍 Buyer phone lookup result:', { buyerByPhone, buyerPhoneError });
+
+          if (buyerByPhone) {
+            userProfile = buyerByPhone;
+            userRole = 'buyer';
+            console.log('✅ Found buyer profile by phone:', buyerByPhone);
+          }
+        }
+      }
+
+      // If still no profile found, user needs to complete registration
+      if (!userProfile) {
+        console.log('⚠️ No existing profile found by ID or phone - user needs to complete registration');
+        console.log('🔍 Supabase user details:', supabaseUser);
+        console.log('🔍 Phone searched:', phone);
         // Return null to indicate registration is needed
         return null;
       }
@@ -275,20 +324,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const selectRole = async (role: UserRole) => {
     try {
-      console.log('DEBUG: selectRole() called with role:', role);
+      console.log('🎯 [AUTH] selectRole() called with role:', role);
       // Store the selected role in a separate state variable
       // This is needed because selectRole() is called BEFORE login(), when user is null
       setSelectedRole(role);
       await AsyncStorage.setItem('selectedRole', role || '');
+      console.log('✅ [AUTH] selectedRole saved to AsyncStorage:', role);
 
       // Also update user if it exists
       if (user) {
+        console.log('🔄 [AUTH] User exists, updating user object with new role');
         const updatedUser = { ...user, role };
         setUser(updatedUser);
         await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log('✅ [AUTH] User object updated with role:', role);
+      } else {
+        console.log('ℹ️ [AUTH] No user object yet (expected during role selection)');
       }
     } catch (error) {
-      console.error('Role selection failed:', error);
+      console.error('❌ [AUTH] Role selection failed:', error);
       throw error;
     }
   };
@@ -334,9 +388,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Clear local state
       setUser(null);
+      setSelectedRole(null);
       await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem('selectedRole');
 
-      console.log('✅ Logout successful');
+      console.log('✅ Logout successful - cleared user and selectedRole');
     } catch (error) {
       console.error('❌ Logout failed:', error);
       throw error;
@@ -361,6 +417,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     isSignedIn: user !== null,
     userRole: user?.role || null,
+    selectedRole, // Export selectedRole in context
     selectedLanguage,
     hasSeenSplash,
     login,

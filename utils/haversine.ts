@@ -149,7 +149,7 @@ export const RADIUS_PRESETS = {
   VERY_CLOSE: 5000,      // 5 km
   CLOSE: 10000,          // 10 km
   NEARBY: 20000,         // 20 km
-  DEFAULT: 30000,        // 30 km
+  DEFAULT: 20000,        // 20 km (changed from 30km as per user requirement)
   FAR: 50000,            // 50 km
   VERY_FAR: 100000,      // 100 km
 } as const;

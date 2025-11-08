@@ -38,9 +38,9 @@ export default function Settings() {
         { text: "Cancel", onPress: () => {}, style: "cancel" },
         {
           text: "Logout",
-          onPress: () => {
-            logout();
-            router.replace('/login');
+          onPress: async () => {
+            await logout();
+            router.replace('/select-role');
           },
           style: "destructive"
         }

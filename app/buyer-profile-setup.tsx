@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { ChevronLeft, ChevronDown } from 'lucide-react-native';
 import { useAuth } from '@/contexts/auth-context';
 import { validateEmail, validatePhone } from '@/utils/validation';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ChevronDown, ChevronLeft } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function BuyerProfileSetup() {
   const router = useRouter();
   const { register } = useAuth();
+  const params = useLocalSearchParams();
   const [step, setStep] = useState<'personal' | 'business' | 'preferences'>(
     'personal'
   );
@@ -33,6 +34,14 @@ export default function BuyerProfileSetup() {
   const [errors, setErrors] = useState<any>({});
   const [showBuyerTypeDropdown, setShowBuyerTypeDropdown] = useState(false);
   const [showCropsDropdown, setShowCropsDropdown] = useState(false);
+
+  // Set phone from params if provided
+  useEffect(() => {
+    if (params.phone && typeof params.phone === 'string') {
+      console.log('📱 [BUYER-SETUP] Received phone from login:', params.phone);
+      setPhone(params.phone);
+    }
+  }, [params.phone]);
 
   const buyerTypes = ['Retailer', 'Wholesaler', 'Trader', 'Consumer'];
   const crops = [
@@ -125,6 +134,15 @@ export default function BuyerProfileSetup() {
   const handleCompleteSetup = async () => {
     setIsLoading(true);
     try {
+      console.log('🔄 [BUYER-SETUP] Starting buyer registration...');
+      console.log('📝 [BUYER-SETUP] Registration data:', {
+        name,
+        email,
+        phone,
+        role: 'buyer',
+        location: `${address}, ${city}, ${state} ${pincode}`,
+      });
+
       await register({
         name,
         email,
@@ -133,11 +151,13 @@ export default function BuyerProfileSetup() {
         location: `${address}, ${city}, ${state} ${pincode}`,
       });
 
+      console.log('✅ [BUYER-SETUP] Buyer registration successful!');
+      console.log('🔄 [BUYER-SETUP] Navigating to /buyer-home...');
       Alert.alert('Success', 'Profile setup complete!');
       router.replace('/buyer-home');
     } catch (error) {
-      Alert.alert('Error', 'Failed to complete setup');
-      console.error('Setup error:', error);
+      console.error('❌ [BUYER-SETUP] Setup error:', error);
+      Alert.alert('Error', 'Failed to complete setup. Please try again.');
     } finally {
       setIsLoading(false);
     }

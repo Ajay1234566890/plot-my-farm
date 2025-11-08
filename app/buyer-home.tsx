@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-    Animated,
     Dimensions,
     Image,
     ScrollView,
@@ -11,7 +10,11 @@ import {
 } from "react-native";
 
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
+import { HomePageErrorBoundary } from "@/components/HomePageErrorBoundary";
+import { MapErrorBoundary } from "@/components/MapErrorBoundary";
+import MapLibreView from "@/components/MapLibreView";
 import { useAuth } from '@/contexts/auth-context';
+import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
     Bell,
@@ -28,12 +31,20 @@ import {
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function BuyerHome() {
+  return (
+    <HomePageErrorBoundary
+      fallbackTitle="Buyer Home Unavailable"
+      fallbackMessage="There was an issue loading the buyer home page. Please try again or restart the app."
+    >
+      <BuyerHomeContent />
+    </HomePageErrorBoundary>
+  );
+}
+
+function BuyerHomeContent() {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("Nearby Crops");
-
-  // Scroll animation for map fade effect
-  const scrollY = React.useRef(new Animated.Value(0)).current;
 
   const mockNearbyFarmers = [
     {
@@ -231,67 +242,89 @@ export default function BuyerHome() {
         </View>
       </View>
 
-      {/* Floating Map Section - Positioned to overlap INTO header section */}
-      <Animated.View
-        className="absolute rounded-3xl z-10"
+      {/* Floating Map Section - Positioned below search bar */}
+      <View
+        className="absolute rounded-3xl z-10 overflow-hidden"
         style={{
-          top: -50, // Position to overlap into header
+          top: 200, // Position below search bar
           alignSelf: 'center', // Perfect horizontal centering
-          width: '85%', // Maintain 85% width
-          opacity: scrollY.interpolate({
-            inputRange: [0, 120, 180],
-            outputRange: [1, 0.2, 0],
-            extrapolate: 'clamp',
-          }),
-          transform: [{
-            scale: scrollY.interpolate({
-              inputRange: [0, 120, 180],
-              outputRange: [1, 0.95, 0.9],
-              extrapolate: 'clamp',
-            })
-          }]
+          width: '90%', // Maintain 90% width
+          height: 280,
+          shadowColor: '#B27E4C',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.3,
+          shadowRadius: 15,
+          elevation: 10,
         }}
       >
-        <View
-          className="bg-white/90 backdrop-blur-lg rounded-3xl overflow-hidden shadow-lg"
-          style={{
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 12,
-            elevation: 8,
-            height: 220,
-          }}
-        >
-          {/* Real MapLibre Map */}
+        <MapErrorBoundary fallbackMessage="Map is temporarily unavailable.">
           <MapLibreView
             showFarmers={true}
-            showBuyers={false}
+            showBuyers={true}
             radiusInMeters={RADIUS_PRESETS.DEFAULT}
-            onUserPress={(farmer) => {
-              router.push({
-                pathname: "/nearby-farmers",
-                params: { selectedFarmerId: farmer.id }
-              });
+            onUserPress={(user) => {
+              if (user.role === 'farmer') {
+                router.push({
+                  pathname: "/nearby-farmers",
+                  params: { selectedFarmerId: user.id }
+                });
+              } else {
+                router.push({
+                  pathname: "/nearby-buyers",
+                  params: { selectedBuyerId: user.id }
+                });
+              }
             }}
           />
-        </View>
-      </Animated.View>
+        </MapErrorBoundary>
 
-      <Animated.ScrollView
+        {/* Floating Buttons on Map */}
+        <View
+          className="absolute top-4 left-4 right-4 flex-row justify-between"
+          style={{ gap: 8 }}
+        >
+          <TouchableOpacity
+            onPress={() => router.push("/nearby-farmers")}
+            className="px-4 py-2 rounded-full flex-row items-center"
+            style={{
+              backgroundColor: 'rgba(178, 126, 76, 0.9)', // Semi-transparent brown
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 5,
+            }}
+          >
+            <Text className="text-xs font-semibold text-white">
+              Nearby Farmers
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/nearby-buyers")}
+            className="px-4 py-2 rounded-full flex-row items-center"
+            style={{
+              backgroundColor: 'rgba(178, 126, 76, 0.9)', // Semi-transparent brown
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 5,
+            }}
+          >
+            <Text className="text-xs font-semibold text-white">
+              Nearby Buyers
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView
         className="flex-1 pb-24"
         showsVerticalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
         scrollEventThrottle={16}
         contentContainerStyle={{
-          paddingTop: scrollY.interpolate({
-            inputRange: [0, 120, 180],
-            outputRange: [180, 60, 0], // Map height → smooth transition → no space
-            extrapolate: 'clamp',
-          }),
+          paddingTop: 340, // Space for the floating map card
         }}
       >
 
@@ -551,7 +584,7 @@ export default function BuyerHome() {
             </View>
           )}
         </View>
-      </Animated.ScrollView>
+      </ScrollView>
 
       {/* Bottom Navigation - Absolute Positioning */}
       <View className="absolute bottom-0 left-0 right-0">

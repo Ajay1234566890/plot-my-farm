@@ -42,17 +42,23 @@ export default function SelectRole() {
   ];
 
   const handleContinue = async () => {
-    if (!selectedRole) return;
+    if (!selectedRole) {
+      console.log('⚠️ [ROLE-SELECT] No role selected, cannot continue');
+      return;
+    }
 
     setIsLoading(true);
     try {
-      console.log('DEBUG: handleContinue() - calling selectRole with:', selectedRole);
+      console.log('🎯 [ROLE-SELECT] User selected role:', selectedRole);
+      console.log('🔄 [ROLE-SELECT] Calling selectRole() from auth context...');
       await selectRole(selectedRole);
-      console.log('DEBUG: handleContinue() - selectRole completed');
+      console.log('✅ [ROLE-SELECT] selectRole() completed successfully');
+      console.log('🔄 [ROLE-SELECT] Navigating to /login...');
       // Navigate to login
       router.replace('/login');
     } catch (error) {
-      console.error('Role selection error:', error);
+      console.error('❌ [ROLE-SELECT] Role selection error:', error);
+      Alert.alert('Error', 'Failed to save role selection. Please try again.');
     } finally {
       setIsLoading(false);
     }

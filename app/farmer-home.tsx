@@ -1,57 +1,52 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
+import { HomePageErrorBoundary } from "@/components/HomePageErrorBoundary";
+import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import MapLibreView from "@/components/MapLibreView";
 import { useAuth } from "@/contexts/auth-context";
-import { useWeather } from "@/contexts/weather-context";
 import { RADIUS_PRESETS } from "@/utils/haversine";
-import { formatLocation, getIconColor, getTextColorClass, getWeatherBackground } from "@/utils/weather-utils";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
-    Bell,
-    Cloud,
-    CloudSun,
-    DollarSign,
-    Droplets,
-    MapPin,
-    Plus,
-    Search,
-    Sunrise,
-    Sunset,
-    Thermometer,
-    TrendingUp,
-    Wind
+  Bell,
+  CloudSun,
+  DollarSign,
+  MapPin,
+  Plus,
+  Search,
+  TrendingUp
 } from "lucide-react-native";
 import React from "react";
 import {
-    Animated,
-    Dimensions,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function FarmerHome() {
+  return (
+    <HomePageErrorBoundary
+      fallbackTitle="Farmer Home Unavailable"
+      fallbackMessage="There was an issue loading the farmer home page. Please try again or restart the app."
+    >
+      <FarmerHomeContent />
+    </HomePageErrorBoundary>
+  );
+}
+
+function FarmerHomeContent() {
   const router = useRouter();
   const { user } = useAuth();
-  const { weatherData, locationData } = useWeather();
-
-  // Get formatted location and weather background
-  const location = formatLocation(locationData, weatherData);
-  const weatherBackground = getWeatherBackground(weatherData);
-
-  // Scroll animation for weather card fade effect
-  const scrollY = React.useRef(new Animated.Value(0)).current;
 
   // Mock data for market prices (restored from original)
   const marketPrices = [
-    { name: "Tomatoes", price: "₹45/kg", icon: "🍅", change: "+2%" },
+    { name: "Tomatos", price: "₹45/kg", icon: "🍅", change: "+2%" },
     { name: "Rice", price: "₹52/kg", icon: "🌾", change: "-1%" },
-    { name: "Potatoes", price: "₹35/kg", icon: "🥔", change: "+5%" },
+    { name: "Potatos", price: "₹35/kg", icon: "🥔", change: "+5%" },
   ];
 
   // Mock data for recommended buyers (restored from original)
@@ -171,167 +166,91 @@ export default function FarmerHome() {
 
       </View>
 
-      {/* Glass Weather Card - Positioned to overlap INTO header section */}
-      <Animated.View
-        className="absolute rounded-3xl z-10"
+      {/* Floating Map Card - Positioned below search bar */}
+      <View
+        className="absolute rounded-3xl z-10 overflow-hidden"
         style={{
-          top: -50, // Position to overlap into header
+          top: 200, // Position below search bar
           alignSelf: 'center', // Perfect horizontal centering
-          width: '85%', // Maintain 85% width
-          opacity: scrollY.interpolate({
-            inputRange: [0, 120, 180],
-            outputRange: [1, 0.2, 0],
-            extrapolate: 'clamp',
-          }),
-          transform: [{
-            scale: scrollY.interpolate({
-              inputRange: [0, 120, 180],
-              outputRange: [1, 0.95, 0.9],
-              extrapolate: 'clamp',
-            })
-          }]
+          width: '90%', // Maintain 90% width
+          height: 280,
+          shadowColor: '#7C8B3A',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.3,
+          shadowRadius: 15,
+          elevation: 10,
         }}
       >
-        <LinearGradient
-          colors={weatherBackground.gradient as [string, string, ...string[]]}
-          className="rounded-3xl p-5 shadow-lg"
-          style={{
-            shadowColor: weatherBackground.shadowColor,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 12,
-            elevation: 8,
-          }}
-        >
-          {/* Location and Temperature */}
-          <View className="flex-row items-center justify-between mb-4">
-            <View className="flex-row items-center">
-              <MapPin size={16} color={getIconColor(weatherBackground)} />
-              <Text className={`${getTextColorClass(weatherBackground)} text-sm ml-1 opacity-90`}>
-                {location.display}
-              </Text>
-            </View>
-            <View className="flex-row items-center">
-              <Cloud size={24} color={getIconColor(weatherBackground)} />
-              <Text className={`${getTextColorClass(weatherBackground)} text-2xl font-bold ml-2`}>
-                {weatherData?.current.temperature ? `${weatherData.current.temperature}°` : '--°'}
-              </Text>
-            </View>
-          </View>
-
-          {/* Weather Details */}
-          <View className="flex-row justify-between">
-            <View className="items-center">
-              <Thermometer size={20} color={getIconColor(weatherBackground)} />
-              <Text className={`${getTextColorClass(weatherBackground)} text-sm font-semibold mt-1`}>
-                {weatherData?.current.feelsLike ? `${weatherData.current.feelsLike}°` : '--°'}
-              </Text>
-              <Text className={`${getTextColorClass(weatherBackground)} text-xs opacity-75`}>Feels like</Text>
-            </View>
-            <View className="items-center">
-              <Droplets size={20} color={getIconColor(weatherBackground)} />
-              <Text className={`${getTextColorClass(weatherBackground)} text-sm font-semibold mt-1`}>
-                {weatherData?.current.humidity ? `${weatherData.current.humidity}%` : '--'}
-              </Text>
-              <Text className={`${getTextColorClass(weatherBackground)} text-xs opacity-75`}>Humidity</Text>
-            </View>
-            <View className="items-center">
-              <Wind size={20} color={getIconColor(weatherBackground)} />
-              <Text className={`${getTextColorClass(weatherBackground)} text-sm font-semibold mt-1`}>
-                {weatherData?.current.windSpeed ? `${weatherData.current.windSpeed} km/h` : '--'}
-              </Text>
-              <Text className={`${getTextColorClass(weatherBackground)} text-xs opacity-75`}>Wind</Text>
-            </View>
-            <View className="items-center">
-              <Cloud size={20} color={getIconColor(weatherBackground)} />
-              <Text className={`${getTextColorClass(weatherBackground)} text-sm font-semibold mt-1`}>
-                {weatherData?.current.pressure ? `${weatherData.current.pressure} hPa` : '--'}
-              </Text>
-              <Text className={`${getTextColorClass(weatherBackground)} text-xs opacity-75`}>Pressure</Text>
-            </View>
-          </View>
-
-          {/* Sunrise and Sunset */}
-          <View className={`flex-row justify-between mt-4 pt-4 border-t ${getTextColorClass(weatherBackground) === 'text-white' ? 'border-white/20' : 'border-gray-200'}`}>
-            <View className="flex-row items-center">
-              <Sunrise size={16} color="#F59E0B" />
-              <Text className={`${getTextColorClass(weatherBackground)} text-sm ml-2`}>
-                {weatherData?.current.sunrise
-                  ? new Date(weatherData.current.sunrise * 1000).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true
-                    })
-                  : '--:--'
-                }
-              </Text>
-              <Text className={`${getTextColorClass(weatherBackground)} text-sm ml-1 opacity-75`}>Sunrise</Text>
-            </View>
-            <View className="flex-row items-center">
-              <Sunset size={16} color="#F59E0B" />
-              <Text className={`${getTextColorClass(weatherBackground)} text-sm ml-2`}>
-                {weatherData?.current.sunset
-                  ? new Date(weatherData.current.sunset * 1000).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true
-                    })
-                  : '--:--'
-                }
-              </Text>
-              <Text className={`${getTextColorClass(weatherBackground)} text-sm ml-1 opacity-75`}>Sunset</Text>
-            </View>
-          </View>
-        </LinearGradient>
-      </Animated.View>
-
-      <Animated.ScrollView
-        className="flex-1 pb-24"
-        showsVerticalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
-        scrollEventThrottle={16}
-        contentContainerStyle={{
-          paddingTop: scrollY.interpolate({
-            inputRange: [0, 120, 180],
-            outputRange: [180, 60, 0], // Weather card height → smooth transition → no space
-            extrapolate: 'clamp',
-          }),
-        }}
-      >
-
-        {/* Nearby Buyers Map */}
-        <View className="px-6 mb-6">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-xl font-bold text-gray-800">
-              Nearby Buyers
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/nearby-buyers")}
-              className="px-4 py-2 rounded-full"
-              style={{ backgroundColor: '#7C8B3A' }}
-            >
-              <Text className="text-sm font-semibold text-white">
-                View All
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View className="rounded-3xl overflow-hidden shadow-lg" style={{ height: 280 }}>
-            <MapLibreView
-              showFarmers={false}
-              showBuyers={true}
-              radiusInMeters={RADIUS_PRESETS.DEFAULT}
-              onUserPress={(buyer) => {
+        <MapErrorBoundary fallbackMessage="Map is temporarily unavailable.">
+          <MapLibreView
+            showFarmers={true}
+            showBuyers={true}
+            radiusInMeters={RADIUS_PRESETS.DEFAULT}
+            onUserPress={(user) => {
+              if (user.role === 'buyer') {
                 router.push({
                   pathname: "/nearby-buyers",
-                  params: { selectedBuyerId: buyer.id }
+                  params: { selectedBuyerId: user.id }
                 });
-              }}
-            />
-          </View>
+              } else {
+                router.push({
+                  pathname: "/nearby-farmers",
+                  params: { selectedFarmerId: user.id }
+                });
+              }
+            }}
+          />
+        </MapErrorBoundary>
+
+        {/* Floating Buttons on Map */}
+        <View
+          className="absolute top-4 left-4 right-4 flex-row justify-between"
+          style={{ gap: 8 }}
+        >
+          <TouchableOpacity
+            onPress={() => router.push("/nearby-buyers")}
+            className="px-4 py-2 rounded-full flex-row items-center"
+            style={{
+              backgroundColor: 'rgba(124, 139, 58, 0.9)', // Semi-transparent olive green
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 5,
+            }}
+          >
+            <Text className="text-xs font-semibold text-white">
+              Nearby Buyers
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/nearby-farmers")}
+            className="px-4 py-2 rounded-full flex-row items-center"
+            style={{
+              backgroundColor: 'rgba(124, 139, 58, 0.9)', // Semi-transparent olive green
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 5,
+            }}
+          >
+            <Text className="text-xs font-semibold text-white">
+              Nearby Farmers
+            </Text>
+          </TouchableOpacity>
         </View>
+      </View>
+
+      <ScrollView
+        className="flex-1 pb-24"
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          paddingTop: 340, // Space for the floating map card (increased from 320)
+        }}
+      >
 
         {/* Market Prices - Redesigned with olive green accent */}
         <View className="mb-6">
@@ -442,15 +361,25 @@ export default function FarmerHome() {
           onPress={() => router.push("/edit-crop")}
           className="mx-6 mb-6"
         >
-          <View className="flex-row items-center bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl p-4 shadow shadow-emerald-300">
-            <View className="w-12 h-12 rounded-full bg-white/20 items-center justify-center">
+          <View
+            className="flex-row items-center rounded-2xl p-4"
+            style={{
+              backgroundColor: '#10b981', // Emerald green
+              shadowColor: '#10b981',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 6,
+            }}
+          >
+            <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
               <Plus size={24} color="#FFFFFF" />
             </View>
             <View className="ml-3 flex-1">
               <Text className="text-base font-bold text-white">
                 Add New Crop
               </Text>
-              <Text className="text-sm text-white/90">
+              <Text className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                 Get instant market quotes
               </Text>
             </View>
@@ -521,7 +450,7 @@ export default function FarmerHome() {
             </View>
           </TouchableOpacity>
         </View>
-      </Animated.ScrollView>
+      </ScrollView>
 
       {/* Bottom Navigation - Absolute Positioning */}
       <View className="absolute bottom-0 left-0 right-0">
