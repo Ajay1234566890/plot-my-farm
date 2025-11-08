@@ -3,26 +3,27 @@ import { HomePageErrorBoundary } from "@/components/HomePageErrorBoundary";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import MapLibreView from "@/components/MapLibreView";
 import { useAuth } from "@/contexts/auth-context";
+import { MarketPrice, marketPricesService } from '@/services/market-prices-service';
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from "expo-router";
 import {
-  Bell,
-  CloudSun,
-  DollarSign,
-  MapPin,
-  Plus,
-  Search,
-  TrendingUp
+    Bell,
+    CloudSun,
+    DollarSign,
+    MapPin,
+    Plus,
+    Search,
+    TrendingUp
 } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Dimensions,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Dimensions,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
@@ -41,13 +42,25 @@ export default function FarmerHome() {
 function FarmerHomeContent() {
   const router = useRouter();
   const { user } = useAuth();
+  const [marketPrices, setMarketPrices] = useState<MarketPrice[]>([]);
+  const [loadingPrices, setLoadingPrices] = useState(true);
 
-  // Mock data for market prices (restored from original)
-  const marketPrices = [
-    { name: "Tomatos", price: "₹45/kg", icon: "🍅", change: "+2%" },
-    { name: "Rice", price: "₹52/kg", icon: "🌾", change: "-1%" },
-    { name: "Potatos", price: "₹35/kg", icon: "🥔", change: "+5%" },
-  ];
+  // Fetch real market prices on mount
+  useEffect(() => {
+    loadMarketPrices();
+  }, []);
+
+  const loadMarketPrices = async () => {
+    try {
+      setLoadingPrices(true);
+      const prices = await marketPricesService.getMarketPricesWithLocation(5);
+      setMarketPrices(prices);
+    } catch (error) {
+      console.error('Error loading market prices:', error);
+    } finally {
+      setLoadingPrices(false);
+    }
+  };
 
   // Mock data for recommended buyers (restored from original)
   const recommendedBuyers = [
@@ -267,51 +280,63 @@ function FarmerHomeContent() {
               </Text>
             </TouchableOpacity>
           </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="px-6"
-          >
-            {marketPrices.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => router.push("/market-real-prices")}
-                className="mr-4 bg-white rounded-3xl p-5 items-center shadow-lg"
-                style={{
-                  width: screenWidth * 0.32,
-                  shadowColor: '#7C8B3A',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                  elevation: 6,
-                  borderWidth: 1,
-                  borderColor: '#7C8B3A20'
-                }}
-              >
-                <View
-                  className="w-14 h-14 rounded-2xl items-center justify-center mb-3"
-                  style={{ backgroundColor: '#7C8B3A15' }}
+          {loadingPrices ? (
+            <View className="px-6 py-8 items-center">
+              <ActivityIndicator size="small" color="#7C8B3A" />
+              <Text className="text-gray-500 text-sm mt-2">Loading prices...</Text>
+            </View>
+          ) : marketPrices.length === 0 ? (
+            <View className="px-6 py-8 items-center">
+              <Text className="text-gray-500 text-sm">No market prices available</Text>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="px-6"
+            >
+              {marketPrices.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => router.push("/market-real-prices")}
+                  className="mr-4 bg-white rounded-3xl p-5 items-center shadow-lg"
+                  style={{
+                    width: screenWidth * 0.32,
+                    shadowColor: '#7C8B3A',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 6,
+                    borderWidth: 1,
+                    borderColor: '#7C8B3A20'
+                  }}
                 >
-                  <Text className="text-3xl">{item.icon}</Text>
-                </View>
-                <Text className="text-sm font-bold text-gray-800 text-center">
-                  {item.name}
-                </Text>
-                <Text className="text-lg font-bold mt-2" style={{ color: '#7C8B3A' }}>
-                  {item.price}
-                </Text>
-                <View
-                  className={`px-2 py-1 rounded-full mt-2 ${item.change.startsWith("+") ? "bg-emerald-50" : "bg-rose-50"}`}
-                >
-                  <Text
-                    className={`text-xs font-semibold ${item.change.startsWith("+") ? "text-emerald-600" : "text-rose-600"}`}
-                  >
-                    {item.change}
+                  <Image
+                    source={{ uri: item.image }}
+                    className="w-14 h-14 rounded-2xl mb-3"
+                    style={{ resizeMode: 'cover' }}
+                  />
+                  <Text className="text-sm font-bold text-gray-800 text-center" numberOfLines={1}>
+                    {item.commodity}
                   </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                  <Text className="text-lg font-bold mt-2" style={{ color: '#7C8B3A' }}>
+                    ₹{item.modalPrice}/{item.unit}
+                  </Text>
+                  {item.trend && (
+                    <View
+                      className={`px-2 py-1 rounded-full mt-2 ${item.trend === 'up' ? "bg-emerald-50" : item.trend === 'down' ? "bg-rose-50" : "bg-gray-50"}`}
+                    >
+                      <Text
+                        className={`text-xs font-semibold ${item.trend === 'up' ? "text-emerald-600" : item.trend === 'down' ? "text-rose-600" : "text-gray-600"}`}
+                      >
+                        {item.trend === 'up' ? '↑' : item.trend === 'down' ? '↓' : '→'}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
 

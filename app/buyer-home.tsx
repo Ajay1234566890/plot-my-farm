@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Dimensions,
     Image,
@@ -14,6 +14,7 @@ import { HomePageErrorBoundary } from "@/components/HomePageErrorBoundary";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import MapLibreView from "@/components/MapLibreView";
 import { useAuth } from '@/contexts/auth-context';
+import { MarketPrice, marketPricesService } from '@/services/market-prices-service';
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
@@ -45,6 +46,25 @@ function BuyerHomeContent() {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("Nearby Crops");
+  const [marketPrices, setMarketPrices] = useState<MarketPrice[]>([]);
+  const [loadingPrices, setLoadingPrices] = useState(true);
+
+  // Fetch real market prices on mount
+  useEffect(() => {
+    loadMarketPrices();
+  }, []);
+
+  const loadMarketPrices = async () => {
+    try {
+      setLoadingPrices(true);
+      const prices = await marketPricesService.getMarketPricesWithLocation(3);
+      setMarketPrices(prices);
+    } catch (error) {
+      console.error('Error loading market prices:', error);
+    } finally {
+      setLoadingPrices(false);
+    }
+  };
 
   const mockNearbyFarmers = [
     {
@@ -91,33 +111,6 @@ function BuyerHomeContent() {
       icon: <DollarSign size={24} color="#4B5563" />,
       label: "Offers",
       route: "/buyer-offers" as const,
-    },
-  ];
-
-  const marketPrices = [
-    {
-      id: 1,
-      name: "Fresh Tomatoes",
-      price: "₹200/kg",
-      change: "+₹15",
-      image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
-    },
-    {
-      id: 2,
-      name: "Sweet Corn",
-      price: "₹230/kg",
-      change: "-₹8",
-      image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
-    },
-    {
-      id: 3,
-      name: "Organic Carrots",
-      price: "₹145/kg",
-      change: "+₹4.50",
-      image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
     },
   ];
 
@@ -434,41 +427,64 @@ function BuyerHomeContent() {
               <Text className="text-sm font-semibold text-white">See All</Text>
             </TouchableOpacity>
           </View>
-          <View className="gap-4">
-            {marketPrices.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                className="bg-white rounded-2xl p-4 flex-row items-center shadow-lg"
-                style={{
-                  shadowColor: '#B27E4C',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                  elevation: 6,
-                  borderWidth: 1,
-                  borderColor: '#B27E4C10'
-                }}
-              >
-                <Image
-                  source={{ uri: item.image }}
-                  className="w-14 h-14 rounded-full mr-4"
-                />
-                <View className="flex-1">
-                  <Text className="text-gray-800 font-bold text-base">{item.name}</Text>
-                  <Text className="text-gray-600 text-sm">{item.price}</Text>
-                </View>
-                <Text
-                  className={
-                    item.change.includes("+")
-                      ? "text-green-600 font-bold"
-                      : "text-red-600 font-bold"
-                  }
+          {loadingPrices ? (
+            <View className="py-8 items-center">
+              <ActivityIndicator size="small" color="#B27E4C" />
+              <Text className="text-gray-500 text-sm mt-2">Loading prices...</Text>
+            </View>
+          ) : marketPrices.length === 0 ? (
+            <View className="py-8 items-center">
+              <Text className="text-gray-500 text-sm">No market prices available</Text>
+            </View>
+          ) : (
+            <View className="gap-4">
+              {marketPrices.map((item, index) => (
+                <TouchableOpacity
+                  key={item.id}
+                  className="bg-white rounded-2xl p-4 flex-row items-center shadow-lg"
+                  style={{
+                    shadowColor: '#B27E4C',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 6,
+                    borderWidth: 1,
+                    borderColor: '#B27E4C10'
+                  }}
+                  onPress={() => router.push("/buyer-market-prices")}
                 >
-                  {item.change}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+                  <Image
+                    source={{ uri: item.image }}
+                    className="w-14 h-14 rounded-full mr-4"
+                  />
+                  <View className="flex-1">
+                    <Text className="text-gray-800 font-bold text-base">{item.commodity}</Text>
+                    {item.variety && (
+                      <Text className="text-gray-400 text-xs">{item.variety}</Text>
+                    )}
+                    <Text className="text-gray-600 text-sm">₹{item.modalPrice}/{item.unit}</Text>
+                    <View className="flex-row items-center mt-1">
+                      <MapPin size={10} color="#6B7280" />
+                      <Text className="text-gray-400 text-xs ml-1">{item.market}, {item.state}</Text>
+                    </View>
+                  </View>
+                  {item.trend && (
+                    <Text
+                      className={
+                        item.trend === 'up'
+                          ? "text-green-600 font-bold"
+                          : item.trend === 'down'
+                          ? "text-red-600 font-bold"
+                          : "text-gray-600 font-bold"
+                      }
+                    >
+                      {item.trend === 'up' ? '↑' : item.trend === 'down' ? '↓' : '→'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Nearby Crops and Farmers Tabs */}
