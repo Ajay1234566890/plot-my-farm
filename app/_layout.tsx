@@ -10,8 +10,13 @@ import {
     ThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import "react-native-reanimated";
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -31,7 +36,14 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { isSignedIn, isLoading, hasSeenSplash } = useAuth();
+  const { isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading) {
+      // Hide the splash screen once the app is ready
+      SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return null; // Show splash screen or loading indicator
@@ -43,7 +55,7 @@ function RootLayoutNav() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
 
       {/* Onboarding Flow */}
-      {!hasSeenSplash && <Stack.Screen name="splash" options={{ headerShown: false }} />}
+      <Stack.Screen name="splash" options={{ headerShown: false }} />
       <Stack.Screen name="select-role" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="farmer-registration" options={{ headerShown: false }} />

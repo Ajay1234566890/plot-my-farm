@@ -281,7 +281,7 @@ export default function MapLibreView({
     <View style={[styles.container, style]}>
       <MapView
         style={styles.map}
-        styleURL="https://api.maptiler.com/maps/streets/style.json?key=S1newPOTVEpCrOQg9RYx"
+        styleURL={`https://api.maptiler.com/maps/streets/style.json?key=${process.env.EXPO_PUBLIC_MAPTILER_API_KEY}`}
         logoEnabled={false}
         attributionEnabled={true}
         attributionPosition={{ bottom: 8, left: 8 }}
