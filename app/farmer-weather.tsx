@@ -4,22 +4,24 @@ import { formatLocation, getIconColor, getTextColorClass, getWeatherBackground }
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
-    AlertCircle,
-    ArrowLeft,
-    Cloud,
-    Droplets,
-    Eye,
-    MapPin,
-    RefreshCw,
-    Sun,
-    ThermometerSun,
-    Wind
+  AlertCircle,
+  ArrowLeft,
+  Cloud,
+  Droplets,
+  Eye,
+  MapPin,
+  RefreshCw,
+  Sun,
+  ThermometerSun,
+  Wind
 } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function FarmerWeather() {
   const router = useRouter();
+  const { t } = useTranslation();
   const {
     weatherData,
     locationData,
@@ -46,30 +48,30 @@ export default function FarmerWeather() {
   };
 
   const farmAdvisory = [
-    { 
-      title: "Irrigation", 
-      advice: "Optimal time for irrigation in the morning", 
+    {
+      title: t('weather.irrigation'),
+      advice: t('weather.irrigationAdvice'),
       icon: Droplets,
       color: "bg-blue-100",
       textColor: "text-blue-600"
     },
-    { 
-      title: "Pest Control", 
-      advice: "Low risk of pest activity today", 
+    {
+      title: t('weather.pestControl'),
+      advice: t('weather.pestControlAdvice'),
       icon: Eye,
       color: "bg-green-100",
       textColor: "text-green-600"
     },
-    { 
-      title: "Harvesting", 
-      advice: "Good conditions for harvesting tomatoes", 
+    {
+      title: t('weather.harvesting'),
+      advice: t('weather.harvestingAdvice'),
       icon: Sun,
       color: "bg-yellow-100",
       textColor: "text-yellow-600"
     },
-    { 
-      title: "Planting", 
-      advice: "Ideal soil conditions for new plantings", 
+    {
+      title: t('weather.planting'),
+      advice: t('weather.plantingAdvice'),
       icon: ThermometerSun,
       color: "bg-purple-100",
       textColor: "text-purple-600"
@@ -124,10 +126,11 @@ export default function FarmerWeather() {
           <TouchableOpacity
             onPress={() => router.back()}
             className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
+            accessibilityLabel={t('common.goBack')}
           >
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className={`${getTextColorClass(weatherBackground)} text-xl font-bold`}>Weather Forecast</Text>
+          <Text className={`${getTextColorClass(weatherBackground)} text-xl font-bold`}>{t('weather.weatherForecast')}</Text>
         </View>
 
         {/* Current Weather */}
@@ -146,12 +149,12 @@ export default function FarmerWeather() {
               {weatherData?.current.temperature ? `${weatherData.current.temperature}°` : '--°'}
             </Text>
             <Text className={`${getTextColorClass(weatherBackground)} mt-1 opacity-90`}>
-              {weatherData?.current.description || weatherData?.current.condition || 'Loading...'}
+              {weatherData?.current.description || weatherData?.current.condition || t('common.loading')}
             </Text>
             {(weatherError || locationError) && (
               <TouchableOpacity onPress={handleRefresh} className="flex-row items-center gap-1 mt-2">
                 <AlertCircle color={getIconColor(weatherBackground)} size={14} />
-                <Text className={`${getTextColorClass(weatherBackground)} text-sm opacity-80`}>Tap to retry</Text>
+                <Text className={`${getTextColorClass(weatherBackground)} text-sm opacity-80`}>{t('weather.tapToRetry')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -177,12 +180,12 @@ export default function FarmerWeather() {
             elevation: 8,
           }}
         >
-          <Text className="text-xl font-bold text-gray-900 mb-4">Weather Details</Text>
+          <Text className="text-xl font-bold text-gray-900 mb-4">{t('weather.weatherDetails')}</Text>
           <View className="flex-row flex-wrap gap-4">
             <View className="flex-1 min-w-[45%] bg-gray-50 rounded-xl p-4">
               <View className="flex-row items-center">
                 <Droplets size={20} color="#7C8B3A" />
-                <Text className="text-gray-600 ml-2">Humidity</Text>
+                <Text className="text-gray-600 ml-2">{t('weather.humidity')}</Text>
               </View>
               <Text className="text-gray-900 text-xl font-semibold mt-2">
                 {weatherData?.current.humidity ? `${weatherData.current.humidity}%` : '--'}
@@ -192,7 +195,7 @@ export default function FarmerWeather() {
             <View className="flex-1 min-w-[45%] bg-gray-50 rounded-xl p-4">
               <View className="flex-row items-center">
                 <Wind size={20} color="#7C8B3A" />
-                <Text className="text-gray-600 ml-2">Wind</Text>
+                <Text className="text-gray-600 ml-2">{t('weather.wind')}</Text>
               </View>
               <Text className="text-gray-900 text-xl font-semibold mt-2">
                 {weatherData?.current.windSpeed ? `${weatherData.current.windSpeed} km/h` : '--'}
@@ -202,7 +205,7 @@ export default function FarmerWeather() {
             <View className="flex-1 min-w-[45%] bg-gray-50 rounded-xl p-4">
               <View className="flex-row items-center">
                 <Eye size={20} color="#7C8B3A" />
-                <Text className="text-gray-600 ml-2">Visibility</Text>
+                <Text className="text-gray-600 ml-2">{t('weather.visibility')}</Text>
               </View>
               <Text className="text-gray-900 text-xl font-semibold mt-2">
                 {weatherData?.current.visibility ? `${weatherData.current.visibility} km` : '--'}
@@ -212,7 +215,7 @@ export default function FarmerWeather() {
             <View className="flex-1 min-w-[45%] bg-gray-50 rounded-xl p-4">
               <View className="flex-row items-center">
                 <ThermometerSun size={20} color="#7C8B3A" />
-                <Text className="text-gray-600 ml-2">Pressure</Text>
+                <Text className="text-gray-600 ml-2">{t('weather.pressure')}</Text>
               </View>
               <Text className="text-gray-900 text-xl font-semibold mt-2">
                 {weatherData?.current.pressure ? `${weatherData.current.pressure} hPa` : '--'}
@@ -223,7 +226,7 @@ export default function FarmerWeather() {
 
         {/* Hourly Forecast */}
         <View className="mt-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">Hourly Forecast</Text>
+          <Text className="text-lg font-semibold text-gray-900 mb-4">{t('weather.hourlyForecast')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-32">
             <View className="flex-row gap-4">
               {weatherData?.hourly.slice(0, 8).map((hour, index) => {
@@ -250,7 +253,7 @@ export default function FarmerWeather() {
                     }}
                   >
                     <Text className={`${getTextColorClass(hourBackground)} text-sm`}>
-                      {index === 0 ? 'Now' : new Date(hour.time * 1000).toLocaleTimeString('en-US', {
+                      {index === 0 ? t('weather.now') : new Date(hour.time * 1000).toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         hour12: true
                       })}
@@ -293,7 +296,7 @@ export default function FarmerWeather() {
 
         {/* 7-Day Forecast */}
         <View className="mt-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">7-Day Forecast</Text>
+          <Text className="text-lg font-semibold text-gray-900 mb-4">{t('weather.sevenDayForecast')}</Text>
           <View className="bg-white rounded-xl shadow-sm overflow-hidden">
             {weatherData?.daily.map((day, index) => (
               <View
@@ -328,7 +331,7 @@ export default function FarmerWeather() {
 
         {/* Farm Advisory */}
         <View className="mt-6 mb-8">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">Farm Advisory</Text>
+          <Text className="text-lg font-semibold text-gray-900 mb-4">{t('weather.farmAdvisory')}</Text>
           <View className="gap-4">
             {farmAdvisory.map((advice, index) => (
               <View 

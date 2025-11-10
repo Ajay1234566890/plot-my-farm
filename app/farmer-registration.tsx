@@ -6,6 +6,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Camera, ChevronLeft } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -19,6 +20,7 @@ import {
 export default function FarmerRegistration() {
   const router = useRouter();
   const { register } = useAuth();
+  const { t } = useTranslation();
   const params = useLocalSearchParams();
   const [step, setStep] = useState<'details' | 'otp' | 'profile'>('details');
   const [fullName, setFullName] = useState('');
@@ -64,9 +66,9 @@ export default function FarmerRegistration() {
       // TODO: Call API to send OTP
       setStep('otp');
       setResendTimer(60);
-      Alert.alert('Success', `OTP sent to ${mobileNumber}`);
+      Alert.alert(t('common.success'), t('success.otpSent'));
     } catch (error) {
-      Alert.alert('Error', 'Failed to send OTP');
+      Alert.alert(t('common.error'), t('errors.otpSendFailed'));
       console.error('Send OTP error:', error);
     } finally {
       setIsLoading(false);
@@ -77,7 +79,7 @@ export default function FarmerRegistration() {
     setErrors({});
 
     if (!validateOTP(otp)) {
-      setErrors({ otp: 'Please enter a valid 6-digit OTP' });
+      setErrors({ otp: t('errors.invalidOtp') });
       return;
     }
 
@@ -86,7 +88,7 @@ export default function FarmerRegistration() {
       // TODO: Call API to verify OTP
       setStep('profile');
     } catch (error) {
-      Alert.alert('Error', 'Invalid OTP');
+      Alert.alert(t('common.error'), t('errors.invalidOtp'));
       console.error('Verify OTP error:', error);
     } finally {
       setIsLoading(false);
@@ -100,9 +102,9 @@ export default function FarmerRegistration() {
     try {
       // TODO: Call API to resend OTP
       setResendTimer(60);
-      Alert.alert('Success', 'OTP resent');
+      Alert.alert(t('common.success'), t('success.otpResent'));
     } catch (error) {
-      Alert.alert('Error', 'Failed to resend OTP');
+      Alert.alert(t('common.error'), t('errors.otpResendFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -121,10 +123,10 @@ export default function FarmerRegistration() {
         profileImage,
       });
 
-      Alert.alert('Success', 'Registration complete!');
+      Alert.alert(t('common.success'), t('success.registrationSuccess'));
       router.replace('/farmer-home');
     } catch (error) {
-      Alert.alert('Error', 'Registration failed');
+      Alert.alert(t('common.error'), t('errors.registrationFailed'));
       console.error('Registration error:', error);
     } finally {
       setIsLoading(false);
@@ -178,18 +180,18 @@ export default function FarmerRegistration() {
         {/* Title */}
         <Text className="text-2xl font-bold text-white mb-2">
           {step === 'details'
-            ? 'Create Account'
+            ? t('auth.createAccount')
             : step === 'otp'
-            ? 'Verify Mobile'
-            : 'Setup Profile'}
+            ? t('auth.verifyMobile')
+            : t('auth.setupProfile')}
         </Text>
 
         <Text className="text-white/80 mb-4">
           {step === 'details'
-            ? 'Enter your details to create an account'
+            ? t('auth.enterDetailsToCreate')
             : step === 'otp'
-            ? `Enter the OTP sent to ${mobileNumber}`
-            : 'Complete your profile to continue'}
+            ? t('auth.enterOtpSentTo', { phone: mobileNumber })
+            : t('auth.completeProfile')}
         </Text>
       </View>
 
@@ -210,11 +212,11 @@ export default function FarmerRegistration() {
             {/* Full Name Input */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Full Name
+                {t('auth.fullName')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter your full name"
+                placeholder={t('auth.enterFullName')}
                 value={fullName}
                 onChangeText={(text) => {
                   setFullName(text);
@@ -232,11 +234,11 @@ export default function FarmerRegistration() {
             {/* Email Input */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Email
+                {t('auth.email')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter your email"
+                placeholder={t('auth.enterEmail')}
                 keyboardType="email-address"
                 value={email}
                 onChangeText={(text) => {
@@ -255,11 +257,11 @@ export default function FarmerRegistration() {
             {/* Mobile Number Input */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Mobile Number
+                {t('auth.phoneNumber')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter 10-digit mobile number"
+                placeholder={t('auth.enterPhone')}
                 keyboardType="phone-pad"
                 value={mobileNumber}
                 onChangeText={(text) => {
@@ -274,11 +276,11 @@ export default function FarmerRegistration() {
             {/* Farm Name Input */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Farm Name
+                {t('auth.farmName')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter your farm name"
+                placeholder={t('auth.enterFarmName')}
                 value={farmName}
                 onChangeText={(text) => {
                   setFarmName(text);
@@ -296,11 +298,11 @@ export default function FarmerRegistration() {
             {/* Farm Size Input */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Farm Size (acres)
+                {t('auth.farmSizeAcres')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter farm size in acres"
+                placeholder={t('auth.enterFarmSizeAcres')}
                 keyboardType="decimal-pad"
                 value={farmSize}
                 onChangeText={(text) => {
@@ -336,7 +338,7 @@ export default function FarmerRegistration() {
                 <ActivityIndicator color="#ffffff" />
               ) : (
                 <Text className="text-white text-center text-lg font-semibold">
-                  Send OTP
+                  {t('auth.sendOtp')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -346,11 +348,11 @@ export default function FarmerRegistration() {
             {/* OTP Input */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                OTP
+                {t('auth.otp')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter 6-digit OTP"
+                placeholder={t('auth.enterOtp')}
                 keyboardType="number-pad"
                 value={otp}
                 onChangeText={(text) => {
@@ -380,7 +382,7 @@ export default function FarmerRegistration() {
                 <ActivityIndicator color="#ffffff" />
               ) : (
                 <Text className="text-white text-center text-lg font-semibold">
-                  Verify OTP
+                  {t('auth.verifyOtp')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -392,7 +394,7 @@ export default function FarmerRegistration() {
               className="mt-4"
             >
               <Text className="text-center text-base font-medium" style={{ color: '#7C8B3A' }}>
-                {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+                {resendTimer > 0 ? t('auth.resendIn', { seconds: resendTimer }) : t('auth.resendOtp')}
               </Text>
             </TouchableOpacity>
           </>
@@ -405,14 +407,14 @@ export default function FarmerRegistration() {
                 className="w-24 h-24 rounded-full bg-gray-100 items-center justify-center mb-4 border-2 border-gray-200"
               >
                 {profileImage ? (
-                  <Text className="text-gray-600">Photo</Text>
+                  <Text className="text-gray-600">{t('common.photo')}</Text>
                 ) : (
                   <Camera size={32} color="#9CA3AF" />
                 )}
               </TouchableOpacity>
               <TouchableOpacity disabled={isLoading}>
                 <Text className="font-medium" style={{ color: '#7C8B3A' }}>
-                  Add Profile Picture
+                  {t('auth.addProfilePicture')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -420,25 +422,25 @@ export default function FarmerRegistration() {
             {/* Summary */}
             <View className="bg-gray-50 p-4 rounded-xl mb-8">
               <Text className="text-sm font-medium text-gray-700 mb-3">
-                Account Summary
+                {t('auth.accountSummary')}
               </Text>
               <View className="space-y-2">
                 <View className="flex-row justify-between">
-                  <Text className="text-gray-600">Name:</Text>
+                  <Text className="text-gray-600">{t('auth.name')}:</Text>
                   <Text className="text-gray-900 font-medium">{fullName}</Text>
                 </View>
                 <View className="flex-row justify-between">
-                  <Text className="text-gray-600">Mobile:</Text>
+                  <Text className="text-gray-600">{t('auth.mobile')}:</Text>
                   <Text className="text-gray-900 font-medium">{mobileNumber}</Text>
                 </View>
                 <View className="flex-row justify-between">
-                  <Text className="text-gray-600">Farm:</Text>
+                  <Text className="text-gray-600">{t('auth.farm')}:</Text>
                   <Text className="text-gray-900 font-medium">{farmName}</Text>
                 </View>
                 <View className="flex-row justify-between">
-                  <Text className="text-gray-600">Size:</Text>
+                  <Text className="text-gray-600">{t('auth.size')}:</Text>
                   <Text className="text-gray-900 font-medium">
-                    {farmSize} acres
+                    {farmSize} {t('units.acres')}
                   </Text>
                 </View>
               </View>
@@ -457,7 +459,7 @@ export default function FarmerRegistration() {
                 <ActivityIndicator color="#ffffff" />
               ) : (
                 <Text className="text-white text-center text-lg font-semibold">
-                  Complete Registration
+                  {t('auth.completeRegistration')}
                 </Text>
               )}
             </TouchableOpacity>

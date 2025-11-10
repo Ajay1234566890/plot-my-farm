@@ -1,55 +1,57 @@
 import { ArrowLeft, Bell, CheckCircle, Clock, MessageSquare, Package } from "lucide-react-native";
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import FarmerBottomNav from './components/FarmerBottomNav';
 
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+  const { t } = useTranslation();
 
   // Mock notifications data
   const notifications = [
     {
       id: 1,
-      title: "New Offer: 10% off on Fresh Tomatoes",
-      message: "Fresh Green Farm's limited time offer, valid until tomorrow.",
+      title: t('notifications.newOfferTomatoes'),
+      message: t('notifications.freshGreenFarmOffer'),
       icon: <Bell size={24} color="#7C8B3A" />,
-      time: "15 mins ago",
+      time: t('notifications.minsAgo', { mins: 15 }),
       isUnread: true,
       type: "offer"
     },
     {
       id: 2,
-      title: "Order Shipped",
-      message: "Your order #12345 for Sweet Corn has been shipped and will reach you by today",
+      title: t('notifications.orderShipped'),
+      message: t('notifications.orderShippedMessage'),
       icon: <Package size={24} color="#7C8B3A" />,
-      time: "1 hour ago",
+      time: t('notifications.hourAgo', { hours: 1 }),
       isUnread: true,
       type: "order"
     },
     {
       id: 3,
-      title: "New Message from Sarah",
-      message: "Hi John, the orders you requested are ready for pickup.",
+      title: t('notifications.newMessageFromSarah'),
+      message: t('notifications.ordersReadyPickup'),
       icon: <MessageSquare size={24} color="#7C8B3A" />,
-      time: "Yesterday, 5:30 AM",
+      time: t('notifications.yesterdayTime', { time: '5:30 AM' }),
       isUnread: false,
       type: "message"
     },
     {
       id: 4,
-      title: "Order Delivered",
-      message: "Your order #12344 for Organic Apples has been successfully delivered",
+      title: t('notifications.orderDelivered'),
+      message: t('notifications.orderDeliveredMessage'),
       icon: <CheckCircle size={24} color="#7C8B3A" />,
-      time: "Yesterday, 2:15 AM",
+      time: t('notifications.yesterdayTime', { time: '2:15 AM' }),
       isUnread: false,
       type: "order"
     },
     {
       id: 5,
-      title: "Offer Expired",
-      message: "The special offer on Berries has expired.",
+      title: t('notifications.offerExpired'),
+      message: t('notifications.offerExpiredMessage'),
       icon: <Clock size={24} color="#7C8B3A" />,
-      time: "Yesterday, 8:00 AM",
+      time: t('notifications.yesterdayTime', { time: '8:00 AM' }),
       isUnread: false,
       type: "offer"
     },
@@ -85,18 +87,18 @@ export default function Notifications() {
               <ArrowLeft size={24} color="white" />
             </TouchableOpacity>
             <Text className="text-xl font-bold text-white">
-              Notifications
+              {t('notifications.notifications')}
             </Text>
           </View>
           <TouchableOpacity
             onPress={clearAllNotifications}
             className="active:opacity-70"
           >
-            <Text className="text-white text-sm">Clear All</Text>
+            <Text className="text-white text-sm">{t('notifications.clearAll')}</Text>
           </TouchableOpacity>
         </View>
         <Text className="text-white/80">
-          Stay updated with your farm activities
+          {t('notifications.stayUpdated')}
         </Text>
       </View>
 
@@ -109,7 +111,7 @@ export default function Notifications() {
         >
           <Text className={`text-center ${activeTab === 'all' ? 'font-semibold' : 'text-gray-600'}`}
                 style={activeTab === 'all' ? { color: '#7C8B3A' } : {}}>
-            All
+            {t('notifications.all')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -119,7 +121,7 @@ export default function Notifications() {
         >
           <Text className={`text-center ${activeTab === 'unread' ? 'font-semibold' : 'text-gray-600'}`}
                 style={activeTab === 'unread' ? { color: '#7C8B3A' } : {}}>
-            Unread
+            {t('notifications.unread')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -131,7 +133,7 @@ export default function Notifications() {
       >
         {/* Today Section */}
         <View className="px-4 py-3">
-          <Text className="text-sm font-medium text-gray-500">Today</Text>
+          <Text className="text-sm font-medium text-gray-500">{t('notifications.today')}</Text>
         </View>
         {filteredNotifications
           .filter(n => n.time.includes('mins') || n.time.includes('hour'))
@@ -162,7 +164,7 @@ export default function Notifications() {
 
         {/* Yesterday Section */}
         <View className="px-4 py-3">
-          <Text className="text-sm font-medium text-gray-500">Yesterday</Text>
+          <Text className="text-sm font-medium text-gray-500">{t('messages.yesterday')}</Text>
         </View>
         {filteredNotifications
           .filter(n => n.time.includes('Yesterday'))

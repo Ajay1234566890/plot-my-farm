@@ -1,8 +1,10 @@
 import { Camera, ChevronDown, ChevronLeft, MapPin, Mic } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function FarmerProfileSetup() {
+const { t } = useTranslation();
 const [cropType, setCropType] = useState('');
 const [isCropTypeOpen, setIsCropTypeOpen] = useState(false);
 
@@ -32,11 +34,11 @@ borderBottomRightRadius: 40,
 <ChevronLeft size={24} color="#FFFFFF" />
 </TouchableOpacity>
 <Text className="text-xl font-bold text-white">
-Profile Setup
+{t('auth.profileSetup')}
 </Text>
 </View>
 <Text className="text-white/80">
-Complete your profile to get started
+{t('auth.completeProfile')}
 </Text>
 </View>
 
@@ -75,33 +77,33 @@ style={{ backgroundColor: '#7C8B3A' }}
 <View className="space-y-4">
 {/* Name Input */}
 <View>
-<Text className="text-sm font-medium text-gray-700 mb-1">Name</Text>
+<Text className="text-sm font-medium text-gray-700 mb-1">{t('auth.name')}</Text>
 <TextInput
-placeholder="Enter your name"
+placeholder={t('auth.enterName')}
 className="p-4 rounded-xl border border-gray-200 text-gray-900"
 />
 </View>
 
 {/* Address Input */}
 <View>
-<Text className="text-sm font-medium text-gray-700 mb-1">Address</Text>
+<Text className="text-sm font-medium text-gray-700 mb-1">{t('profile.address')}</Text>
 <TouchableOpacity className="p-4 rounded-xl border border-gray-200 flex-row items-center justify-between">
 <View className="flex-row items-center flex-1">
 <MapPin size={20} color="#374151" />
-<Text className="text-gray-400 ml-2">Auto-fetched by GPS</Text>
+<Text className="text-gray-400 ml-2">{t('profile.autoFetchedGPS')}</Text>
 </View>
 </TouchableOpacity>
 </View>
 
 {/* Soil Test Selection */}
 <View>
-<Text className="text-sm font-medium text-gray-700 mb-1">Soil Test</Text>
-<TouchableOpacity 
+<Text className="text-sm font-medium text-gray-700 mb-1">{t('profile.soilTest')}</Text>
+<TouchableOpacity
 onPress={() => setIsCropTypeOpen(!isCropTypeOpen)}
 className="p-4 rounded-xl border border-gray-200 flex-row items-center justify-between"
 >
 <Text className="text-gray-900">
-{cropType || 'Select soil test'}
+{cropType || t('profile.selectSoilTest')}
 </Text>
 <ChevronDown 
 size={20} 
@@ -138,9 +140,9 @@ cropType === crop ? 'text-green-600' : 'text-gray-900'
 
 {/* Land Size Input */}
 <View>
-<Text className="text-sm font-medium text-gray-700 mb-1">Land Acres</Text>
+<Text className="text-sm font-medium text-gray-700 mb-1">{t('profile.landAcres')}</Text>
 <TextInput
-placeholder="Enter land size"
+placeholder={t('profile.enterLandSize')}
 keyboardType="numeric"
 className="p-4 rounded-xl border border-gray-200 text-gray-900"
 />
@@ -149,16 +151,16 @@ className="p-4 rounded-xl border border-gray-200 text-gray-900"
 {/* Location Fields */}
 <View className="flex-row gap-4">
 <View className="flex-1">
-<Text className="text-sm font-medium text-gray-700 mb-1">State</Text>
+<Text className="text-sm font-medium text-gray-700 mb-1">{t('market.state')}</Text>
 <TextInput
-placeholder="Enter state"
+placeholder={t('profile.enterState')}
 className="p-4 rounded-xl border border-gray-200 text-gray-900"
 />
 </View>
 <View className="flex-1">
-<Text className="text-sm font-medium text-gray-700 mb-1">City</Text>
+<Text className="text-sm font-medium text-gray-700 mb-1">{t('profile.city')}</Text>
 <TextInput
-placeholder="Enter city"
+placeholder={t('profile.enterCity')}
 className="p-4 rounded-xl border border-gray-200 text-gray-900"
 />
 </View>
@@ -166,14 +168,14 @@ className="p-4 rounded-xl border border-gray-200 text-gray-900"
 
 {/* Pincode Input */}
 <View>
-<Text className="text-sm font-medium text-gray-700 mb-1">Pincode</Text>
+<Text className="text-sm font-medium text-gray-700 mb-1">{t('profile.pincode')}</Text>
 <View className="relative">
 <TextInput
-placeholder="Enter pincode"
+placeholder={t('profile.enterPincode')}
 keyboardType="numeric"
 className="p-4 rounded-xl border border-gray-200 text-gray-900 pr-12"
 />
-<TouchableOpacity 
+<TouchableOpacity
 className="absolute right-4 top-1/2 -mt-4"
 >
 <Mic size={20} color="#374151" />
@@ -186,12 +188,12 @@ className="absolute right-4 top-1/2 -mt-4"
 <View className="flex-row gap-4 mt-8">
 <TouchableOpacity className="flex-1 p-4 rounded-xl" style={{ backgroundColor: '#F5F3F0' }}>
 <Text className="text-center text-lg font-semibold" style={{ color: '#7C8B3A' }}>
-Save
+{t('common.save')}
 </Text>
 </TouchableOpacity>
 <TouchableOpacity className="flex-1 p-4 rounded-xl" style={{ backgroundColor: '#7C8B3A' }}>
 <Text className="text-white text-center text-lg font-semibold">
-Continue
+{t('common.continue')}
 </Text>
 </TouchableOpacity>
 </View>

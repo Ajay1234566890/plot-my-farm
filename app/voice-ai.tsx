@@ -5,18 +5,20 @@ import {
     Mic
 } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import FarmerBottomNav from './components/FarmerBottomNav';
 
 export default function VoiceAI() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [isRecording, setIsRecording] = useState(false);
   const [searchResult, setSearchResult] = useState('');
   const [recentQueries] = useState([
-    'Show market price for rice',
-    'Read my messages',
-    'Call Raju farmer',
-    'Find me tomatoes'
+    t('voiceAI.showMarketPriceRice'),
+    t('voiceAI.readMyMessages'),
+    t('voiceAI.callRajuFarmer'),
+    t('voiceAI.findMeTomatoes')
   ]);
 
   const handleVoiceCommand = () => {
@@ -24,7 +26,7 @@ export default function VoiceAI() {
     // Simulate voice processing
     setTimeout(() => {
       setIsRecording(false);
-      setSearchResult('Searching for farmers near you growing onions...');
+      setSearchResult(t('voiceAI.searchingFarmersOnions'));
     }, 2000);
   };
 
@@ -46,17 +48,17 @@ export default function VoiceAI() {
           >
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Voice AI</Text>
+          <Text className="text-white text-xl font-bold">{t('voiceAI.voiceAI')}</Text>
         </View>
         <Text className="text-white/80">
-          Ask me anything about crops and farming
+          {t('voiceAI.askMeAnythingCropsFarming')}
         </Text>
       </View>
 
       {/* Main Content */}
       <ScrollView className="flex-1 p-4">
         <Text className="text-gray-600 text-center mb-8">
-          Ask me anything about crops, farmers, or the market.
+          {t('voiceAI.askMeAnythingCropsFarmersMarket')}
         </Text>
 
         {/* Voice Button */}
@@ -79,9 +81,9 @@ export default function VoiceAI() {
 
         {/* Recent Queries */}
         <View className="mb-8">
-          <Text className="text-lg font-semibold text-gray-800 mb-4">Recent Queries</Text>
+          <Text className="text-lg font-semibold text-gray-800 mb-4">{t('voiceAI.recentQueries')}</Text>
           {recentQueries.map((query, index) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               key={index}
               className="bg-blue-100 p-4 rounded-lg mb-2 flex-row items-center"
               onPress={() => setSearchResult(query)}

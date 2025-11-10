@@ -13,6 +13,7 @@ import {
     User,
 } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import {
     Dimensions,
     Image,
@@ -25,31 +26,33 @@ import {
 const { width } = Dimensions.get("window");
 
 export default function FarmerDetails() {
+  const { t } = useTranslation();
+
   // Mock data for the farmer
   const farmer = {
     id: 1,
-    name: "Green Valley",
-    description: "Fresh fruits & poultry",
+    name: t('farmerDetails.greenValley'),
+    description: t('farmerDetails.freshFruitsPoultry'),
     rating: 4.9,
-    reviews: 210,
+    reviewCount: 210,
     avatar:
       "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
     products: [
       {
         id: 1,
-        name: "Apples",
+        name: t('crops.apples'),
         image:
           "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800&auto=format&fit=crop",
       },
       {
         id: 2,
-        name: "Chicken",
+        name: t('farmerDetails.chicken'),
         image:
           "https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=800&auto=format&fit=crop",
       },
       {
         id: 3,
-        name: "Eggs",
+        name: t('farmerDetails.eggs'),
         image:
           "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=800&auto=format&fit=crop",
       },
@@ -57,24 +60,23 @@ export default function FarmerDetails() {
     reviews: [
       {
         id: 1,
-        name: "Sarah L.",
-        comment: "The best organic apples I've ever had! So fresh and juicy.",
+        name: t('farmerDetails.sarahL'),
+        comment: t('farmerDetails.bestOrganicApples'),
         avatar:
           "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop",
       },
       {
         id: 2,
-        name: "Mike T.",
-        comment:
-          "Green Valley's chicken is top-notch. Highly recommend their farm.",
+        name: t('farmerDetails.mikeT'),
+        comment: t('farmerDetails.greenValleyChickenTopNotch'),
         avatar:
           "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&auto=format&fit=crop",
       },
     ],
     contact: {
       phone: "+1 (234) 567-890",
-      address: "123 Green Valley Rd, Farmville, CA",
-      distance: "3.1 km away",
+      address: t('farmerDetails.greenValleyAddress'),
+      distance: t('farmerDetails.kmAway', { distance: '3.1' }),
     },
   };
 
@@ -98,10 +100,10 @@ export default function FarmerDetails() {
           <ArrowLeft size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text className="text-white text-xl font-bold text-center">
-          Farmer Details
+          {t('farmerDetails.farmerDetails')}
         </Text>
         <Text className="text-white/80 text-center mt-2">
-          View farmer profile and products
+          {t('farmerDetails.viewFarmerProfileProducts')}
         </Text>
       </View>
 
@@ -136,7 +138,7 @@ export default function FarmerDetails() {
                 {farmer.rating}
               </Text>
               <Text className="text-gray-500 ml-1">
-                ({farmer.reviews} reviews)
+                ({farmer.reviewCount} {t('farmerDetails.reviews')})
               </Text>
             </View>
           </View>
@@ -146,7 +148,7 @@ export default function FarmerDetails() {
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
         {/* Products Section */}
         <View className="mt-6">
-          <Text className="text-xl font-bold text-gray-900 mb-4">Products</Text>
+          <Text className="text-xl font-bold text-gray-900 mb-4">{t('farmerDetails.products')}</Text>
           <View className="flex-row gap-4">
             {farmer.products.map((product) => (
               <View
@@ -168,7 +170,7 @@ export default function FarmerDetails() {
 
         {/* Reviews Section */}
         <View className="mt-8">
-          <Text className="text-xl font-bold text-gray-900 mb-4">Reviews</Text>
+          <Text className="text-xl font-bold text-gray-900 mb-4">{t('farmerDetails.reviews')}</Text>
           {farmer.reviews.map((review) => (
             <View
               key={review.id}
@@ -194,7 +196,7 @@ export default function FarmerDetails() {
         {/* Contact Information */}
         <View className="mt-8 mb-8">
           <Text className="text-xl font-bold text-gray-900 mb-4">
-            Contact Information
+            {t('farmerDetails.contactInformation')}
           </Text>
           <View className="bg-white p-4 rounded-2xl shadow-md">
             <View className="flex-row items-center mb-4">
@@ -222,11 +224,11 @@ export default function FarmerDetails() {
         <View className="flex-row gap-4">
           <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-green-600 rounded-xl py-4">
             <Phone size={20} color="#FFFFFF" />
-            <Text className="text-white font-semibold ml-2">Call</Text>
+            <Text className="text-white font-semibold ml-2">{t('farmerDetails.call')}</Text>
           </TouchableOpacity>
           <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-blue-600 rounded-xl py-4">
             <MessageSquare size={20} color="#FFFFFF" />
-            <Text className="text-white font-semibold ml-2">Message</Text>
+            <Text className="text-white font-semibold ml-2">{t('farmerDetails.message')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -241,7 +243,7 @@ export default function FarmerDetails() {
             accessibilityRole="tab"
           >
             <Home size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Home</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('common.home')}</Text>
           </TouchableOpacity>
 
           {/* My Farms Tab */}
@@ -251,7 +253,7 @@ export default function FarmerDetails() {
             accessibilityRole="tab"
           >
             <Sprout size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Crops</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('common.crops')}</Text>
           </TouchableOpacity>
 
           {/* Mic Button */}
@@ -270,7 +272,7 @@ export default function FarmerDetails() {
             accessibilityRole="tab"
           >
             <MessageCircle size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Orders</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('common.orders')}</Text>
           </TouchableOpacity>
 
           {/* Profile Tab */}
@@ -280,7 +282,7 @@ export default function FarmerDetails() {
             accessibilityRole="tab"
           >
             <User size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Profile</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('profile.profile')}</Text>
           </TouchableOpacity>
         </View>
 

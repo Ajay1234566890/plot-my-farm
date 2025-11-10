@@ -12,6 +12,7 @@ import {
     Upload
 } from "lucide-react-native";
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
     Alert,
     ScrollView,
@@ -23,6 +24,7 @@ import {
 
 export default function SoilTest() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [selectedTest, setSelectedTest] = useState<string | null>(null);
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
@@ -31,36 +33,36 @@ export default function SoilTest() {
   const soilTests = [
     {
       id: "basic",
-      title: "Basic Soil Analysis",
-      description: "pH, Nutrients, Moisture",
+      title: t('soilTest.basicSoilAnalysis'),
+      description: t('soilTest.basicDescription'),
       price: "₹499",
-      time: "2-3 days",
+      time: t('soilTest.twoDays'),
       icon: "🧪",
     },
     {
       id: "comprehensive",
-      title: "Comprehensive Test",
-      description: "pH, NPK, Organic Matter, Micro-nutrients",
+      title: t('soilTest.comprehensiveTest'),
+      description: t('soilTest.comprehensiveDescription'),
       price: "₹899",
-      time: "4-5 days",
+      time: t('soilTest.fourDays'),
       icon: "🔬",
     },
     {
       id: "advanced",
-      title: "Advanced Analysis",
-      description: "Complete soil health report",
+      title: t('soilTest.advancedAnalysis'),
+      description: t('soilTest.advancedDescription'),
       price: "₹1499",
-      time: "1 week",
+      time: t('soilTest.oneWeek'),
       icon: "🧬",
     },
   ];
 
   const handleSubmit = () => {
     if (!selectedTest || !location) {
-      Alert.alert("Missing Information", "Please select a test and enter location");
+      Alert.alert(t('soilTest.missingInformation'), t('soilTest.selectTestAndLocation'));
       return;
     }
-    
+
     setIsSubmitted(true);
     // In a real app, this would send data to a backend
     setTimeout(() => {
@@ -68,7 +70,7 @@ export default function SoilTest() {
       setSelectedTest(null);
       setLocation("");
       setNotes("");
-      Alert.alert("Success", "Your soil test request has been submitted successfully!");
+      Alert.alert(t('common.success'), t('soilTest.requestSubmitted'));
     }, 2000);
   };
 
@@ -88,12 +90,13 @@ export default function SoilTest() {
             <TouchableOpacity
               className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
               onPress={() => router.back()}
+              accessibilityLabel={t('common.goBack')}
             >
               <ArrowLeft size={24} color="white" />
             </TouchableOpacity>
             <View className="flex-1">
-              <Text className="text-2xl font-bold text-white">Soil Testing</Text>
-              <Text className="text-white/90 mt-1">Get your soil analyzed by experts</Text>
+              <Text className="text-2xl font-bold text-white">{t('soilTest.soilTesting')}</Text>
+              <Text className="text-white/90 mt-1">{t('soilTest.soilTestingSubtitle')}</Text>
             </View>
           </View>
           <FlaskConical size={32} color="#FFFFFF" />
@@ -114,7 +117,7 @@ export default function SoilTest() {
           }}
         >
           <Text className="text-xl font-bold text-gray-800 mb-4">
-            Select Test Type
+            {t('soilTest.selectTestType')}
           </Text>
 
           {soilTests.map((test) => (
@@ -153,14 +156,14 @@ export default function SoilTest() {
         {/* Location Input */}
         <View className="px-4 mt-2">
           <Text className="text-lg font-bold text-gray-800 mb-3">
-            Farm Location
+            {t('soilTest.farmLocation')}
           </Text>
           <View className="bg-white rounded-2xl p-4 shadow shadow-gray-200">
             <View className="flex-row items-center">
               <MapPin size={20} color="#9CA3AF" />
               <TextInput
                 className="flex-1 ml-3 text-base text-gray-800"
-                placeholder="Enter farm address or GPS coordinates"
+                placeholder={t('soilTest.enterFarmAddress')}
                 placeholderTextColor="#9CA3AF"
                 value={location}
                 onChangeText={setLocation}
@@ -172,12 +175,12 @@ export default function SoilTest() {
         {/* Notes */}
         <View className="px-4 mt-4">
           <Text className="text-lg font-bold text-gray-800 mb-3">
-            Additional Notes
+            {t('soilTest.additionalNotes')}
           </Text>
           <View className="bg-white rounded-2xl p-4 shadow shadow-gray-200">
             <TextInput
               className="text-base text-gray-800 h-24"
-              placeholder="Any specific concerns or information about your soil..."
+              placeholder={t('soilTest.notesPlaceholder')}
               placeholderTextColor="#9CA3AF"
               multiline
               textAlignVertical="top"
@@ -190,16 +193,16 @@ export default function SoilTest() {
         {/* Soil Image Upload */}
         <View className="px-4 mt-4">
           <Text className="text-lg font-bold text-gray-800 mb-3">
-            Soil Sample Photos
+            {t('soilTest.soilSamplePhotos')}
           </Text>
           <View className="bg-white rounded-2xl p-6 shadow shadow-gray-200 items-center">
             <Upload size={48} color="#9CA3AF" />
             <Text className="text-gray-500 mt-2 text-center">
-              Upload photos of your soil sample
+              {t('soilTest.uploadPhotos')}
             </Text>
             <TouchableOpacity className="mt-4 flex-row items-center bg-amber-100 rounded-full px-4 py-2">
               <Camera size={16} color="#EA580C" />
-              <Text className="text-amber-700 font-medium ml-2">Take Photo</Text>
+              <Text className="text-amber-700 font-medium ml-2">{t('soilTest.takePhoto')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -207,41 +210,41 @@ export default function SoilTest() {
         {/* Benefits Section */}
         <View className="px-4 mt-6">
           <Text className="text-lg font-bold text-gray-800 mb-3">
-            Why Soil Testing?
+            {t('soilTest.whySoilTesting')}
           </Text>
           <View className="bg-white rounded-2xl p-4 shadow shadow-gray-200">
             <View className="flex-row mb-4">
               <Leaf size={24} color="#10B981" />
               <View className="ml-3">
                 <Text className="font-bold text-gray-800">
-                  Improve Crop Yield
+                  {t('soilTest.improveCropYield')}
                 </Text>
                 <Text className="text-gray-500 text-sm mt-1">
-                  Understand your soil's potential for better harvests
+                  {t('soilTest.improveCropYieldDesc')}
                 </Text>
               </View>
             </View>
-            
+
             <View className="flex-row mb-4">
               <Droplets size={24} color="#3B82F6" />
               <View className="ml-3">
                 <Text className="font-bold text-gray-800">
-                  Optimize Water Usage
+                  {t('soilTest.optimizeWaterUsage')}
                 </Text>
                 <Text className="text-gray-500 text-sm mt-1">
-                  Know your soil's water retention capacity
+                  {t('soilTest.optimizeWaterUsageDesc')}
                 </Text>
               </View>
             </View>
-            
+
             <View className="flex-row">
               <Sun size={24} color="#F59E0B" />
               <View className="ml-3">
                 <Text className="font-bold text-gray-800">
-                  Nutrient Management
+                  {t('soilTest.nutrientManagement')}
                 </Text>
                 <Text className="text-gray-500 text-sm mt-1">
-                  Apply the right fertilizers in correct quantities
+                  {t('soilTest.nutrientManagementDesc')}
                 </Text>
               </View>
             </View>
@@ -262,11 +265,11 @@ export default function SoilTest() {
             {isSubmitted ? (
               <View className="flex-row items-center">
                 <CheckCircle size={24} color="#FFFFFF" />
-                <Text className="text-white font-bold ml-2">Request Submitted!</Text>
+                <Text className="text-white font-bold ml-2">{t('soilTest.requestSubmittedButton')}</Text>
               </View>
             ) : (
               <Text className="text-white font-bold text-lg">
-                Submit Soil Test Request
+                {t('soilTest.submitRequest')}
               </Text>
             )}
           </TouchableOpacity>

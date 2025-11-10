@@ -9,39 +9,42 @@ import {
     Trash2
 } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-
-// Mock cart data
-const initialCartItems = [
-  {
-    id: 1,
-    name: 'Tomatoes',
-    price: 400,
-    quantity: 2,
-    unit: 'kg',
-    image: 'https://images.unsplash.com/photo-1546470427-227c8f25f783?w=800&auto=format&fit=crop'
-  },
-  {
-    id: 2,
-    name: 'Sweet Corn',
-    price: 330,
-    quantity: 1,
-    unit: 'dozen',
-    image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800&auto=format&fit=crop'
-  },
-  {
-    id: 3,
-    name: 'Carrots',
-    price: 435,
-    quantity: 3,
-    unit: 'kg',
-    image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800&auto=format&fit=crop'
-  }
-];
 
 export default function CartScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useTranslation();
+
+  // Mock cart data
+  const initialCartItems = [
+    {
+      id: 1,
+      name: t('crops.tomatoes'),
+      price: 400,
+      quantity: 2,
+      unit: t('common.kg'),
+      image: 'https://images.unsplash.com/photo-1546470427-227c8f25f783?w=800&auto=format&fit=crop'
+    },
+    {
+      id: 2,
+      name: t('buyer.sweetCorn'),
+      price: 330,
+      quantity: 1,
+      unit: t('cart.dozen'),
+      image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800&auto=format&fit=crop'
+    },
+    {
+      id: 3,
+      name: t('crops.carrots'),
+      price: 435,
+      quantity: 3,
+      unit: t('common.kg'),
+      image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800&auto=format&fit=crop'
+    }
+  ];
+
   const [cartItems, setCartItems] = useState(initialCartItems);
 
   const updateQuantity = (id: number, increment: boolean) => {
@@ -92,7 +95,7 @@ export default function CartScreen() {
           >
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">My Cart</Text>
+          <Text className="text-white text-xl font-bold">{t('cart.myCart')}</Text>
         </View>
       </View>
 
@@ -152,7 +155,7 @@ export default function CartScreen() {
       {/* Bottom Section */}
       <View className="p-4 bg-white border-t border-gray-200 pb-24">
         <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-gray-600 text-lg">Subtotal</Text>
+          <Text className="text-gray-600 text-lg">{t('cart.subtotal')}</Text>
           <Text className="text-xl font-semibold">₹{subtotal}</Text>
         </View>
         <TouchableOpacity
@@ -161,7 +164,7 @@ export default function CartScreen() {
           style={{ backgroundColor: '#B27E4C' }}
         >
           <Text className="text-white text-lg font-semibold">
-            Proceed to Checkout
+            {t('cart.proceedToCheckout')}
           </Text>
         </TouchableOpacity>
       </View>

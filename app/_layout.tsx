@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { WeatherProvider } from "@/contexts/weather-context";
 import "@/global.css";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import "@/i18n/config"; // Initialize i18n
 import {
     DarkTheme,
     DefaultTheme,

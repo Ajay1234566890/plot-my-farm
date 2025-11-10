@@ -1,9 +1,11 @@
 import { ArrowLeft, Calendar, Upload } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import FarmerBottomNav from './components/FarmerBottomNav';
 
 export default function AddEditCrop() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     image: '',
     cropName: '',
@@ -35,14 +37,14 @@ export default function AddEditCrop() {
 
     // Check if there are any errors
     if (Object.values(newErrors).some(error => error)) {
-      Alert.alert('Validation Error', 'Please fill in all required fields');
+      Alert.alert(t('errors.validationError'), t('errors.fillAllFields'));
       return;
     }
 
     // In a real app, this would save to a database
-    Alert.alert('Success', 'Crop saved successfully!', [
+    Alert.alert(t('common.success'), t('success.cropSaved'), [
       {
-        text: 'OK',
+        text: t('common.ok'),
         onPress: () => {
           // Navigation would happen here in a real app
           console.log('Navigate to My Farms');
@@ -53,12 +55,12 @@ export default function AddEditCrop() {
 
   const handleCancel = () => {
     Alert.alert(
-      'Cancel',
-      'Are you sure you want to cancel? Your changes will not be saved.',
+      t('common.cancel'),
+      t('crops.cancelConfirmation'),
       [
-        { text: 'No', style: 'cancel' },
-        { 
-          text: 'Yes', 
+        { text: t('common.no'), style: 'cancel' },
+        {
+          text: t('common.yes'),
           style: 'destructive',
           onPress: () => {
             // Reset form
@@ -99,14 +101,14 @@ export default function AddEditCrop() {
           <TouchableOpacity
             className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
             onPress={() => console.log('Navigate back')}
-            accessibilityLabel="Go back"
+            accessibilityLabel={t('common.goBack')}
           >
             <ArrowLeft size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">Add / Edit Crop</Text>
+          <Text className="text-xl font-bold text-white">{t('crops.addEditCrop')}</Text>
         </View>
         <Text className="text-white/80">
-          Add or update your crop information
+          {t('crops.addEditCropSubtitle')}
         </Text>
       </View>
 
@@ -124,21 +126,21 @@ export default function AddEditCrop() {
         >
           {/* Upload Image Section */}
           <View className="mb-6">
-            <Text className="text-base font-medium text-gray-700 mb-2">Upload Image</Text>
-            <TouchableOpacity 
+            <Text className="text-base font-medium text-gray-700 mb-2">{t('crops.uploadImage')}</Text>
+            <TouchableOpacity
               className="border-2 border-dashed border-gray-300 rounded-xl p-8 items-center justify-center"
               onPress={() => console.log('Upload image pressed')}
             >
               {formData.image ? (
-                <Image 
-                  source={{ uri: formData.image }} 
-                  className="w-full h-48 rounded-lg" 
+                <Image
+                  source={{ uri: formData.image }}
+                  className="w-full h-48 rounded-lg"
                   resizeMode="cover"
                 />
               ) : (
                 <>
                   <Upload size={32} color="#6B7280" />
-                  <Text className="text-gray-500 mt-2">Click to upload PNG/JPG</Text>
+                  <Text className="text-gray-500 mt-2">{t('crops.clickToUpload')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -146,42 +148,42 @@ export default function AddEditCrop() {
 
           {/* Crop Name */}
           <View className="mb-4">
-            <Text className="text-base font-medium text-gray-700 mb-2">Crop Name</Text>
+            <Text className="text-base font-medium text-gray-700 mb-2">{t('crops.cropName')}</Text>
             <TextInput
               className={`border rounded-xl p-4 text-base text-gray-900 ${errors.cropName ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="e.g., Tomato"
+              placeholder={t('crops.cropNamePlaceholder')}
               placeholderTextColor="#9CA3AF"
               value={formData.cropName}
               onChangeText={(text) => setFormData({...formData, cropName: text})}
             />
-            {errors.cropName && <Text className="text-red-500 text-sm mt-1">Crop name is required</Text>}
+            {errors.cropName && <Text className="text-red-500 text-sm mt-1">{t('errors.cropNameRequired')}</Text>}
           </View>
 
           {/* Quantity and Unit */}
           <View className="flex-row gap-4 mb-4">
             <View className="flex-1">
-              <Text className="text-base font-medium text-gray-700 mb-2">Quantity</Text>
+              <Text className="text-base font-medium text-gray-700 mb-2">{t('crops.quantity')}</Text>
               <TextInput
                 className={`border rounded-xl p-4 text-base text-gray-900 ${errors.quantity ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="e.g., 100"
+                placeholder={t('crops.quantityPlaceholder')}
                 placeholderTextColor="#9CA3AF"
                 keyboardType="numeric"
                 value={formData.quantity}
                 onChangeText={(text) => setFormData({...formData, quantity: text})}
               />
-              {errors.quantity && <Text className="text-red-500 text-sm mt-1">Quantity is required</Text>}
+              {errors.quantity && <Text className="text-red-500 text-sm mt-1">{t('errors.quantityRequired')}</Text>}
             </View>
 
             <View className="flex-1">
-              <Text className="text-base font-medium text-gray-700 mb-2">Unit</Text>
-              <TouchableOpacity 
+              <Text className="text-base font-medium text-gray-700 mb-2">{t('crops.unit')}</Text>
+              <TouchableOpacity
                 className="border border-gray-300 rounded-xl p-4 flex-row items-center justify-between"
                 onPress={() => setShowUnitDropdown(!showUnitDropdown)}
               >
                 <Text className="text-base text-gray-700">{formData.unit}</Text>
                 <View className="w-0 h-0 border-l-5 border-r-5 border-t-5 border-l-transparent border-r-transparent border-t-gray-500" />
               </TouchableOpacity>
-              
+
               {showUnitDropdown && (
                 <View className="absolute top-[76px] left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
                   {units.map((unit) => (
@@ -203,13 +205,13 @@ export default function AddEditCrop() {
 
           {/* Price per Unit */}
           <View className="mb-4">
-            <Text className="text-base font-medium text-gray-700 mb-2">Price per unit</Text>
+            <Text className="text-base font-medium text-gray-700 mb-2">{t('crops.pricePerUnit')}</Text>
             <View className={`border rounded-xl ${errors.price ? 'border-red-500' : 'border-gray-300'}`}>
               <View className="flex-row items-center">
                 <Text className="ml-4 text-gray-700 text-lg">₹</Text>
                 <TextInput
                   className="flex-1 p-4 text-base text-gray-900"
-                  placeholder="e.g., 40"
+                  placeholder={t('crops.pricePlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="numeric"
                   value={formData.price}
@@ -217,42 +219,42 @@ export default function AddEditCrop() {
                 />
               </View>
             </View>
-            {errors.price && <Text className="text-red-500 text-sm mt-1">Price is required</Text>}
+            {errors.price && <Text className="text-red-500 text-sm mt-1">{t('errors.priceRequired')}</Text>}
           </View>
 
           {/* Harvest Date */}
           <View className="mb-8">
-            <Text className="text-base font-medium text-gray-700 mb-2">Harvest Date</Text>
-            <TouchableOpacity 
+            <Text className="text-base font-medium text-gray-700 mb-2">{t('crops.harvestDate')}</Text>
+            <TouchableOpacity
               className={`border rounded-xl p-4 flex-row items-center ${errors.harvestDate ? 'border-red-500' : 'border-gray-300'}`}
               onPress={() => console.log('Date picker pressed')}
             >
               <Calendar size={20} color="#6B7280" />
               <TextInput
                 className="ml-3 flex-1 text-base text-gray-700"
-                placeholder="mm/dd/yyyy"
+                placeholder={t('crops.dateFormat')}
                 value={formData.harvestDate}
                 onChangeText={(text) => setFormData({...formData, harvestDate: text})}
               />
             </TouchableOpacity>
-            {errors.harvestDate && <Text className="text-red-500 text-sm mt-1">Harvest date is required</Text>}
+            {errors.harvestDate && <Text className="text-red-500 text-sm mt-1">{t('errors.harvestDateRequired')}</Text>}
           </View>
 
           {/* Action Buttons */}
           <View className="flex-row gap-4 mt-6">
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-1 border border-gray-300 rounded-xl p-4"
             onPress={handleCancel}
           >
-            <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+            <Text className="text-center text-base font-medium text-gray-700">{t('common.cancel')}</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             className="flex-1 rounded-xl p-4"
             style={{ backgroundColor: '#7C8B3A' }}
             onPress={handleSave}
           >
-            <Text className="text-white text-center text-base font-medium">Save</Text>
+            <Text className="text-white text-center text-base font-medium">{t('common.save')}</Text>
           </TouchableOpacity>
         </View>
         </View>

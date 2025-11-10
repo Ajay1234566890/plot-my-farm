@@ -11,11 +11,13 @@ import {
     LogOut
 } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Image, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import BuyerBottomNav from './components/BuyerBottomNav';
 
 export default function BuyerProfile() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const [notificationsExpanded, setNotificationsExpanded] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState({
@@ -26,12 +28,12 @@ export default function BuyerProfile() {
 
   const handleLogout = () => {
     Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+      t('profile.logout'),
+      t('profile.logoutConfirmation'),
       [
-        { text: "Cancel", onPress: () => {}, style: "cancel" },
+        { text: t('common.cancel'), onPress: () => {}, style: "cancel" },
         {
-          text: "Logout",
+          text: t('profile.logout'),
           onPress: async () => {
             await logout();
             router.replace('/select-role');
@@ -60,10 +62,10 @@ export default function BuyerProfile() {
           >
             <ChevronLeft size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">Profile</Text>
+          <Text className="text-xl font-bold text-white">{t('profile.profile')}</Text>
         </View>
         <Text className="text-white/80">
-          Manage your account and preferences
+          {t('profile.manageAccountPreferences')}
         </Text>
       </View>
 
@@ -85,14 +87,14 @@ export default function BuyerProfile() {
               className="w-full h-full"
             />
           </View>
-          <Text className="mt-4 text-xl font-bold text-gray-900">{user?.name || "Buyer"}</Text>
-          <Text className="text-sm text-gray-500">{user?.email || "buyer@example.com"}</Text>
+          <Text className="mt-4 text-xl font-bold text-gray-900">{user?.name || t('buyerProfile.buyer')}</Text>
+          <Text className="text-sm text-gray-500">{user?.phone || t('buyerProfile.buyerPhone')}</Text>
           <TouchableOpacity
             className="mt-4 px-6 py-3 rounded-xl"
             style={{ backgroundColor: '#B27E4C' }}
-            onPress={() => Alert.alert("Edit Profile", "Profile editing coming soon")}
+            onPress={() => Alert.alert(t('profile.editProfile'), t('profile.profileEditingComingSoon'))}
           >
-            <Text className="text-white font-semibold">Edit Profile</Text>
+            <Text className="text-white font-semibold">{t('profile.editProfile')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -107,12 +109,12 @@ export default function BuyerProfile() {
             elevation: 8,
           }}
         >
-          <Text className="text-lg font-semibold mb-4">Account Settings</Text>
-          
+          <Text className="text-lg font-semibold mb-4">{t('profile.accountSettings')}</Text>
+
           <TouchableOpacity className="flex-row items-center justify-between py-4 border-b border-gray-100">
             <View className="flex-row items-center">
               <Bell size={20} color="#B27E4C" />
-              <Text className="ml-3 text-base">Notifications</Text>
+              <Text className="ml-3 text-base">{t('profile.notifications')}</Text>
             </View>
             <TouchableOpacity onPress={() => setNotificationsExpanded(!notificationsExpanded)}>
               <ChevronRight size={20} color="#4B5563" />
@@ -122,7 +124,7 @@ export default function BuyerProfile() {
           {notificationsExpanded && (
             <View className="pl-8 py-2">
               <View className="flex-row items-center justify-between py-2">
-                <Text className="text-sm text-gray-600">Message Alerts</Text>
+                <Text className="text-sm text-gray-600">{t('profile.messageAlerts')}</Text>
                 <Switch
                   value={notificationSettings.messageAlerts}
                   onValueChange={(value) => setNotificationSettings({...notificationSettings, messageAlerts: value})}
@@ -131,7 +133,7 @@ export default function BuyerProfile() {
                 />
               </View>
               <View className="flex-row items-center justify-between py-2">
-                <Text className="text-sm text-gray-600">Offer Alerts</Text>
+                <Text className="text-sm text-gray-600">{t('profile.offerAlerts')}</Text>
                 <Switch
                   value={notificationSettings.offerAlerts}
                   onValueChange={(value) => setNotificationSettings({...notificationSettings, offerAlerts: value})}
@@ -140,7 +142,7 @@ export default function BuyerProfile() {
                 />
               </View>
               <View className="flex-row items-center justify-between py-2">
-                <Text className="text-sm text-gray-600">Order Updates</Text>
+                <Text className="text-sm text-gray-600">{t('profile.orderUpdates')}</Text>
                 <Switch
                   value={notificationSettings.orderUpdates}
                   onValueChange={(value) => setNotificationSettings({...notificationSettings, orderUpdates: value})}
@@ -154,10 +156,10 @@ export default function BuyerProfile() {
           <TouchableOpacity className="flex-row items-center justify-between py-4 border-b border-gray-100">
             <View className="flex-row items-center">
               <Globe size={20} color="#B27E4C" />
-              <Text className="ml-3 text-base">Language</Text>
+              <Text className="ml-3 text-base">{t('profile.language')}</Text>
             </View>
             <View className="flex-row items-center">
-              <Text className="text-gray-500 mr-2">English</Text>
+              <Text className="text-gray-500 mr-2">{t('common.english')}</Text>
               <ChevronRight size={20} color="#4B5563" />
             </View>
           </TouchableOpacity>
@@ -165,7 +167,7 @@ export default function BuyerProfile() {
           <TouchableOpacity className="flex-row items-center justify-between py-4">
             <View className="flex-row items-center">
               <Info size={20} color="#B27E4C" />
-              <Text className="ml-3 text-base">Help & Support</Text>
+              <Text className="ml-3 text-base">{t('buyerProfile.helpSupport')}</Text>
             </View>
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
@@ -182,15 +184,15 @@ export default function BuyerProfile() {
             elevation: 8,
           }}
         >
-          <Text className="text-lg font-semibold mb-4">My Activities</Text>
-          
+          <Text className="text-lg font-semibold mb-4">{t('profile.myActivities')}</Text>
+
           <TouchableOpacity
             className="flex-row items-center justify-between py-4 border-b border-gray-100"
             onPress={() => router.push('/wishlist')}
           >
             <View className="flex-row items-center">
               <Heart size={20} color="#B27E4C" />
-              <Text className="ml-3 text-base">Wishlist</Text>
+              <Text className="ml-3 text-base">{t('buyerProfile.wishlist')}</Text>
             </View>
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
@@ -201,7 +203,7 @@ export default function BuyerProfile() {
           >
             <View className="flex-row items-center">
               <FileText size={20} color="#B27E4C" />
-              <Text className="ml-3 text-base">My Orders</Text>
+              <Text className="ml-3 text-base">{t('buyerProfile.myOrders')}</Text>
             </View>
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
@@ -212,7 +214,7 @@ export default function BuyerProfile() {
           >
             <View className="flex-row items-center">
               <Info size={20} color="#B27E4C" />
-              <Text className="ml-3 text-base">Settings</Text>
+              <Text className="ml-3 text-base">{t('settings.settings')}</Text>
             </View>
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
@@ -232,7 +234,7 @@ export default function BuyerProfile() {
         >
           <LogOut size={20} color="#EF4444" />
           <Text className="ml-3 text-base font-semibold" style={{ color: '#EF4444' }}>
-            Logout
+            {t('profile.logout')}
           </Text>
         </TouchableOpacity>
       </ScrollView>

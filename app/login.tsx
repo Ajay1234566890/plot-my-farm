@@ -3,19 +3,21 @@ import { validateOTP, validatePhone } from '@/utils/validation';
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function Login() {
   const router = useRouter();
   const { login, selectedRole } = useAuth();
+  const { t } = useTranslation();
   const [mobileNumber, setMobileNumber] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
@@ -28,7 +30,7 @@ export default function Login() {
     setError('');
 
     if (!validatePhone(mobileNumber)) {
-      setError('Please enter a valid 10-digit phone number');
+      setError(t('errors.invalidPhone'));
       return;
     }
 
@@ -38,9 +40,9 @@ export default function Login() {
       // await sendOTPAPI(mobileNumber);
       setIsOtpSent(true);
       setResendTimer(60);
-      Alert.alert('Success', 'OTP sent to your mobile number');
+      Alert.alert(t('common.success'), t('success.otpSent'));
     } catch (err) {
-      setError('Failed to send OTP. Please try again.');
+      setError(t('errors.otpSendFailed'));
       console.error('Send OTP error:', err);
     } finally {
       setIsLoading(false);
@@ -51,7 +53,7 @@ export default function Login() {
     setError('');
 
     if (!validateOTP(otp)) {
-      setError('Please enter a valid 6-digit OTP');
+      setError(t('errors.invalidOtp'));
       return;
     }
 
@@ -93,11 +95,11 @@ export default function Login() {
           console.error('❌ [LOGIN] selectedRole value:', selectedRole);
           console.error('❌ [LOGIN] Defaulting to farmer-registration as fallback');
           Alert.alert(
-            'Role Not Selected',
-            'Please select your role (Farmer or Buyer) first.',
+            t('errors.roleNotSelected'),
+            t('errors.selectRoleFirst'),
             [
               {
-                text: 'Select Role',
+                text: t('auth.selectRole'),
                 onPress: () => router.replace('/select-role')
               }
             ]
@@ -106,7 +108,7 @@ export default function Login() {
         }
       }
     } catch (err) {
-      setError('Invalid OTP. Please try again.');
+      setError(t('errors.invalidOtp'));
       console.error('❌ [LOGIN] Verify OTP error:', err);
     } finally {
       setIsLoading(false);
@@ -127,31 +129,31 @@ export default function Login() {
           {
             text: 'Test DB Connection',
             onPress: async () => {
-              const result = await testDatabaseConnection();
-              Alert.alert('DB Connection', result.message);
+              // const result = await testDatabaseConnection();
+              // Alert.alert('DB Connection', result.message);
             }
           },
           {
             text: 'List All Users',
             onPress: async () => {
-              const result = await listAllUsers();
-              console.log('All users:', result.data);
-              Alert.alert('Users Listed', result.message + '\nCheck console for details');
+              // const result = await listAllUsers();
+              // console.log('All users:', result.data);
+              // Alert.alert('Users Listed', result.message + '\nCheck console for details');
             }
           },
           {
             text: 'Check Phone',
             onPress: () => {
               if (mobileNumber) {
-                checkPhoneExists(mobileNumber).then(result => {
-                  Alert.alert('Phone Check', result.message);
-                });
+                // checkPhoneExists(mobileNumber).then(result => {
+                //   Alert.alert('Phone Check', result.message);
+                // });
               } else {
-                Alert.alert('Error', 'Enter a phone number first');
+                Alert.alert(t('common.error'), t('errors.enterPhoneFirst'));
               }
             }
           },
-          { text: 'Cancel', style: 'cancel' }
+          { text: t('common.cancel'), style: 'cancel' }
         ]
       );
       setDebugTapCount(0);
@@ -165,9 +167,9 @@ export default function Login() {
     try {
       // TODO: Call API to resend OTP
       setResendTimer(60);
-      Alert.alert('Success', 'OTP resent to your mobile number');
+      Alert.alert(t('common.success'), t('success.otpResent'));
     } catch (err) {
-      setError('Failed to resend OTP. Please try again.');
+      setError(t('errors.otpResendFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -191,13 +193,13 @@ export default function Login() {
         {/* Title */}
         <TouchableOpacity onPress={handleDebugTap}>
           <Text className="text-2xl font-bold text-gray-900 mb-2">
-            {isOtpSent ? 'Verify OTP' : 'Login'}
+            {isOtpSent ? t('auth.verifyOtp') : t('auth.login')}
           </Text>
         </TouchableOpacity>
         <Text className="text-gray-600 mb-8">
           {isOtpSent
-            ? 'Enter the OTP sent to your mobile'
-            : 'Enter your mobile number to login'}
+            ? t('auth.enterOtpSent')
+            : t('auth.enterMobileToLogin')}
         </Text>
 
         {/* Error Message */}
@@ -212,11 +214,11 @@ export default function Login() {
             {/* Mobile Number Input */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Mobile Number
+                {t('auth.phoneNumber')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter 10-digit mobile number"
+                placeholder={t('auth.enterPhone')}
                 keyboardType="phone-pad"
                 value={mobileNumber}
                 onChangeText={(text) => {
@@ -242,7 +244,7 @@ export default function Login() {
                 <ActivityIndicator color="#ffffff" />
               ) : (
                 <Text className="text-white text-center text-lg font-semibold">
-                  Send OTP
+                  {t('auth.sendOtp')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -254,7 +256,7 @@ export default function Login() {
               disabled={isLoading}
             >
               <Text className="text-green-600 text-center text-base font-medium">
-                Create New Account
+                {t('auth.createNewAccount')}
               </Text>
             </TouchableOpacity>
           </>
@@ -263,11 +265,11 @@ export default function Login() {
             {/* OTP Input */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                OTP
+                {t('auth.otp')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter 6-digit OTP"
+                placeholder={t('auth.enterOtp')}
                 keyboardType="number-pad"
                 value={otp}
                 onChangeText={(text) => {
@@ -291,7 +293,7 @@ export default function Login() {
                 <ActivityIndicator color="#ffffff" />
               ) : (
                 <Text className="text-white text-center text-lg font-semibold">
-                  Verify OTP
+                  {t('auth.verifyOtp')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -303,7 +305,7 @@ export default function Login() {
               className="mt-4"
             >
               <Text className="text-green-600 text-center text-base font-medium">
-                {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+                {resendTimer > 0 ? t('auth.resendIn', { seconds: resendTimer }) : t('auth.resendOtp')}
               </Text>
             </TouchableOpacity>
 
@@ -318,7 +320,7 @@ export default function Login() {
               className="mt-4"
             >
               <Text className="text-gray-600 text-center text-base">
-                Change phone number
+                {t('auth.changePhoneNumber')}
               </Text>
             </TouchableOpacity>
           </>

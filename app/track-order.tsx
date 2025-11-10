@@ -4,10 +4,12 @@ import { RADIUS_PRESETS } from '@/utils/haversine';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Home, Package, Phone, Truck } from 'lucide-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function TrackOrder() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
@@ -27,7 +29,7 @@ export default function TrackOrder() {
           >
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Track Order</Text>
+          <Text className="text-white text-xl font-bold">{t('orders.trackOrder')}</Text>
         </View>
       </View>
 
@@ -51,18 +53,18 @@ export default function TrackOrder() {
               <Truck color="#B27E4C" size={20} />
             </View>
             <View className="ml-3">
-              <Text className="text-gray-500 text-sm">Current Location</Text>
-              <Text className="text-gray-900 font-semibold text-base">Green Valley, Orchard Ave</Text>
-              <Text className="text-gray-500 text-sm">Near the Community Park</Text>
+              <Text className="text-gray-500 text-sm">{t('trackOrder.currentLocation')}</Text>
+              <Text className="text-gray-900 font-semibold text-base">{t('trackOrder.greenValleyOrchardAve')}</Text>
+              <Text className="text-gray-500 text-sm">{t('trackOrder.nearCommunityPark')}</Text>
             </View>
           </View>
         </View>
 
         {/* Estimated Time */}
         <View className="mx-4 mb-4">
-          <Text className="text-gray-500 text-sm">Estimated Arrival</Text>
+          <Text className="text-gray-500 text-sm">{t('trackOrder.estimatedArrival')}</Text>
           <View className="flex-row items-center mt-1">
-            <Text className="text-2xl font-bold" style={{ color: '#B27E4C' }}>15-20 min</Text>
+            <Text className="text-2xl font-bold" style={{ color: '#B27E4C' }}>{t('trackOrder.minRange', { min: 15, max: 20 })}</Text>
             <View className="ml-auto">
               <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: '#B27E4C20' }}>
                 <Home color="#B27E4C" size={24} />
@@ -79,8 +81,8 @@ export default function TrackOrder() {
               className="w-12 h-12 rounded-full"
             />
             <View className="ml-3">
-              <Text className="text-gray-900 font-semibold">Ethan Carter</Text>
-              <Text className="text-gray-500">Your Driver</Text>
+              <Text className="text-gray-900 font-semibold">{t('trackOrder.ethanCarter')}</Text>
+              <Text className="text-gray-500">{t('trackOrder.yourDriver')}</Text>
             </View>
           </View>
         </View>
@@ -92,8 +94,8 @@ export default function TrackOrder() {
               <Package color="#B27E4C" size={20} />
             </View>
             <View className="ml-3">
-              <Text className="text-gray-900 font-semibold">2 items</Text>
-              <Text className="text-gray-500">Your Order</Text>
+              <Text className="text-gray-900 font-semibold">{t('trackOrder.itemsCount', { count: 2 })}</Text>
+              <Text className="text-gray-500">{t('trackOrder.yourOrder')}</Text>
             </View>
           </View>
         </View>
@@ -103,7 +105,7 @@ export default function TrackOrder() {
           <View className="rounded-xl p-4 flex-row items-center justify-between" style={{ backgroundColor: '#B27E4C10' }}>
             <View className="flex-row items-center">
               <Phone color="#B27E4C" size={20} />
-              <Text className="font-semibold ml-3" style={{ color: '#B27E4C' }}>Contact Driver</Text>
+              <Text className="font-semibold ml-3" style={{ color: '#B27E4C' }}>{t('trackOrder.contactDriver')}</Text>
             </View>
             <ArrowLeft color="#B27E4C" size={20} className="transform rotate-180" />
           </View>

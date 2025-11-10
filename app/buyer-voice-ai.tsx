@@ -9,44 +9,46 @@ import {
     TrendingUp
 } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function BuyerVoiceAI() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [isRecording, setIsRecording] = useState(false);
   const [searchResult, setSearchResult] = useState('');
   const [recentQueries] = useState([
-    'Find fresh tomatoes near me',
-    'Show market prices for onions',
-    'Check my order status',
-    'Find organic vegetables',
-    'Contact farmer for carrots'
+    t('buyerVoiceAI.recentQuery1'),
+    t('buyerVoiceAI.recentQuery2'),
+    t('buyerVoiceAI.recentQuery3'),
+    t('buyerVoiceAI.recentQuery4'),
+    t('buyerVoiceAI.recentQuery5')
   ]);
 
   const quickActions = [
     {
       icon: <Search size={24} color="#B27E4C" />,
-      title: "Find Crops",
-      description: "Search for specific crops near you",
-      command: "Find me fresh tomatoes"
+      title: t('buyerVoiceAI.findCrops'),
+      description: t('buyerVoiceAI.findCropsDesc'),
+      command: t('buyerVoiceAI.findCropsCommand')
     },
     {
       icon: <TrendingUp size={24} color="#B27E4C" />,
-      title: "Market Prices",
-      description: "Get current market prices",
-      command: "Show market prices for rice"
+      title: t('buyerVoiceAI.marketPrices'),
+      description: t('buyerVoiceAI.marketPricesDesc'),
+      command: t('buyerVoiceAI.marketPricesCommand')
     },
     {
       icon: <ShoppingCart size={24} color="#B27E4C" />,
-      title: "My Orders",
-      description: "Check your order status",
-      command: "Check my order status"
+      title: t('buyerVoiceAI.myOrders'),
+      description: t('buyerVoiceAI.myOrdersDesc'),
+      command: t('buyerVoiceAI.myOrdersCommand')
     },
     {
       icon: <MessageSquare size={24} color="#B27E4C" />,
-      title: "Contact Farmers",
-      description: "Connect with farmers directly",
-      command: "Contact farmer for organic vegetables"
+      title: t('buyerVoiceAI.contactFarmers'),
+      description: t('buyerVoiceAI.contactFarmersDesc'),
+      command: t('buyerVoiceAI.contactFarmersCommand')
     }
   ];
 
@@ -55,22 +57,22 @@ export default function BuyerVoiceAI() {
     // Simulate voice processing
     setTimeout(() => {
       setIsRecording(false);
-      setSearchResult('Found 5 farmers near you selling fresh tomatoes. Prices range from ₹35-45 per kg.');
+      setSearchResult(t('buyerVoiceAI.response1'));
     }, 2000);
   };
 
   const handleQuickAction = (command: string) => {
-    setSearchResult(`Processing: "${command}"`);
+    setSearchResult(t('buyerVoiceAI.processing', { command }));
     // Simulate processing
     setTimeout(() => {
-      if (command.includes('tomatoes')) {
-        setSearchResult('Found 5 farmers near you selling fresh tomatoes. Prices range from ₹35-45 per kg.');
-      } else if (command.includes('prices')) {
-        setSearchResult('Current market prices: Rice ₹28/kg, Wheat ₹25/kg, Onions ₹42/kg');
-      } else if (command.includes('order')) {
-        setSearchResult('Your recent order of 5kg carrots is out for delivery. Expected arrival: 2-3 hours.');
-      } else if (command.includes('contact')) {
-        setSearchResult('Found 3 organic vegetable farmers in your area. Would you like to message them?');
+      if (command.includes('tomatoes') || command.includes(t('crops.tomatoes'))) {
+        setSearchResult(t('buyerVoiceAI.response1'));
+      } else if (command.includes('prices') || command.includes(t('buyerVoiceAI.marketPrices'))) {
+        setSearchResult(t('buyerVoiceAI.response2'));
+      } else if (command.includes('order') || command.includes(t('buyerVoiceAI.myOrders'))) {
+        setSearchResult(t('buyerVoiceAI.response3'));
+      } else if (command.includes('contact') || command.includes(t('buyerVoiceAI.contactFarmers'))) {
+        setSearchResult(t('buyerVoiceAI.response4'));
       }
     }, 1500);
   };
@@ -93,17 +95,17 @@ export default function BuyerVoiceAI() {
           >
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Voice AI Assistant</Text>
+          <Text className="text-white text-xl font-bold">{t('buyerVoiceAI.title')}</Text>
         </View>
         <Text className="text-white/80">
-          Ask me to find crops, check prices, or contact farmers
+          {t('buyerVoiceAI.subtitle')}
         </Text>
       </View>
 
       {/* Main Content */}
       <ScrollView className="flex-1 p-4">
         <Text className="text-gray-600 text-center mb-8">
-          Tap the microphone and ask me to help you find crops, check market prices, or manage your orders.
+          {t('buyerVoiceAI.instructions')}
         </Text>
 
         {/* Voice Button */}
@@ -111,7 +113,7 @@ export default function BuyerVoiceAI() {
           <TouchableOpacity
             onPress={handleVoiceCommand}
             className="w-24 h-24 rounded-full items-center justify-center shadow-lg"
-            style={{ 
+            style={{
               backgroundColor: isRecording ? '#EF4444' : '#B27E4C',
               shadowColor: '#B27E4C',
               shadowOffset: { width: 0, height: 4 },
@@ -123,15 +125,15 @@ export default function BuyerVoiceAI() {
             <Mic color="white" size={32} />
           </TouchableOpacity>
           <Text className="text-gray-600 mt-3 text-center">
-            {isRecording ? 'Listening...' : 'Tap to speak'}
+            {isRecording ? t('buyerVoiceAI.listening') : t('buyerVoiceAI.tapToSpeak')}
           </Text>
         </View>
 
         {/* Search Result */}
         {searchResult && (
-          <View 
+          <View
             className="p-4 rounded-xl mb-8"
-            style={{ 
+            style={{
               backgroundColor: 'white',
               shadowColor: '#B27E4C',
               shadowOffset: { width: 0, height: 2 },
@@ -142,14 +144,14 @@ export default function BuyerVoiceAI() {
               borderColor: '#B27E4C20'
             }}
           >
-            <Text className="text-gray-900 font-semibold mb-2">AI Response:</Text>
+            <Text className="text-gray-900 font-semibold mb-2">{t('buyerVoiceAI.aiResponse')}</Text>
             <Text className="text-gray-700">{searchResult}</Text>
           </View>
         )}
 
         {/* Quick Actions */}
         <View className="mb-8">
-          <Text className="text-lg font-bold text-gray-900 mb-4">Quick Actions</Text>
+          <Text className="text-lg font-bold text-gray-900 mb-4">{t('buyerVoiceAI.quickActions')}</Text>
           <View className="space-y-3">
             {quickActions.map((action, index) => (
               <TouchableOpacity
@@ -183,7 +185,7 @@ export default function BuyerVoiceAI() {
 
         {/* Recent Queries */}
         <View className="mb-8">
-          <Text className="text-lg font-bold text-gray-900 mb-4">Recent Queries</Text>
+          <Text className="text-lg font-bold text-gray-900 mb-4">{t('buyerVoiceAI.recentQueries')}</Text>
           <View className="space-y-2">
             {recentQueries.map((query, index) => (
               <TouchableOpacity
@@ -208,17 +210,17 @@ export default function BuyerVoiceAI() {
         </View>
 
         {/* Tips */}
-        <View 
+        <View
           className="p-4 rounded-xl mb-4"
           style={{ backgroundColor: '#B27E4C10' }}
         >
-          <Text className="font-semibold mb-2" style={{ color: '#B27E4C' }}>💡 Voice Commands You Can Try:</Text>
+          <Text className="font-semibold mb-2" style={{ color: '#B27E4C' }}>{t('buyerVoiceAI.tipsTitle')}</Text>
           <Text className="text-gray-700 text-sm leading-5">
-            • "Find organic tomatoes near me"{'\n'}
-            • "What's the price of rice today?"{'\n'}
-            • "Show me my recent orders"{'\n'}
-            • "Contact farmers selling carrots"{'\n'}
-            • "Find the cheapest onions available"
+            {t('buyerVoiceAI.tip1')}{'\n'}
+            {t('buyerVoiceAI.tip2')}{'\n'}
+            {t('buyerVoiceAI.tip3')}{'\n'}
+            {t('buyerVoiceAI.tip4')}{'\n'}
+            {t('buyerVoiceAI.tip5')}
           </Text>
         </View>
       </ScrollView>

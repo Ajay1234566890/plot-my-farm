@@ -1,10 +1,11 @@
+import { changeLanguage } from '@/i18n/config';
 import { startLocationAutoUpdate, updateLocationNow } from '@/services/location-auto-update';
 import { supabase } from '@/utils/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type UserRole = 'farmer' | 'buyer' | null;
-export type Language = 'en' | 'hi' | null;
+export type Language = 'en' | 'te' | 'hi' | 'ta' | 'kn' | null;
 
 export interface User {
   id: string;
@@ -75,7 +76,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         if (storedLanguage) {
           setSelectedLanguage(storedLanguage as Language);
+          // Initialize i18next with stored language
+          await changeLanguage(storedLanguage);
           console.log('✅ [AUTH] Restored language:', storedLanguage);
+        } else {
+          // Default to English if no language is stored
+          setSelectedLanguage('en');
+          await changeLanguage('en');
+          console.log('✅ [AUTH] Defaulting to English');
         }
         if (storedSplash) {
           setHasSeenSplash(JSON.parse(storedSplash));
@@ -349,15 +357,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const selectLanguage = async (language: Language) => {
     try {
+      console.log('🌐 [AUTH] Changing language to:', language);
       setSelectedLanguage(language);
       await AsyncStorage.setItem('language', language || '');
+
+      // Update i18next language
+      if (language) {
+        await changeLanguage(language);
+      }
+
       if (user) {
         const updatedUser = { ...user, language };
         setUser(updatedUser);
         await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+
+        // Update language in Supabase
+        const { error } = await supabase
+          .from('users')
+          .update({ language })
+          .eq('id', user.id);
+
+        if (error) {
+          console.error('❌ [AUTH] Failed to update language in Supabase:', error);
+        } else {
+          console.log('✅ [AUTH] Language updated in Supabase');
+        }
       }
+
+      console.log('✅ [AUTH] Language changed successfully to:', language);
     } catch (error) {
-      console.error('Language selection failed:', error);
+      console.error('❌ [AUTH] Language selection failed:', error);
       throw error;
     }
   };

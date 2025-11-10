@@ -3,17 +3,19 @@ import { validateEmail, validatePhone } from '@/utils/validation';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronDown, ChevronLeft } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function BuyerProfileSetup() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { register } = useAuth();
   const params = useLocalSearchParams();
@@ -43,16 +45,21 @@ export default function BuyerProfileSetup() {
     }
   }, [params.phone]);
 
-  const buyerTypes = ['Retailer', 'Wholesaler', 'Trader', 'Consumer'];
+  const buyerTypes = [
+    t('profile.retailer'),
+    t('profile.wholesaler'),
+    t('profile.trader'),
+    t('profile.consumer'),
+  ];
   const crops = [
-    'Tomato',
-    'Wheat',
-    'Paddy',
-    'Cotton',
-    'Corn',
-    'Potato',
-    'Onion',
-    'Sugarcane',
+    t('crops.tomato'),
+    t('crops.wheat'),
+    t('crops.paddy'),
+    t('crops.cotton'),
+    t('crops.corn'),
+    t('crops.potato'),
+    t('crops.onion'),
+    t('crops.sugarcane'),
   ];
 
   const toggleCrop = (crop: string) => {
@@ -67,37 +74,37 @@ export default function BuyerProfileSetup() {
     const newErrors: any = {};
 
     if (!name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = t('errors.nameRequired');
     }
 
     if (!email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('errors.emailRequired');
     } else if (!validateEmail(email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = t('errors.invalidEmail');
     }
 
     if (!phone.trim()) {
-      newErrors.phone = 'Phone is required';
+      newErrors.phone = t('errors.phoneRequired');
     } else if (!validatePhone(phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
+      newErrors.phone = t('errors.invalidPhone');
     }
 
     if (!address.trim()) {
-      newErrors.address = 'Address is required';
+      newErrors.address = t('errors.addressRequired');
     }
 
     if (!city.trim()) {
-      newErrors.city = 'City is required';
+      newErrors.city = t('errors.cityRequired');
     }
 
     if (!state.trim()) {
-      newErrors.state = 'State is required';
+      newErrors.state = t('errors.stateRequired');
     }
 
     if (!pincode.trim()) {
-      newErrors.pincode = 'Pincode is required';
+      newErrors.pincode = t('errors.pincodeRequired');
     } else if (!/^\d{6}$/.test(pincode)) {
-      newErrors.pincode = 'Please enter a valid 6-digit pincode';
+      newErrors.pincode = t('errors.invalidPincode');
     }
 
     setErrors(newErrors);
@@ -108,11 +115,11 @@ export default function BuyerProfileSetup() {
     const newErrors: any = {};
 
     if (!businessName.trim()) {
-      newErrors.businessName = 'Business name is required';
+      newErrors.businessName = t('errors.businessNameRequired');
     }
 
     if (!buyerType) {
-      newErrors.buyerType = 'Buyer type is required';
+      newErrors.buyerType = t('errors.buyerTypeRequired');
     }
 
     setErrors(newErrors);
@@ -153,11 +160,11 @@ export default function BuyerProfileSetup() {
 
       console.log('✅ [BUYER-SETUP] Buyer registration successful!');
       console.log('🔄 [BUYER-SETUP] Navigating to /buyer-home...');
-      Alert.alert('Success', 'Profile setup complete!');
+      Alert.alert(t('common.success'), t('success.profileSetupComplete'));
       router.replace('/buyer-home');
     } catch (error) {
       console.error('❌ [BUYER-SETUP] Setup error:', error);
-      Alert.alert('Error', 'Failed to complete setup. Please try again.');
+      Alert.alert(t('common.error'), t('errors.setupFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -202,18 +209,18 @@ export default function BuyerProfileSetup() {
         {/* Title */}
         <Text className="text-2xl font-bold text-gray-900 mb-2">
           {step === 'personal'
-            ? 'Personal Information'
+            ? t('profile.personalInfo')
             : step === 'business'
-            ? 'Business Details'
-            : 'Preferences'}
+            ? t('profile.businessDetails')
+            : t('profile.preferences')}
         </Text>
 
         <Text className="text-gray-600 mb-8">
           {step === 'personal'
-            ? 'Tell us about yourself'
+            ? t('profile.tellAboutYourself')
             : step === 'business'
-            ? 'Tell us about your business'
-            : 'Select crops you are interested in'}
+            ? t('profile.tellAboutBusiness')
+            : t('profile.selectInterestedCrops')}
         </Text>
 
         {step === 'personal' ? (
@@ -221,11 +228,11 @@ export default function BuyerProfileSetup() {
             {/* Name */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Full Name
+                {t('auth.fullName')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter your full name"
+                placeholder={t('auth.enterFullName')}
                 value={name}
                 onChangeText={(text) => {
                   setName(text);
@@ -241,11 +248,11 @@ export default function BuyerProfileSetup() {
             {/* Email */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Email
+                {t('auth.email')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter your email"
+                placeholder={t('auth.enterEmail')}
                 keyboardType="email-address"
                 value={email}
                 onChangeText={(text) => {
@@ -262,11 +269,11 @@ export default function BuyerProfileSetup() {
             {/* Phone */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Phone Number
+                {t('auth.phoneNumber')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter 10-digit phone number"
+                placeholder={t('auth.enter10DigitPhone')}
                 keyboardType="phone-pad"
                 value={phone}
                 onChangeText={(text) => {
@@ -284,11 +291,11 @@ export default function BuyerProfileSetup() {
             {/* Address */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Address
+                {t('profile.address')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter your address"
+                placeholder={t('profile.enterAddress')}
                 value={address}
                 onChangeText={(text) => {
                   setAddress(text);
@@ -306,11 +313,11 @@ export default function BuyerProfileSetup() {
             {/* City */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                City
+                {t('profile.city')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter your city"
+                placeholder={t('profile.enterCity')}
                 value={city}
                 onChangeText={(text) => {
                   setCity(text);
@@ -326,11 +333,11 @@ export default function BuyerProfileSetup() {
             {/* State */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                State
+                {t('market.state')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter your state"
+                placeholder={t('profile.enterState')}
                 value={state}
                 onChangeText={(text) => {
                   setState(text);
@@ -346,11 +353,11 @@ export default function BuyerProfileSetup() {
             {/* Pincode */}
             <View className="mb-8">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Pincode
+                {t('profile.pincode')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter 6-digit pincode"
+                placeholder={t('profile.enter6DigitPincode')}
                 keyboardType="number-pad"
                 value={pincode}
                 onChangeText={(text) => {
@@ -379,7 +386,7 @@ export default function BuyerProfileSetup() {
                 <ActivityIndicator color="#ffffff" />
               ) : (
                 <Text className="text-white text-center text-lg font-semibold">
-                  Next
+                  {t('common.next')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -389,11 +396,11 @@ export default function BuyerProfileSetup() {
             {/* Business Name */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Business Name
+                {t('profile.businessName')}
               </Text>
               <TextInput
                 className="p-4 rounded-xl border border-gray-200 text-base text-gray-900"
-                placeholder="Enter your business name"
+                placeholder={t('profile.enterBusinessName')}
                 value={businessName}
                 onChangeText={(text) => {
                   setBusinessName(text);
@@ -411,7 +418,7 @@ export default function BuyerProfileSetup() {
             {/* Buyer Type */}
             <View className="mb-8">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Buyer Type
+                {t('profile.buyerType')}
               </Text>
               <TouchableOpacity
                 onPress={() => setShowBuyerTypeDropdown(!showBuyerTypeDropdown)}
@@ -419,7 +426,7 @@ export default function BuyerProfileSetup() {
                 className="p-4 rounded-xl border border-gray-200 flex-row items-center justify-between"
               >
                 <Text className="text-base text-gray-900">
-                  {buyerType || 'Select buyer type'}
+                  {buyerType || t('profile.selectBuyerType')}
                 </Text>
                 <ChevronDown
                   size={20}
@@ -476,7 +483,7 @@ export default function BuyerProfileSetup() {
                 className="flex-1 p-4 rounded-xl border border-gray-300"
               >
                 <Text className="text-gray-900 text-center text-lg font-semibold">
-                  Back
+                  {t('common.back')}
                 </Text>
               </TouchableOpacity>
 
@@ -491,7 +498,7 @@ export default function BuyerProfileSetup() {
                   <ActivityIndicator color="#ffffff" />
                 ) : (
                   <Text className="text-white text-center text-lg font-semibold">
-                    Next
+                    {t('common.next')}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -502,7 +509,7 @@ export default function BuyerProfileSetup() {
             {/* Crops Selection */}
             <View className="mb-8">
               <Text className="text-sm font-medium text-gray-700 mb-4">
-                Select crops you are interested in
+                {t('profile.selectInterestedCrops')}
               </Text>
 
               <View className="flex-row flex-wrap gap-2">
@@ -539,7 +546,7 @@ export default function BuyerProfileSetup() {
                 className="flex-1 p-4 rounded-xl border border-gray-300"
               >
                 <Text className="text-gray-900 text-center text-lg font-semibold">
-                  Back
+                  {t('common.back')}
                 </Text>
               </TouchableOpacity>
 
@@ -554,7 +561,7 @@ export default function BuyerProfileSetup() {
                   <ActivityIndicator color="#ffffff" />
                 ) : (
                   <Text className="text-white text-center text-lg font-semibold">
-                    Complete
+                    {t('common.complete')}
                   </Text>
                 )}
               </TouchableOpacity>

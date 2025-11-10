@@ -1,10 +1,11 @@
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { setSplashSeen, isLoading } = useAuth();
 
   const handleGetStarted = async () => {
@@ -33,10 +34,10 @@ export default function SplashScreen() {
             <Text className="text-5xl">🌾</Text>
           </View>
           <Text className="text-4xl font-bold text-center text-gray-800 mb-2">
-            Plot My Farm
+            {t('splash.appName')}
           </Text>
           <Text className="text-lg text-center text-gray-600">
-            Connect Farmers & Buyers
+            {t('splash.tagline')}
           </Text>
         </View>
 
@@ -47,8 +48,8 @@ export default function SplashScreen() {
               <Text className="text-white font-bold">✓</Text>
             </View>
             <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-800">Direct Connection</Text>
-              <Text className="text-sm text-gray-600">Connect directly with farmers and buyers</Text>
+              <Text className="text-lg font-semibold text-gray-800">{t('splash.directConnection')}</Text>
+              <Text className="text-sm text-gray-600">{t('splash.directConnectionDesc')}</Text>
             </View>
           </View>
 
@@ -57,8 +58,8 @@ export default function SplashScreen() {
               <Text className="text-white font-bold">✓</Text>
             </View>
             <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-800">Fair Pricing</Text>
-              <Text className="text-sm text-gray-600">Get real-time market prices</Text>
+              <Text className="text-lg font-semibold text-gray-800">{t('splash.fairPricing')}</Text>
+              <Text className="text-sm text-gray-600">{t('splash.fairPricingDesc')}</Text>
             </View>
           </View>
 
@@ -67,8 +68,8 @@ export default function SplashScreen() {
               <Text className="text-white font-bold">✓</Text>
             </View>
             <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-800">Easy Trading</Text>
-              <Text className="text-sm text-gray-600">Simple and secure transactions</Text>
+              <Text className="text-lg font-semibold text-gray-800">{t('splash.easyTrading')}</Text>
+              <Text className="text-sm text-gray-600">{t('splash.easyTradingDesc')}</Text>
             </View>
           </View>
         </View>
@@ -80,11 +81,11 @@ export default function SplashScreen() {
           onPress={handleGetStarted}
           className="bg-green-600 rounded-xl py-4 items-center justify-center mb-4"
         >
-          <Text className="text-white text-lg font-bold">Get Started</Text>
+          <Text className="text-white text-lg font-bold">{t('splash.getStarted')}</Text>
         </TouchableOpacity>
 
         <Text className="text-center text-gray-600 text-sm">
-          By continuing, you agree to our Terms of Service and Privacy Policy
+          {t('splash.termsAgreement')}
         </Text>
       </View>
     </View>

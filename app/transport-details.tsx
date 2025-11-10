@@ -8,6 +8,7 @@ import {
     Truck
 } from "lucide-react-native";
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
     SafeAreaView,
     ScrollView,
@@ -18,6 +19,7 @@ import {
 } from "react-native";
 
 export default function TransportDetailsScreen() {
+  const { t } = useTranslation();
   const [pickupLocation, setPickupLocation] = useState("");
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [pickupDate, setPickupDate] = useState("");
@@ -51,17 +53,17 @@ export default function TransportDetailsScreen() {
           <TouchableOpacity className="mr-4">
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Transport Details</Text>
+          <Text className="text-white text-xl font-bold">{t('transport.transportDetails')}</Text>
         </View>
       </LinearGradient>
 
       <ScrollView className="flex-1 px-4 pt-6 mb-24">
         {/* Page Title */}
         <Text className="text-gray-800 text-2xl font-bold mb-2">
-          Arrange Transport
+          {t('transport.arrangeTransport')}
         </Text>
         <Text className="text-gray-500 mb-6">
-          Fill in the details for your transport arrangement
+          {t('transportDetails.fillDetails')}
         </Text>
 
         {/* Form Section */}
@@ -69,11 +71,11 @@ export default function TransportDetailsScreen() {
           <View className="mb-5">
             <View className="flex-row items-center mb-2">
               <MapPin color="#3b82f6" size={20} className="mr-2" />
-              <Text className="text-gray-700 font-medium">Pickup Location</Text>
+              <Text className="text-gray-700 font-medium">{t('transport.pickupLocation')}</Text>
             </View>
             <TextInput
               className="border border-gray-200 rounded-lg p-3 bg-gray-50"
-              placeholder="Enter pickup address"
+              placeholder={t('transportDetails.enterPickupAddress')}
               value={pickupLocation}
               onChangeText={setPickupLocation}
             />
@@ -82,11 +84,11 @@ export default function TransportDetailsScreen() {
           <View className="mb-5">
             <View className="flex-row items-center mb-2">
               <MapPin color="#3b82f6" size={20} className="mr-2" />
-              <Text className="text-gray-700 font-medium">Delivery Location</Text>
+              <Text className="text-gray-700 font-medium">{t('transportDetails.deliveryLocation')}</Text>
             </View>
             <TextInput
               className="border border-gray-200 rounded-lg p-3 bg-gray-50"
-              placeholder="Enter delivery address"
+              placeholder={t('transportDetails.enterDeliveryAddress')}
               value={deliveryLocation}
               onChangeText={setDeliveryLocation}
             />
@@ -95,11 +97,11 @@ export default function TransportDetailsScreen() {
           <View className="mb-5">
             <View className="flex-row items-center mb-2">
               <Calendar color="#3b82f6" size={20} className="mr-2" />
-              <Text className="text-gray-700 font-medium">Pickup Date</Text>
+              <Text className="text-gray-700 font-medium">{t('transport.pickupDate')}</Text>
             </View>
             <TextInput
               className="border border-gray-200 rounded-lg p-3 bg-gray-50"
-              placeholder="Select pickup date"
+              placeholder={t('transportDetails.selectPickupDate')}
               value={pickupDate}
               onChangeText={setPickupDate}
             />
@@ -108,11 +110,11 @@ export default function TransportDetailsScreen() {
           <View className="mb-5">
             <View className="flex-row items-center mb-2">
               <Calendar color="#3b82f6" size={20} className="mr-2" />
-              <Text className="text-gray-700 font-medium">Delivery Date</Text>
+              <Text className="text-gray-700 font-medium">{t('transportDetails.deliveryDate')}</Text>
             </View>
             <TextInput
               className="border border-gray-200 rounded-lg p-3 bg-gray-50"
-              placeholder="Select delivery date"
+              placeholder={t('transportDetails.selectDeliveryDate')}
               value={deliveryDate}
               onChangeText={setDeliveryDate}
             />
@@ -121,11 +123,11 @@ export default function TransportDetailsScreen() {
           <View className="mb-5">
             <View className="flex-row items-center mb-2">
               <Package color="#3b82f6" size={20} className="mr-2" />
-              <Text className="text-gray-700 font-medium">Crop Type</Text>
+              <Text className="text-gray-700 font-medium">{t('transportDetails.cropType')}</Text>
             </View>
             <TextInput
               className="border border-gray-200 rounded-lg p-3 bg-gray-50"
-              placeholder="Enter crop type"
+              placeholder={t('transportDetails.enterCropType')}
               value={cropType}
               onChangeText={setCropType}
             />
@@ -134,11 +136,11 @@ export default function TransportDetailsScreen() {
           <View className="mb-5">
             <View className="flex-row items-center mb-2">
               <Package color="#3b82f6" size={20} className="mr-2" />
-              <Text className="text-gray-700 font-medium">Weight (kg)</Text>
+              <Text className="text-gray-700 font-medium">{t('transportDetails.weightKg')}</Text>
             </View>
             <TextInput
               className="border border-gray-200 rounded-lg p-3 bg-gray-50"
-              placeholder="Enter weight in kg"
+              placeholder={t('transportDetails.enterWeightKg')}
               value={weight}
               onChangeText={setWeight}
               keyboardType="numeric"
@@ -148,11 +150,11 @@ export default function TransportDetailsScreen() {
           <View>
             <View className="flex-row items-center mb-2">
               <Phone color="#3b82f6" size={20} className="mr-2" />
-              <Text className="text-gray-700 font-medium">Contact Number</Text>
+              <Text className="text-gray-700 font-medium">{t('transportDetails.contactNumber')}</Text>
             </View>
             <TextInput
               className="border border-gray-200 rounded-lg p-3 bg-gray-50"
-              placeholder="Enter contact number"
+              placeholder={t('transportDetails.enterContactNumber')}
               value={contactNumber}
               onChangeText={setContactNumber}
               keyboardType="phone-pad"
@@ -164,16 +166,16 @@ export default function TransportDetailsScreen() {
         <View className="bg-blue-50 rounded-xl p-4 mb-6">
           <View className="flex-row items-center mb-3">
             <Truck color="#3b82f6" size={24} className="mr-2" />
-            <Text className="text-blue-800 font-bold">Transport Information</Text>
+            <Text className="text-blue-800 font-bold">{t('transportDetails.transportInformation')}</Text>
           </View>
           <Text className="text-gray-600 mb-2">
-            • Estimated delivery time: 2-3 days
+            • {t('transportDetails.estimatedDeliveryTime')}
           </Text>
           <Text className="text-gray-600 mb-2">
-            • Insurance included for all shipments
+            • {t('transportDetails.insuranceIncluded')}
           </Text>
           <Text className="text-gray-600">
-            • Real-time tracking available
+            • {t('transportDetails.realTimeTracking')}
           </Text>
         </View>
       </ScrollView>
@@ -185,7 +187,7 @@ export default function TransportDetailsScreen() {
           onPress={handleArrangeTransport}
         >
           <Text className="text-white font-bold text-base">
-            Confirm Transport Arrangement
+            {t('transportDetails.confirmTransportArrangement')}
           </Text>
         </TouchableOpacity>
       </View>

@@ -7,32 +7,36 @@ import { MarketPrice, marketPricesService } from '@/services/market-prices-servi
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from "expo-router";
 import {
-    Bell,
-    CloudSun,
-    DollarSign,
-    MapPin,
-    Plus,
-    Search,
-    TrendingUp
+  Bell,
+  CloudSun,
+  DollarSign,
+  MapPin,
+  Plus,
+  Search,
+  TrendingUp
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function FarmerHome() {
+  const { t } = useTranslation();
+
   return (
     <HomePageErrorBoundary
-      fallbackTitle="Farmer Home Unavailable"
-      fallbackMessage="There was an issue loading the farmer home page. Please try again or restart the app."
+      fallbackTitle={t('errors.farmerHomeUnavailable')}
+      fallbackMessage={t('errors.farmerHomeLoadError')}
     >
       <FarmerHomeContent />
     </HomePageErrorBoundary>
@@ -40,6 +44,7 @@ export default function FarmerHome() {
 }
 
 function FarmerHomeContent() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const [marketPrices, setMarketPrices] = useState<MarketPrice[]>([]);
@@ -82,22 +87,22 @@ function FarmerHomeContent() {
   const quickActions = [
     {
       icon: <CloudSun size={24} color="#4B5563" />,
-      label: "Weather",
+      label: t('farmerHome.weather'),
       route: "/farmer-weather" as const,
     },
     {
       icon: <TrendingUp size={24} color="#4B5563" />,
-      label: "Market",
+      label: t('navigation.market'),
       route: "/market-real-prices" as const,
     },
     {
       icon: <DollarSign size={24} color="#4B5563" />,
-      label: "My Offers",
+      label: t('farmerHome.myOffers'),
       route: "/farmer-offers" as const,
     },
     {
       icon: <MapPin size={24} color="#4B5563" />,
-      label: "Nearby",
+      label: t('farmerHome.nearby'),
       route: "/nearby-buyers" as const,
     },
   ];
@@ -131,11 +136,11 @@ function FarmerHomeContent() {
                   />
                 </View>
                 <Text className="text-white text-xl font-bold">
-                  Hello, {user?.name || "Farmers"}
+                  {t('farmerHome.hello')}, {user?.name || t('farmerHome.farmer')}
                 </Text>
               </View>
               {/* Date */}
-              <Text className="text-white/80 text-sm ml-13">Sunday, 01 Dec 2024</Text>
+              <Text className="text-white/80 text-sm ml-13">{new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}</Text>
             </View>
             {/* Notification Bell */}
             <TouchableOpacity
@@ -163,7 +168,7 @@ function FarmerHomeContent() {
             >
               <Search size={20} color="rgba(255, 255, 255, 0.8)" />
               <TextInput
-                placeholder="Search here..."
+                placeholder={t('common.searchHere')}
                 className="flex-1 ml-3 text-base"
                 placeholderTextColor="rgba(255, 255, 255, 0.7)"
                 style={{ color: 'white' }}
@@ -194,7 +199,7 @@ function FarmerHomeContent() {
           elevation: 10,
         }}
       >
-        <MapErrorBoundary fallbackMessage="Map is temporarily unavailable.">
+        <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
           <MapLibreView
             showFarmers={true}
             showBuyers={true}
@@ -233,7 +238,7 @@ function FarmerHomeContent() {
             }}
           >
             <Text className="text-xs font-semibold text-white">
-              Nearby Buyers
+              {t('farmerHome.nearbyBuyers')}
             </Text>
           </TouchableOpacity>
 
@@ -250,7 +255,7 @@ function FarmerHomeContent() {
             }}
           >
             <Text className="text-xs font-semibold text-white">
-              Nearby Farmers
+              {t('farmerHome.nearbyFarmers')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -269,25 +274,25 @@ function FarmerHomeContent() {
         <View className="mb-6">
           <View className="px-6 flex-row justify-between items-center mb-4">
             <Text className="text-xl font-bold text-gray-800">
-              Market Prices
+              {t('market.marketPrices')}
             </Text>
             <TouchableOpacity
               className="px-4 py-2 rounded-full"
               style={{ backgroundColor: '#7C8B3A' }}
             >
               <Text className="text-sm font-semibold text-white">
-                View All
+                {t('common.viewAll')}
               </Text>
             </TouchableOpacity>
           </View>
           {loadingPrices ? (
             <View className="px-6 py-8 items-center">
               <ActivityIndicator size="small" color="#7C8B3A" />
-              <Text className="text-gray-500 text-sm mt-2">Loading prices...</Text>
+              <Text className="text-gray-500 text-sm mt-2">{t('common.loadingPrices')}</Text>
             </View>
           ) : marketPrices.length === 0 ? (
             <View className="px-6 py-8 items-center">
-              <Text className="text-gray-500 text-sm">No market prices available</Text>
+              <Text className="text-gray-500 text-sm">{t('market.noPricesAvailable')}</Text>
             </View>
           ) : (
             <ScrollView
@@ -343,7 +348,7 @@ function FarmerHomeContent() {
 
         {/* Quick Actions - Redesigned with sophisticated olive green theme */}
         <View className="px-6 mb-6">
-          <Text className="text-xl font-bold text-gray-800 mb-5">Quick Actions</Text>
+          <Text className="text-xl font-bold text-gray-800 mb-5">{t('farmerHome.quickActions')}</Text>
           <View className="flex-row justify-between">
             {quickActions.map((action, index) => (
               <TouchableOpacity
@@ -402,20 +407,20 @@ function FarmerHomeContent() {
             </View>
             <View className="ml-3 flex-1">
               <Text className="text-base font-bold text-white">
-                Add New Crop
+                {t('farmerHome.addNewCrop')}
               </Text>
               <Text className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-                Get instant market quotes
+                {t('farmerHome.getInstantQuotes')}
               </Text>
             </View>
-            <Text className="text-sm font-bold text-white">Add</Text>
+            <Text className="text-sm font-bold text-white">{t('common.add')}</Text>
           </View>
         </TouchableOpacity>
 
         {/* Recommended Buyers - Restored from original */}
         <View className="px-6 mb-6">
           <Text className="text-lg font-bold text-gray-800 mb-3">
-            Recommended Buyers
+            {t('farmerHome.recommendedBuyers')}
           </Text>
           {recommendedBuyers.map((buyer, index) => (
             <View
@@ -447,7 +452,7 @@ function FarmerHomeContent() {
 
         {/* My Fields Section - Styled like reference image */}
         <View className="px-6 mb-8">
-          <Text className="text-gray-800 text-lg font-bold mb-4">My Fields</Text>
+          <Text className="text-gray-800 text-lg font-bold mb-4">{t('farmerHome.myFields')}</Text>
           <TouchableOpacity
             onPress={() => router.push("/my-farms")}
             className="relative"
@@ -465,10 +470,10 @@ function FarmerHomeContent() {
               <View className="absolute bottom-4 left-4 right-4">
                 <View className="bg-white/90 backdrop-blur-sm rounded-2xl p-4">
                   <Text className="text-gray-800 text-base font-semibold">
-                    Organic Vegetable Farm
+                    {t('farmerHome.organicVegetableFarm')}
                   </Text>
                   <Text className="text-gray-600 text-sm">
-                    2.5 acres • Active crops: Tomatoes, Potatoes
+                    {t('farmerHome.farmDetails')}
                   </Text>
                 </View>
               </View>

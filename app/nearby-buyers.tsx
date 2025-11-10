@@ -12,6 +12,7 @@ import {
     Star,
 } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import {
     Dimensions,
     Image,
@@ -25,39 +26,41 @@ import {
 const { width } = Dimensions.get("window");
 
 export default function NearbyBuyers() {
+  const { t } = useTranslation();
+
   // Mock data for nearby buyers with enhanced details
   const buyers = [
     {
       id: 1,
-      name: "Anand Kumar",
-      location: "Delhi, India",
-      distance: "5km",
+      name: t('buyer.anandKumar'),
+      location: t('buyer.delhiIndia'),
+      distance: t('buyer.kmAway', { count: 5 }),
       rating: 4.8,
       reviews: 124,
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
-      lastActive: "2 hours ago",
+      lastActive: t('common.hoursAgo', { count: 2 }),
       verified: true,
     },
     {
       id: 2,
-      name: "Priya Sharma",
-      location: "Mumbai, India",
-      distance: "12km",
+      name: t('buyer.priyaSharma'),
+      location: t('buyer.mumbaiIndia'),
+      distance: t('buyer.kmAway', { count: 12 }),
       rating: 4.9,
       reviews: 89,
       avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
-      lastActive: "5 hours ago",
+      lastActive: t('common.hoursAgo', { count: 5 }),
       verified: true,
     },
     {
       id: 3,
-      name: "Rajesh Singh",
-      location: "Bangalore, India",
-      distance: "18km",
+      name: t('buyer.rajeshSingh'),
+      location: t('buyer.bangaloreIndia'),
+      distance: t('buyer.kmAway', { count: 18 }),
       rating: 4.5,
       reviews: 67,
       avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
-      lastActive: "1 day ago",
+      lastActive: t('common.daysAgo', { count: 1 }),
       verified: false,
     },
   ];
@@ -77,17 +80,17 @@ export default function NearbyBuyers() {
           <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4">
             <ArrowLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">Nearby Buyers</Text>
+          <Text className="text-xl font-bold text-white">{t('buyer.nearbyBuyers')}</Text>
         </View>
         <Text className="text-white/80 mb-4">
-          Find buyers for your crops
+          {t('buyer.findBuyersForCrops')}
         </Text>
 
         {/* Enhanced Search Bar */}
         <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
           <Search size={20} color="#4B5563" />
           <TextInput
-            placeholder="Search buyers, locations..."
+            placeholder={t('buyer.searchBuyersLocations')}
             className="flex-1 ml-3 text-base text-gray-800"
             placeholderTextColor="#9CA3AF"
           />
@@ -118,10 +121,10 @@ export default function NearbyBuyers() {
       {/* Buyers List with Enhanced Design */}
       <View className="flex-1 px-4 mt-6">
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-lg font-bold text-gray-900">Nearby Buyers (3)</Text>
+          <Text className="text-lg font-bold text-gray-900">{t('buyer.nearbyBuyersCount', { count: buyers.length })}</Text>
           <TouchableOpacity className="flex-row items-center bg-gray-100 px-3 py-1 rounded-full">
             <Text className="text-sm font-medium text-gray-700 mr-1">
-              Sort by Distance
+              {t('buyer.sortByDistance')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -154,7 +157,7 @@ export default function NearbyBuyers() {
                     </Text>
                     {buyer.verified && (
                       <View className="ml-2 bg-emerald-100 px-2 py-0.5 rounded-full">
-                        <Text className="text-xs font-semibold text-emerald-700">Verified</Text>
+                        <Text className="text-xs font-semibold text-emerald-700">{t('buyer.verified')}</Text>
                       </View>
                     )}
                   </View>
@@ -178,11 +181,11 @@ export default function NearbyBuyers() {
                       </Text>
                     </View>
                     <Text className="text-sm text-gray-500 ml-2">
-                      ({buyer.reviews} reviews)
+                      ({t('buyer.reviewsCount', { count: buyer.reviews })})
                     </Text>
                     <View className="w-1 h-1 rounded-full bg-gray-300 mx-2" />
                     <Text className="text-xs text-gray-500">
-                      Active {buyer.lastActive}
+                      {t('buyer.active')} {buyer.lastActive}
                     </Text>
                   </View>
                 </View>
@@ -192,12 +195,12 @@ export default function NearbyBuyers() {
               <View className="flex-row mt-4 gap-3">
                 <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3.5 shadow-sm">
                   <Phone size={18} color="#FFFFFF" />
-                  <Text className="text-white font-semibold ml-2">Call</Text>
+                  <Text className="text-white font-semibold ml-2">{t('common.call')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-emerald-50 rounded-xl py-3.5 shadow-sm">
                   <MessageSquare size={18} color="#059669" />
                   <Text className="text-emerald-700 font-semibold ml-2">
-                    Message
+                    {t('common.message')}
                   </Text>
                 </TouchableOpacity>
               </View>

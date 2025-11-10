@@ -3,10 +3,12 @@ import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Bell, Eye, MessageCircle, Plus, Search, User } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function BuyerOffersScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'browse' | 'my-requests'>('browse');
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,41 +17,41 @@ export default function BuyerOffersScreen() {
   const farmerOffers = [
     {
       id: 1,
-      title: "Fresh Organic Tomatoes",
-      farmer: "Rajesh Kumar",
-      location: "Punjab, India",
-      cropType: "Tomatoes",
+      title: t('buyerOffers.freshOrganicTomatoes'),
+      farmer: t('buyerOffers.rajeshKumar'),
+      location: t('buyerOffers.punjabIndia'),
+      cropType: t('crops.tomatoes'),
       price: "₹45/kg",
-      quantity: "50 kg available",
+      quantity: t('buyerOffers.kgAvailable', { count: 50 }),
       image: "https://images.unsplash.com/photo-1518972559376-f5f715166441?w=800",
-      quality: "Grade A",
-      harvestDate: "2 days ago",
+      quality: t('buyerOffers.gradeA'),
+      harvestDate: t('common.daysAgo', { count: 2 }),
       rating: 4.8
     },
     {
       id: 2,
-      title: "Farm Fresh Carrots",
-      farmer: "Priya Sharma",
-      location: "Haryana, India",
-      cropType: "Carrots",
+      title: t('buyerOffers.farmFreshCarrots'),
+      farmer: t('buyerOffers.priyaSharma'),
+      location: t('buyerOffers.haryanaIndia'),
+      cropType: t('buyerOffers.carrots'),
       price: "₹30/kg",
-      quantity: "30 kg available",
+      quantity: t('buyerOffers.kgAvailable', { count: 30 }),
       image: "https://images.unsplash.com/photo-1598453400264-46d90d1a7ea7?w=800",
-      quality: "Premium",
-      harvestDate: "1 day ago",
+      quality: t('buyerOffers.premium'),
+      harvestDate: t('common.daysAgo', { count: 1 }),
       rating: 4.9
     },
     {
       id: 3,
-      title: "Premium Wheat",
-      farmer: "Suresh Patel",
-      location: "Madhya Pradesh, India",
-      cropType: "Wheat",
+      title: t('buyerOffers.premiumWheat'),
+      farmer: t('buyerOffers.sureshPatel'),
+      location: t('buyerOffers.madhyaPradeshIndia'),
+      cropType: t('crops.wheat'),
       price: "₹25/kg",
-      quantity: "100 kg available",
+      quantity: t('buyerOffers.kgAvailable', { count: 100 }),
       image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800",
-      quality: "Grade A",
-      harvestDate: "3 days ago",
+      quality: t('buyerOffers.gradeA'),
+      harvestDate: t('common.daysAgo', { count: 3 }),
       rating: 4.7
     },
   ];
@@ -58,25 +60,25 @@ export default function BuyerOffersScreen() {
   const myRequests = [
     {
       id: 1,
-      title: "Looking for Organic Potatoes",
-      cropType: "Potatoes",
-      quantity: "20 kg needed",
+      title: t('buyerOffers.lookingForOrganicPotatoes'),
+      cropType: t('crops.potatoes'),
+      quantity: t('buyerOffers.kgNeeded', { count: 20 }),
       maxPrice: "₹35/kg",
-      location: "Delhi NCR",
+      location: t('buyerOffers.delhiNCR'),
       status: "active",
       responses: 3,
-      createdDate: "1 day ago"
+      createdDate: t('common.daysAgo', { count: 1 })
     },
     {
       id: 2,
-      title: "Need Fresh Onions",
-      cropType: "Onions",
-      quantity: "15 kg needed",
+      title: t('buyerOffers.needFreshOnions'),
+      cropType: t('crops.onions'),
+      quantity: t('buyerOffers.kgNeeded', { count: 15 }),
       maxPrice: "₹40/kg",
-      location: "Delhi NCR",
+      location: t('buyerOffers.delhiNCR'),
       status: "active",
       responses: 5,
-      createdDate: "3 days ago"
+      createdDate: t('common.daysAgo', { count: 3 })
     },
   ];
 
@@ -106,7 +108,7 @@ export default function BuyerOffersScreen() {
         />
         <View className="flex-1">
           <Text className="text-lg font-bold text-gray-900 mb-1">{item.title}</Text>
-          <Text className="text-sm text-gray-600 mb-1">by {item.farmer}</Text>
+          <Text className="text-sm text-gray-600 mb-1">{t('buyerOffers.by')} {item.farmer}</Text>
           <Text className="text-sm text-gray-500 mb-2">{item.location}</Text>
           <View className="flex-row items-center justify-between">
             <Text className="text-lg font-bold" style={{ color: '#B27E4C' }}>{item.price}</Text>
@@ -114,7 +116,7 @@ export default function BuyerOffersScreen() {
           </View>
         </View>
       </View>
-      
+
       <View className="flex-row mt-4 gap-2">
         <TouchableOpacity
           className="flex-1 py-3 rounded-lg items-center"
@@ -126,10 +128,10 @@ export default function BuyerOffersScreen() {
         >
           <View className="flex-row items-center">
             <Eye size={16} color="white" />
-            <Text className="text-white font-semibold ml-2">View Details</Text>
+            <Text className="text-white font-semibold ml-2">{t('buyerOffers.viewDetails')}</Text>
           </View>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           className="flex-1 py-3 rounded-lg items-center border-2"
           style={{ borderColor: '#B27E4C' }}
@@ -140,7 +142,7 @@ export default function BuyerOffersScreen() {
         >
           <View className="flex-row items-center">
             <MessageCircle size={16} color="#B27E4C" />
-            <Text className="font-semibold ml-2" style={{ color: '#B27E4C' }}>Contact</Text>
+            <Text className="font-semibold ml-2" style={{ color: '#B27E4C' }}>{t('buyerOffers.contact')}</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -168,18 +170,18 @@ export default function BuyerOffersScreen() {
       </View>
       
       <Text className="text-gray-600 mb-1">{item.quantity}</Text>
-      <Text className="text-gray-600 mb-1">Max Price: {item.maxPrice}</Text>
+      <Text className="text-gray-600 mb-1">{t('buyerOffers.maxPrice')}: {item.maxPrice}</Text>
       <Text className="text-gray-500 text-sm mb-3">{item.location} • {item.createdDate}</Text>
-      
+
       <View className="flex-row justify-between items-center">
         <Text className="text-sm" style={{ color: '#B27E4C' }}>
-          {item.responses} farmer responses
+          {t('buyerOffers.farmerResponses', { count: item.responses })}
         </Text>
         <TouchableOpacity
           className="px-4 py-2 rounded-lg"
           style={{ backgroundColor: '#B27E4C' }}
         >
-          <Text className="text-white font-semibold">View Responses</Text>
+          <Text className="text-white font-semibold">{t('buyerOffers.viewResponses')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -204,7 +206,7 @@ export default function BuyerOffersScreen() {
             >
               <ArrowLeft color="white" size={24} />
             </TouchableOpacity>
-            <Text className="text-white text-2xl font-bold">Offers</Text>
+            <Text className="text-white text-2xl font-bold">{t('buyerOffers.offers')}</Text>
           </View>
           <View className="flex-row">
             <TouchableOpacity
@@ -227,7 +229,7 @@ export default function BuyerOffersScreen() {
           <Search size={20} color="white" />
           <TextInput
             className="flex-1 ml-3 text-white text-base"
-            placeholder="Search offers, crops, farmers..."
+            placeholder={t('buyerOffers.searchPlaceholder')}
             placeholderTextColor="rgba(255, 255, 255, 0.7)"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -253,10 +255,10 @@ export default function BuyerOffersScreen() {
           <Text className={`font-semibold ${
             activeTab === 'browse' ? 'text-gray-900' : 'text-gray-600'
           }`}>
-            Browse Offers
+            {t('buyerOffers.browseOffers')}
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           onPress={() => setActiveTab('my-requests')}
           className={`flex-1 py-3 rounded-r-lg items-center ${
@@ -273,7 +275,7 @@ export default function BuyerOffersScreen() {
           <Text className={`font-semibold ${
             activeTab === 'my-requests' ? 'text-gray-900' : 'text-gray-600'
           }`}>
-            My Requests
+            {t('buyerOffers.myRequests')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -291,14 +293,14 @@ export default function BuyerOffersScreen() {
         ) : (
           <ScrollView className="flex-1 px-4 pb-24">
             <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-lg font-bold text-gray-900">My Purchase Requests</Text>
+              <Text className="text-lg font-bold text-gray-900">{t('buyerOffers.myPurchaseRequests')}</Text>
               <TouchableOpacity
                 className="flex-row items-center px-4 py-2 rounded-lg"
                 style={{ backgroundColor: '#B27E4C' }}
                 onPress={() => router.push('/create-request')}
               >
                 <Plus size={16} color="white" />
-                <Text className="text-white font-semibold ml-2">Create Request</Text>
+                <Text className="text-white font-semibold ml-2">{t('buyerOffers.createRequest')}</Text>
               </TouchableOpacity>
             </View>
             

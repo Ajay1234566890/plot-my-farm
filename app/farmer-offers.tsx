@@ -3,11 +3,13 @@ import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Bell, Edit3, Plus, Trash2, User } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function FarmerOffersScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'active' | 'sold' | 'expired'>('all');
   const [activeTab, setActiveTab] = useState<'my-offers' | 'create'>('my-offers');
 
@@ -15,35 +17,35 @@ export default function FarmerOffersScreen() {
   const myOffers = [
     {
       id: 1,
-      title: "Fresh Organic Tomatoes",
-      cropType: "Tomatoes",
+      title: t('crops.freshOrganicTomatoes'),
+      cropType: t('crops.tomatoes'),
       price: "₹45/kg",
-      quantity: "50 kg",
+      quantity: `50 ${t('common.kg')}`,
       image: "https://images.unsplash.com/photo-1518972559376-f5f715166441?w=800",
       status: "active",
-      createdDate: "2 days ago",
+      daysAgo: 2,
       buyers: 5
     },
     {
       id: 2,
-      title: "Farm Fresh Carrots",
-      cropType: "Carrots",
+      title: t('crops.farmFreshCarrots'),
+      cropType: t('crops.carrots'),
       price: "₹30/kg",
-      quantity: "30 kg",
+      quantity: `30 ${t('common.kg')}`,
       image: "https://images.unsplash.com/photo-1598453400264-46d90d1a7ea7?w=800",
       status: "active",
-      createdDate: "5 days ago",
+      daysAgo: 5,
       buyers: 3
     },
     {
       id: 3,
-      title: "Premium Wheat",
-      cropType: "Wheat",
+      title: t('crops.premiumWheat'),
+      cropType: t('crops.wheat'),
       price: "₹25/kg",
-      quantity: "100 kg",
+      quantity: `100 ${t('common.kg')}`,
       image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800",
       status: "sold",
-      createdDate: "1 week ago",
+      daysAgo: 7,
       buyers: 8
     },
   ];
@@ -61,7 +63,7 @@ export default function FarmerOffersScreen() {
           className="w-full h-40 rounded-xl mb-3"
         />
         <View className="absolute top-2 left-2 bg-emerald-500 rounded-lg px-2 py-1">
-          <Text className="text-white font-bold text-xs capitalize">{item.status}</Text>
+          <Text className="text-white font-bold text-xs capitalize">{t(`offers.${item.status}`)}</Text>
         </View>
         <View className="absolute top-2 right-2 flex-row gap-2">
           <TouchableOpacity className="bg-white rounded-full p-2">
@@ -82,8 +84,12 @@ export default function FarmerOffersScreen() {
           <Text className="text-gray-500 text-sm">{item.quantity}</Text>
         </View>
         <View className="items-end">
-          <Text className="text-gray-600 text-sm">{item.createdDate}</Text>
-          <Text className="font-semibold text-sm mt-1" style={{ color: '#7C8B3A' }}>{item.buyers} buyers</Text>
+          <Text className="text-gray-600 text-sm">
+            {item.daysAgo === 7
+              ? t('common.oneWeekAgo')
+              : t('common.daysAgo', { count: item.daysAgo })}
+          </Text>
+          <Text className="font-semibold text-sm mt-1" style={{ color: '#7C8B3A' }}>{item.buyers} {t('offers.buyers')}</Text>
         </View>
       </View>
     </View>
@@ -105,10 +111,11 @@ export default function FarmerOffersScreen() {
             <TouchableOpacity
               onPress={() => router.back()}
               className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
+              accessibilityLabel={t('common.goBack')}
             >
               <ArrowLeft color="white" size={24} />
             </TouchableOpacity>
-            <Text className="text-white text-2xl font-bold">My Offers</Text>
+            <Text className="text-white text-2xl font-bold">{t('offers.myOffers')}</Text>
           </View>
           <View className="flex-row">
             <TouchableOpacity
@@ -141,7 +148,7 @@ export default function FarmerOffersScreen() {
                 ? 'text-emerald-600'
                 : 'text-white'
             }`}>
-              My Offers
+              {t('offers.myOffers')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -149,11 +156,11 @@ export default function FarmerOffersScreen() {
             className="flex-1 py-3 rounded-xl flex-row items-center justify-center bg-white/20 border border-white/30"
           >
             <Plus color="white" size={20} />
-            <Text className="text-white font-semibold ml-2">Create Offer</Text>
+            <Text className="text-white font-semibold ml-2">{t('offers.createOffer')}</Text>
           </TouchableOpacity>
         </View>
         <Text className="text-white/80 mt-2">
-          Manage your crop listings and offers
+          {t('offers.manageCropListings')}
         </Text>
       </View>
       
@@ -179,7 +186,7 @@ export default function FarmerOffersScreen() {
                   ? 'text-white'
                   : 'text-gray-700'
               }`}>
-                {status === 'all' ? 'All Offers' : status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === 'all' ? t('offers.allOffers') : t(`offers.${status}`)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -196,7 +203,7 @@ export default function FarmerOffersScreen() {
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
             <View className="items-center justify-center py-8">
-              <Text className="text-gray-500 text-lg">No offers found</Text>
+              <Text className="text-gray-500 text-lg">{t('offers.noOffersFound')}</Text>
             </View>
           }
         />

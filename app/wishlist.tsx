@@ -2,50 +2,52 @@ import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Heart, Search } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
-
-const mockWishlistItems = [
-  {
-    id: 1,
-    name: "Fresh Tomatoes",
-    farm: "Green Farms",
-    available: "50kg",
-    price: "₹200/kg",
-    image:
-      "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
-  },
-  {
-    id: 2,
-    name: "Sweet Corn",
-    farm: "Sunshine Fields",
-    available: "100 dozens",
-    price: "₹330/dozen",
-    image:
-      "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
-  },
-  {
-    id: 3,
-    name: "Organic Carrots",
-    farm: "Root Valley",
-    available: "80kg",
-    price: "₹145/kg",
-    image:
-      "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
-  },
-  {
-    id: 4,
-    name: "Broccoli Florets",
-    farm: "Green Direct Co",
-    available: "15kg",
-    price: "₹180/kg",
-    image:
-      "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
-    outOfStock: true,
-  },
-];
 
 export default function Wishlist() {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const mockWishlistItems = [
+    {
+      id: 1,
+      name: t('wishlist.freshTomatoes'),
+      farm: t('wishlist.greenFarms'),
+      available: t('wishlist.kgAvailable', { amount: 50 }),
+      price: t('wishlist.pricePerKg', { price: 200 }),
+      image:
+        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+    },
+    {
+      id: 2,
+      name: t('wishlist.sweetCorn'),
+      farm: t('wishlist.sunshineFields'),
+      available: t('wishlist.dozensAvailable', { amount: 100 }),
+      price: t('wishlist.pricePerDozen', { price: 330 }),
+      image:
+        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+    },
+    {
+      id: 3,
+      name: t('wishlist.organicCarrots'),
+      farm: t('wishlist.rootValley'),
+      available: t('wishlist.kgAvailable', { amount: 80 }),
+      price: t('wishlist.pricePerKg', { price: 145 }),
+      image:
+        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+    },
+    {
+      id: 4,
+      name: t('wishlist.broccoliFlorets'),
+      farm: t('wishlist.greenDirectCo'),
+      available: t('wishlist.kgAvailable', { amount: 15 }),
+      price: t('wishlist.pricePerKg', { price: 180 }),
+      image:
+        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+      outOfStock: true,
+    },
+  ];
 
   const handleRemoveFromWishlist = (id: number) => {
     // In a real app, this would update the wishlist state
@@ -75,7 +77,7 @@ export default function Wishlist() {
           >
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">My Wishlist</Text>
+          <Text className="text-white text-xl font-bold">{t('wishlist.myWishlist')}</Text>
         </View>
 
         {/* Search Bar */}
@@ -83,7 +85,7 @@ export default function Wishlist() {
           <Search size={20} color="white" />
           <TextInput
             className="flex-1 ml-3 text-white text-base"
-            placeholder="Search in wishlist..."
+            placeholder={t('wishlist.searchInWishlist')}
             placeholderTextColor="rgba(255, 255, 255, 0.7)"
           />
         </View>
@@ -124,10 +126,10 @@ export default function Wishlist() {
                   </TouchableOpacity>
                 </View>
                 <Text className="text-gray-500 text-sm mb-1">
-                  Grown by {item.farm}
+                  {t('wishlist.grownBy', { farm: item.farm })}
                 </Text>
                 <Text className="text-gray-500 text-sm">
-                  Available: {item.available}
+                  {t('wishlist.available')}: {item.available}
                 </Text>
                 <View className="flex-row justify-between items-center mt-2">
                   <Text className="text-lg font-semibold" style={{ color: '#B27E4C' }}>
@@ -140,13 +142,13 @@ export default function Wishlist() {
                       style={{ backgroundColor: '#B27E4C' }}
                     >
                       <Text className="text-white font-medium">
-                        Add to Cart
+                        {t('wishlist.addToCart')}
                       </Text>
                     </TouchableOpacity>
                   ) : (
                     <View className="bg-gray-200 px-4 py-2 rounded-full">
                       <Text className="text-gray-600 font-medium">
-                        Out of Stock
+                        {t('wishlist.outOfStock')}
                       </Text>
                     </View>
                   )}

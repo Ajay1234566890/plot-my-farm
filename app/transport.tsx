@@ -11,6 +11,7 @@ import {
     User,
 } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import {
     SafeAreaView,
     ScrollView,
@@ -20,16 +21,18 @@ import {
 } from "react-native";
 
 export default function TransportScreen() {
+  const { t } = useTranslation();
+
   // Mock data for delivery history
   const deliveryHistory = [
     {
       id: "123456",
-      status: "Estimated Delivery: 2 days",
+      status: t('transport.estimatedDeliveryDays', { days: 2 }),
       date: "2024-02-15",
     },
     {
       id: "789012",
-      status: "Delivered on: 2024-07-20",
+      status: t('transport.deliveredOn', { date: "2024-07-20" }),
       date: "2024-07-20",
     },
   ];
@@ -45,7 +48,7 @@ export default function TransportScreen() {
           <TouchableOpacity className="mr-4">
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Transport</Text>
+          <Text className="text-white text-xl font-bold">{t('transport.transport')}</Text>
         </View>
       </LinearGradient>
 
@@ -53,27 +56,27 @@ export default function TransportScreen() {
         {/* Quick Actions Section */}
         <View className="mb-8">
           <Text className="text-gray-800 text-lg font-bold mb-4">
-            Quick Actions
+            {t('transport.quickActions')}
           </Text>
 
           <TouchableOpacity className="bg-blue-500 rounded-xl py-4 mb-3 flex-row items-center justify-center">
             <Truck color="white" size={20} className="mr-2" />
             <Text className="text-white font-bold text-base">
-              Arrange New Transport
+              {t('transport.arrangeNewTransport')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity className="bg-white border border-blue-200 rounded-xl py-4 mb-3 flex-row items-center justify-center">
             <Package color="#3b82f6" size={20} className="mr-2" />
             <Text className="text-blue-500 font-bold text-base">
-              View Ongoing Shipments
+              {t('transport.viewOngoingShipments')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity className="bg-blue-500 rounded-xl py-4 flex-row items-center justify-center">
             <FileText color="white" size={20} className="mr-2" />
             <Text className="text-white font-bold text-base">
-              Get Transport Quote
+              {t('transport.getTransportQuote')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -81,7 +84,7 @@ export default function TransportScreen() {
         {/* Delivery History Section */}
         <View>
           <Text className="text-gray-800 text-lg font-bold mb-4">
-            Delivery History
+            {t('transport.deliveryHistory')}
           </Text>
 
           {deliveryHistory.map((delivery) => (
@@ -94,7 +97,7 @@ export default function TransportScreen() {
               </View>
               <View>
                 <Text className="text-gray-800 font-medium">
-                  Order #{delivery.id}
+                  {t('transport.orderNumber', { number: delivery.id })}
                 </Text>
                 <Text className="text-gray-500 text-sm mt-1">
                   {delivery.status}
@@ -115,7 +118,7 @@ export default function TransportScreen() {
             accessibilityRole="tab"
           >
             <Home size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Home</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('common.home')}</Text>
           </TouchableOpacity>
 
           {/* My Farms Tab */}
@@ -125,7 +128,7 @@ export default function TransportScreen() {
             accessibilityRole="tab"
           >
             <Sprout size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Crops</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('common.crops')}</Text>
           </TouchableOpacity>
 
           {/* Mic Button */}
@@ -144,7 +147,7 @@ export default function TransportScreen() {
             accessibilityRole="tab"
           >
             <MessageCircle size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Orders</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('orders.orders')}</Text>
           </TouchableOpacity>
 
           {/* Profile Tab */}
@@ -154,7 +157,7 @@ export default function TransportScreen() {
             accessibilityRole="tab"
           >
             <User size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Profile</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('common.profile')}</Text>
           </TouchableOpacity>
         </View>
 

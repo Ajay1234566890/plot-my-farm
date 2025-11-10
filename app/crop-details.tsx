@@ -11,6 +11,7 @@ import {
     User
 } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import {
     Alert,
     Image,
@@ -78,6 +79,7 @@ export default function CropDetails() {
   const router = useRouter();
   const { user } = useAuth();
   const params = useLocalSearchParams();
+  const { t } = useTranslation();
 
   const renderStars = (rating: number) => {
     return [...Array(5)].map((_, index) => (
@@ -91,12 +93,12 @@ export default function CropDetails() {
   };
 
   const handleMessageFarmer = () => {
-    Alert.alert("Message", "Opening chat with farmer...");
+    Alert.alert(t('common.message'), t('crops.openingChatWithFarmer'));
     router.push("/messages");
   };
 
   const handleAddToCart = () => {
-    Alert.alert("Success", "Crop added to cart!");
+    Alert.alert(t('common.success'), t('crops.cropAddedToCart'));
   };
 
   return (
@@ -114,19 +116,20 @@ export default function CropDetails() {
           <TouchableOpacity
             onPress={() => router.back()}
             className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
+            accessibilityLabel={t('common.goBack')}
           >
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Crop Details</Text>
+          <Text className="text-white text-xl font-bold">{t('crops.cropDetails')}</Text>
           <TouchableOpacity
-            onPress={() => Alert.alert("Share", "Sharing crop details...")}
+            onPress={() => Alert.alert(t('common.share'), t('crops.sharingCropDetails'))}
             className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
           >
             <Share2 color="white" size={24} />
           </TouchableOpacity>
         </View>
         <Text className="text-white/80 text-center">
-          View detailed crop information
+          {t('crops.viewDetailedInfo')}
         </Text>
       </View>
 
@@ -143,7 +146,7 @@ export default function CropDetails() {
 
         {/* Origin */}
         <View className="mt-2 p-4 bg-white">
-          <Text className="text-lg font-semibold text-gray-900">Origin</Text>
+          <Text className="text-lg font-semibold text-gray-900">{t('crops.origin')}</Text>
           <Text className="mt-2 text-gray-600 leading-6">
             {mockCropDetails.origin}
           </Text>
@@ -151,7 +154,7 @@ export default function CropDetails() {
 
         {/* Farmer */}
         <View className="mt-2 p-4 bg-white">
-          <Text className="text-lg font-semibold text-gray-900">Farmer</Text>
+          <Text className="text-lg font-semibold text-gray-900">{t('common.farmer')}</Text>
           <View className="flex-row items-center mt-3">
             <Image
               source={{ uri: mockCropDetails.farmer.image }}
@@ -171,17 +174,17 @@ export default function CropDetails() {
         {/* Availability */}
         <View className="mt-2 p-4 bg-white">
           <Text className="text-lg font-semibold text-gray-900">
-            Availability
+            {t('crops.availability')}
           </Text>
           <View className="mt-3">
             <View className="flex-row justify-between items-center">
-              <Text className="text-gray-600">Quantity</Text>
+              <Text className="text-gray-600">{t('crops.quantity')}</Text>
               <Text className="text-gray-900 font-medium">
                 {mockCropDetails.availability.quantity}
               </Text>
             </View>
             <View className="flex-row justify-between items-center mt-2">
-              <Text className="text-gray-600">Price</Text>
+              <Text className="text-gray-600">{t('crops.price')}</Text>
               <Text className="text-blue-600 font-semibold text-lg">
                 {mockCropDetails.availability.price}
               </Text>
@@ -193,7 +196,7 @@ export default function CropDetails() {
         <View className="mt-2 p-4 bg-white">
           <View className="flex-row justify-between items-center">
             <Text className="text-lg font-semibold text-gray-900">
-              Reviews ({mockCropDetails.reviewCount})
+              {t('crops.reviews')} ({mockCropDetails.reviewCount})
             </Text>
             <View className="flex-row items-center">
               <Text className="text-3xl font-bold text-gray-900 mr-2">
@@ -263,14 +266,14 @@ export default function CropDetails() {
             className="flex-1 bg-blue-600 rounded-full py-3 items-center flex-row justify-center"
           >
             <MessageCircle size={18} color="white" />
-            <Text className="text-white font-semibold ml-2">Message</Text>
+            <Text className="text-white font-semibold ml-2">{t('common.message')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleAddToCart}
             className="flex-1 bg-blue-600 rounded-full py-3 items-center flex-row justify-center"
           >
             <ShoppingCart size={18} color="white" />
-            <Text className="text-white font-semibold ml-2">Add Cart</Text>
+            <Text className="text-white font-semibold ml-2">{t('crops.addCart')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -281,28 +284,28 @@ export default function CropDetails() {
             className="items-center"
           >
             <Home size={24} color="#9CA3AF" />
-            <Text className="text-xs text-gray-500 mt-1">Home</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('common.home')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push("/my-farms")}
             className="items-center"
           >
             <ShoppingCart size={24} color="#9CA3AF" />
-            <Text className="text-xs text-gray-500 mt-1">Farms</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('farms.myFarms')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push("/messages")}
             className="items-center"
           >
             <MessageCircle size={24} color="#9CA3AF" />
-            <Text className="text-xs text-gray-500 mt-1">Messages</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('common.messages')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push("/profile")}
             className="items-center"
           >
             <User size={24} color="#9CA3AF" />
-            <Text className="text-xs text-gray-500 mt-1">Profile</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('common.profile')}</Text>
           </TouchableOpacity>
         </View>
 

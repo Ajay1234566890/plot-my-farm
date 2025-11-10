@@ -11,11 +11,13 @@ import {
     LogOut
 } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Image, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import FarmerBottomNav from './components/FarmerBottomNav';
 
 export default function Profile() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const [notificationsExpanded, setNotificationsExpanded] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState({
@@ -26,12 +28,12 @@ export default function Profile() {
 
   const handleLogout = () => {
     Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+      t('profile.logout'),
+      t('profile.logoutConfirmation'),
       [
-        { text: "Cancel", onPress: () => {}, style: "cancel" },
+        { text: t('common.cancel'), onPress: () => {}, style: "cancel" },
         {
-          text: "Logout",
+          text: t('profile.logout'),
           onPress: async () => {
             await logout();
             router.replace('/select-role');
@@ -60,10 +62,10 @@ export default function Profile() {
           >
             <ChevronLeft size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">Profile</Text>
+          <Text className="text-xl font-bold text-white">{t('profile.profile')}</Text>
         </View>
         <Text className="text-white/80">
-          Manage your account and preferences
+          {t('profile.manageAccountPreferences')}
         </Text>
       </View>
 
@@ -85,14 +87,14 @@ export default function Profile() {
               className="w-full h-full"
             />
           </View>
-          <Text className="mt-4 text-xl font-bold text-gray-900">{user?.name || "Farmer"}</Text>
-          <Text className="text-sm text-gray-500">{user?.email || "farmer@example.com"}</Text>
+          <Text className="mt-4 text-xl font-bold text-gray-900">{user?.name || t('profile.farmer')}</Text>
+          <Text className="text-sm text-gray-500">{user?.phone || t('profile.farmerPhone')}</Text>
           <TouchableOpacity
             className="mt-4 px-6 py-3 rounded-xl"
             style={{ backgroundColor: '#7C8B3A' }}
-            onPress={() => Alert.alert("Edit Profile", "Profile editing coming soon")}
+            onPress={() => Alert.alert(t('profile.editProfile'), t('profile.profileEditingComingSoon'))}
           >
-            <Text className="text-white font-semibold">Edit Profile</Text>
+            <Text className="text-white font-semibold">{t('profile.editProfile')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -107,16 +109,16 @@ export default function Profile() {
             elevation: 8,
           }}
         >
-          <Text className="text-xl font-bold text-gray-900 mb-4">Account Settings</Text>
-          
+          <Text className="text-xl font-bold text-gray-900 mb-4">{t('profile.accountSettings')}</Text>
+
           {/* Notifications Section */}
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-row items-center justify-between py-4 border-b border-gray-100"
             onPress={() => setNotificationsExpanded(!notificationsExpanded)}
           >
             <View className="flex-row items-center">
               <Bell size={20} color="#4B5563" />
-              <Text className="ml-3 text-base">Notifications</Text>
+              <Text className="ml-3 text-base">{t('profile.notifications')}</Text>
             </View>
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
@@ -124,30 +126,30 @@ export default function Profile() {
           {notificationsExpanded && (
             <View className="ml-8 mt-2">
               <View className="flex-row items-center justify-between py-3">
-                <Text>Message Alerts</Text>
+                <Text>{t('profile.messageAlerts')}</Text>
                 <Switch
                   value={notificationSettings.messageAlerts}
-                  onValueChange={(value) => 
+                  onValueChange={(value) =>
                     setNotificationSettings(prev => ({...prev, messageAlerts: value}))
                   }
                   trackColor={{ false: "#D1D5DB", true: "#3B82F6" }}
                 />
               </View>
               <View className="flex-row items-center justify-between py-3">
-                <Text>Offer Alerts</Text>
+                <Text>{t('profile.offerAlerts')}</Text>
                 <Switch
                   value={notificationSettings.offerAlerts}
-                  onValueChange={(value) => 
+                  onValueChange={(value) =>
                     setNotificationSettings(prev => ({...prev, offerAlerts: value}))
                   }
                   trackColor={{ false: "#D1D5DB", true: "#3B82F6" }}
                 />
               </View>
               <View className="flex-row items-center justify-between py-3">
-                <Text>Order Updates</Text>
+                <Text>{t('profile.orderUpdates')}</Text>
                 <Switch
                   value={notificationSettings.orderUpdates}
-                  onValueChange={(value) => 
+                  onValueChange={(value) =>
                     setNotificationSettings(prev => ({...prev, orderUpdates: value}))
                   }
                   trackColor={{ false: "#D1D5DB", true: "#3B82F6" }}
@@ -157,52 +159,52 @@ export default function Profile() {
           )}
 
           {/* My Activities */}
-          <Text className="text-lg font-semibold mt-6 mb-2">My Activities</Text>
-          
+          <Text className="text-lg font-semibold mt-6 mb-2">{t('profile.myActivities')}</Text>
+
           <TouchableOpacity
             className="flex-row items-center justify-between py-4 border-b border-gray-100"
             onPress={() => router.push('/saved-buyers')}
           >
             <View className="flex-row items-center">
               <Heart size={20} color="#7C8B3A" />
-              <Text className="ml-3 text-base">Saved Buyers</Text>
+              <Text className="ml-3 text-base">{t('profile.savedBuyers')}</Text>
             </View>
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
 
           {/* Settings */}
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-row items-center justify-between py-4 border-b border-gray-100"
             onPress={() => {/* Handle language selection */}}
           >
             <View className="flex-row items-center">
               <Globe size={20} color="#4B5563" />
-              <Text className="ml-3 text-base">Language</Text>
+              <Text className="ml-3 text-base">{t('profile.language')}</Text>
             </View>
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
 
           {/* Others */}
-          <Text className="text-lg font-semibold mt-6 mb-2">Others</Text>
-          
-          <TouchableOpacity 
+          <Text className="text-lg font-semibold mt-6 mb-2">{t('profile.others')}</Text>
+
+          <TouchableOpacity
             className="flex-row items-center justify-between py-4 border-b border-gray-100"
             onPress={() => {/* Handle terms */}}
           >
             <View className="flex-row items-center">
               <FileText size={20} color="#4B5563" />
-              <Text className="ml-3 text-base">Terms & Conditions</Text>
+              <Text className="ml-3 text-base">{t('profile.termsConditions')}</Text>
             </View>
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-row items-center justify-between py-4 border-b border-gray-100"
             onPress={() => {/* Handle about */}}
           >
             <View className="flex-row items-center">
               <Info size={20} color="#4B5563" />
-              <Text className="ml-3 text-base">About the App</Text>
+              <Text className="ml-3 text-base">{t('profile.aboutApp')}</Text>
             </View>
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
@@ -215,7 +217,7 @@ export default function Profile() {
           >
             <View className="flex-row items-center justify-center">
               <LogOut size={20} color="#FFF" />
-              <Text className="ml-2 text-white font-semibold">Logout</Text>
+              <Text className="ml-2 text-white font-semibold">{t('profile.logout')}</Text>
             </View>
           </TouchableOpacity>
         </View>

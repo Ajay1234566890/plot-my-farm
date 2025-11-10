@@ -15,6 +15,7 @@ import {
     Sun,
 } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import {
     Dimensions,
     Image,
@@ -30,6 +31,7 @@ const { width } = Dimensions.get("window");
 export default function MyFarms() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useTranslation();
   // Mock data for farms
   const farms = [
     {
@@ -68,10 +70,10 @@ export default function MyFarms() {
   ];
 
   const farmStats = [
-    { icon: <Leaf size={20} color="#10B981" />, label: "Active Crops", value: "12" },
-    { icon: <Droplets size={20} color="#3B82F6" />, label: "Irrigation", value: "85%" },
-    { icon: <Sun size={20} color="#F59E0B" />, label: "Sunlight", value: "7h/day" },
-    { icon: <Calendar size={20} color="#8B5CF6" />, label: "Season", value: "Kharif" },
+    { icon: <Leaf size={20} color="#10B981" />, label: t('farms.activeCrops'), value: "12" },
+    { icon: <Droplets size={20} color="#3B82F6" />, label: t('farms.irrigation'), value: "85%" },
+    { icon: <Sun size={20} color="#F59E0B" />, label: t('farms.sunlight'), value: "7h/day" },
+    { icon: <Calendar size={20} color="#8B5CF6" />, label: t('farms.season'), value: t('farms.kharif') },
   ];
 
   return (
@@ -92,7 +94,7 @@ export default function MyFarms() {
           >
             <ArrowLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">My Farms</Text>
+          <Text className="text-xl font-bold text-white">{t('farms.myFarms')}</Text>
         </View>
 
         {/* Enhanced Search Bar */}
@@ -109,7 +111,7 @@ export default function MyFarms() {
           >
             <Search size={20} color="#4B5563" />
             <TextInput
-              placeholder="Search farms, crops..."
+              placeholder={t('farms.searchFarmsCrops')}
               className="flex-1 ml-3 text-base text-gray-800"
               placeholderTextColor="#9CA3AF"
             />
@@ -136,7 +138,7 @@ export default function MyFarms() {
           elevation: 8,
         }}
       >
-        <Text className="text-xl font-bold text-gray-800 mb-4">Farm Overview</Text>
+        <Text className="text-xl font-bold text-gray-800 mb-4">{t('farms.farmOverview')}</Text>
         <View className="flex-row flex-wrap justify-between">
           {farmStats.map((stat, index) => (
             <View key={index} className="basis-[48%] flex-row items-center rounded-xl p-3 mb-3" style={{ backgroundColor: '#F5F3F0' }}>
@@ -155,13 +157,13 @@ export default function MyFarms() {
       {/* Farms List */}
       <View className="flex-1 px-6 mt-6">
         <View className="flex-row items-center justify-between mb-6">
-          <Text className="text-xl font-bold text-gray-800">My Farms ({farms.length})</Text>
+          <Text className="text-xl font-bold text-gray-800">{t('farms.myFarms')} ({farms.length})</Text>
           <TouchableOpacity
             className="flex-row items-center px-4 py-2 rounded-full"
             style={{ backgroundColor: '#F5F3F0' }}
           >
             <Text className="text-sm font-medium mr-1" style={{ color: '#7C8B3A' }}>
-              Sort by Status
+              {t('farms.sortByStatus')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -209,7 +211,7 @@ export default function MyFarms() {
                 
                 {/* Crops */}
                 <View className="mt-3">
-                  <Text className="text-sm font-semibold text-gray-700 mb-2">Current Crops</Text>
+                  <Text className="text-sm font-semibold text-gray-700 mb-2">{t('farms.currentCrops')}</Text>
                   <View className="flex-row flex-wrap gap-2">
                     {farm.crops.map((crop, index) => (
                       <View key={index} className="bg-emerald-50 px-3 py-1 rounded-full">
@@ -218,19 +220,19 @@ export default function MyFarms() {
                     ))}
                   </View>
                 </View>
-                
+
                 {/* Farm Stats */}
                 <View className="flex-row mt-4 pt-3 border-t border-gray-100">
                   <View className="flex-1 items-center">
                     <Text className="text-sm font-bold text-gray-900">{farm.yield}</Text>
-                    <Text className="text-xs text-gray-500">Last Yield</Text>
+                    <Text className="text-xs text-gray-500">{t('farms.lastYield')}</Text>
                   </View>
                   <View className="flex-1 items-center">
                     <Text className="text-sm font-bold text-gray-900">{farm.lastHarvest}</Text>
-                    <Text className="text-xs text-gray-500">Harvested</Text>
+                    <Text className="text-xs text-gray-500">{t('farms.harvested')}</Text>
                   </View>
                 </View>
-                
+
                 {/* Action Buttons */}
                 <View className="flex-row mt-4 gap-3">
                   <TouchableOpacity
@@ -241,7 +243,7 @@ export default function MyFarms() {
                     className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3.5 shadow-sm"
                   >
                     <Leaf size={18} color="#FFFFFF" />
-                    <Text className="text-white font-semibold ml-2">Manage</Text>
+                    <Text className="text-white font-semibold ml-2">{t('farms.manage')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => router.push({
@@ -252,7 +254,7 @@ export default function MyFarms() {
                   >
                     <MessageSquare size={18} color="#059669" />
                     <Text className="text-emerald-700 font-semibold ml-2">
-                      Insights
+                      {t('farms.insights')}
                     </Text>
                   </TouchableOpacity>
                 </View>

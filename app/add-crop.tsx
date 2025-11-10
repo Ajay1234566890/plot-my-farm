@@ -9,6 +9,7 @@ import {
     Upload
 } from "lucide-react-native";
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
     Alert,
     Image,
@@ -25,6 +26,7 @@ const units = ["Kg", "Ton", "Quintal", "Pieces"];
 export default function AddCrop() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [selectedUnit, setSelectedUnit] = useState("");
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
@@ -35,10 +37,10 @@ export default function AddCrop() {
 
   const handleSaveCrop = () => {
     if (!cropName || !quantity || !selectedUnit || !price) {
-      Alert.alert("Error", "Please fill in all required fields");
+      Alert.alert(t('common.error'), t('errors.fillAllFields'));
       return;
     }
-    Alert.alert("Success", "Crop added successfully!");
+    Alert.alert(t('common.success'), t('success.cropAdded'));
     router.push("/my-farms");
   };
 
@@ -57,14 +59,14 @@ export default function AddCrop() {
           <TouchableOpacity
             onPress={() => router.back()}
             className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
-            accessibilityLabel="Go back"
+            accessibilityLabel={t('common.goBack')}
           >
             <ArrowLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">Add New Crop</Text>
+          <Text className="text-xl font-bold text-white">{t('crops.addNewCrop')}</Text>
         </View>
         <Text className="text-white/80">
-          Add your crop details to start selling
+          {t('crops.addCropDetailsToSell')}
         </Text>
       </View>
 
@@ -85,11 +87,11 @@ export default function AddCrop() {
           {/* Crop Name Field */}
           <View>
             <Text className="text-sm font-medium text-gray-700 mb-2">
-              Crop Name
+              {t('crops.cropName')}
             </Text>
             <View className="flex-row items-center bg-white rounded-xl border border-gray-200 px-4">
               <TextInput
-                placeholder="e.g., Paddy"
+                placeholder={t('crops.cropNamePlaceholder')}
                 value={cropName}
                 onChangeText={setCropName}
                 className="flex-1 py-3.5 text-base text-gray-800"
@@ -105,11 +107,11 @@ export default function AddCrop() {
           <View className="flex-row gap-3">
             <View className="flex-1">
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Quantity
+                {t('crops.quantity')}
               </Text>
               <View className="bg-white rounded-xl border border-gray-200 px-4">
                 <TextInput
-                  placeholder="e.g., 100"
+                  placeholder={t('crops.quantityPlaceholder')}
                   value={quantity}
                   onChangeText={setQuantity}
                   keyboardType="numeric"
@@ -120,13 +122,13 @@ export default function AddCrop() {
             </View>
 
             <View className="flex-1">
-              <Text className="text-sm font-medium text-gray-700 mb-2">Unit</Text>
+              <Text className="text-sm font-medium text-gray-700 mb-2">{t('crops.unit')}</Text>
               <TouchableOpacity
                 className="bg-white rounded-xl border border-gray-200 px-4 py-3.5 flex-row items-center justify-between"
                 onPress={() => setShowUnitDropdown(!showUnitDropdown)}
               >
                 <Text className={selectedUnit ? "text-gray-800" : "text-gray-400"}>
-                  {selectedUnit || "Select Unit"}
+                  {selectedUnit || t('crops.selectUnit')}
                 </Text>
                 <ChevronDown size={20} color="#6B7280" />
               </TouchableOpacity>
@@ -154,12 +156,12 @@ export default function AddCrop() {
           {/* Price Field */}
           <View>
             <Text className="text-sm font-medium text-gray-700 mb-2">
-              Price (per unit)
+              {t('crops.pricePerUnit')}
             </Text>
             <View className="flex-row items-center bg-white rounded-xl border border-gray-200 px-4">
               <Text className="text-gray-400 mr-2">₹</Text>
               <TextInput
-                placeholder="e.g., 2000"
+                placeholder={t('crops.pricePlaceholder')}
                 value={price}
                 onChangeText={setPrice}
                 keyboardType="numeric"
@@ -172,18 +174,18 @@ export default function AddCrop() {
           {/* Harvest Date Field */}
           <View>
             <Text className="text-sm font-medium text-gray-700 mb-2">
-              Harvest Date
+              {t('crops.harvestDate')}
             </Text>
             <TouchableOpacity className="flex-row items-center bg-white rounded-xl border border-gray-200 px-4 py-3.5">
               <Calendar size={20} color="#6B7280" />
-              <Text className="ml-3 text-gray-400">Select Date</Text>
+              <Text className="ml-3 text-gray-400">{t('crops.selectDate')}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Crop Image Upload */}
           <View>
             <Text className="text-sm font-medium text-gray-700 mb-2">
-              Crop Image
+              {t('crops.cropImage')}
             </Text>
             <TouchableOpacity className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-6 items-center">
               {cropImage ? (
@@ -198,10 +200,10 @@ export default function AddCrop() {
                     <Upload size={24} color="#059669" />
                   </View>
                   <Text className="text-sm font-medium text-gray-800">
-                    Tap to upload an image of your crop
+                    {t('crops.tapToUploadImage')}
                   </Text>
                   <Text className="text-xs text-gray-500 mt-1">
-                    High-quality images attract more buyers
+                    {t('crops.highQualityImagesAttract')}
                   </Text>
                 </View>
               )}
@@ -216,7 +218,7 @@ export default function AddCrop() {
           style={{ backgroundColor: '#7C8B3A' }}
         >
           <Text className="text-white text-center font-bold text-lg">
-            Save Crop
+            {t('crops.saveCrop')}
           </Text>
         </TouchableOpacity>
         </View>

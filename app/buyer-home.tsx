@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
@@ -18,24 +20,25 @@ import { MarketPrice, marketPricesService } from '@/services/market-prices-servi
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
-    Bell,
-    DollarSign,
-    Heart,
-    MapPin,
-    MessageSquare,
-    Package,
-    Search,
-    ShoppingCart,
-    TrendingUp
+  Bell,
+  DollarSign,
+  Heart,
+  MapPin,
+  MessageSquare,
+  Package,
+  Search,
+  ShoppingCart,
+  TrendingUp
 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function BuyerHome() {
+  const { t } = useTranslation();
   return (
     <HomePageErrorBoundary
-      fallbackTitle="Buyer Home Unavailable"
-      fallbackMessage="There was an issue loading the buyer home page. Please try again or restart the app."
+      fallbackTitle={t('errors.buyerHomeUnavailable')}
+      fallbackMessage={t('errors.buyerHomeLoadError')}
     >
       <BuyerHomeContent />
     </HomePageErrorBoundary>
@@ -43,9 +46,10 @@ export default function BuyerHome() {
 }
 
 function BuyerHomeContent() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("Nearby Crops");
+  const [activeTab, setActiveTab] = useState(t('buyerHome.nearbyCrops'));
   const [marketPrices, setMarketPrices] = useState<MarketPrice[]>([]);
   const [loadingPrices, setLoadingPrices] = useState(true);
 
@@ -94,22 +98,22 @@ function BuyerHomeContent() {
   const quickActions = [
     {
       icon: <TrendingUp size={24} color="#4B5563" />,
-      label: "Market",
+      label: t('navigation.market'),
       route: "/buyer-market-prices" as const,
     },
     {
       icon: <ShoppingCart size={24} color="#4B5563" />,
-      label: "My Cart",
+      label: t('buyerHome.myCart'),
       route: "/cart" as const,
     },
     {
       icon: <Package size={24} color="#4B5563" />,
-      label: "Orders",
+      label: t('buyerHome.orders'),
       route: "/my-orders" as const,
     },
     {
       icon: <DollarSign size={24} color="#4B5563" />,
-      label: "Offers",
+      label: t('buyerHome.offers'),
       route: "/buyer-offers" as const,
     },
   ];
@@ -176,11 +180,13 @@ function BuyerHomeContent() {
                   />
                 </View>
                 <Text className="text-white text-xl font-bold">
-                  Hello, {user?.name || "Buyer"}
+                  {t('buyerHome.hello')}, {user?.name || t('buyerHome.buyer')}
                 </Text>
               </View>
               {/* Date */}
-              <Text className="text-white/80 text-sm ml-13">Sunday, 01 Dec 2024</Text>
+              <Text className="text-white/80 text-sm ml-13">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}
+              </Text>
             </View>
             {/* Top Icons */}
             <View className="flex-row gap-3">
@@ -222,7 +228,7 @@ function BuyerHomeContent() {
             >
               <Search size={20} color="rgba(255, 255, 255, 0.8)" />
               <TextInput
-                placeholder="Search for crops..."
+                placeholder={t('buyerHome.searchForCrops')}
                 className="flex-1 ml-3 text-base text-gray-900"
                 placeholderTextColor="rgba(255, 255, 255, 0.7)"
                 style={{ color: 'white' }}
@@ -250,7 +256,7 @@ function BuyerHomeContent() {
           elevation: 10,
         }}
       >
-        <MapErrorBoundary fallbackMessage="Map is temporarily unavailable.">
+        <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
           <MapLibreView
             showFarmers={true}
             showBuyers={true}
@@ -289,7 +295,7 @@ function BuyerHomeContent() {
             }}
           >
             <Text className="text-xs font-semibold text-white">
-              Nearby Farmers
+              {t('farmerHome.nearbyFarmers')}
             </Text>
           </TouchableOpacity>
 
@@ -306,7 +312,7 @@ function BuyerHomeContent() {
             }}
           >
             <Text className="text-xs font-semibold text-white">
-              Nearby Buyers
+              {t('farmerHome.nearbyBuyers')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -325,14 +331,14 @@ function BuyerHomeContent() {
         <View className="mb-6">
           <View className="px-6 flex-row justify-between items-center mb-4">
             <Text className="text-xl font-bold text-gray-800">
-              Featured Crops
+              {t('buyerHome.featuredCrops')}
             </Text>
             <TouchableOpacity
               className="px-4 py-2 rounded-full"
               style={{ backgroundColor: '#B27E4C' }}
             >
               <Text className="text-sm font-semibold text-white">
-                View All
+                {t('common.viewAll')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -377,7 +383,7 @@ function BuyerHomeContent() {
 
         {/* Quick Actions - Redesigned with buyer color scheme */}
         <View className="px-6 mb-6">
-          <Text className="text-xl font-bold text-gray-800 mb-5">Quick Actions</Text>
+          <Text className="text-xl font-bold text-gray-800 mb-5">{t('farmerHome.quickActions')}</Text>
           <View className="flex-row justify-between">
             {quickActions.map((action, index) => (
               <TouchableOpacity
@@ -418,23 +424,23 @@ function BuyerHomeContent() {
         {/* Market Real Prices - Redesigned with buyer color scheme */}
         <View className="px-6 mb-6">
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-xl font-bold text-gray-800">Market Real Prices</Text>
+            <Text className="text-xl font-bold text-gray-800">{t('buyerHome.marketRealPrices')}</Text>
             <TouchableOpacity
               className="px-4 py-2 rounded-full"
               style={{ backgroundColor: '#B27E4C' }}
               onPress={() => router.push("/buyer-market-prices")}
             >
-              <Text className="text-sm font-semibold text-white">See All</Text>
+              <Text className="text-sm font-semibold text-white">{t('buyerHome.seeAll')}</Text>
             </TouchableOpacity>
           </View>
           {loadingPrices ? (
             <View className="py-8 items-center">
               <ActivityIndicator size="small" color="#B27E4C" />
-              <Text className="text-gray-500 text-sm mt-2">Loading prices...</Text>
+              <Text className="text-gray-500 text-sm mt-2">{t('common.loadingPrices')}</Text>
             </View>
           ) : marketPrices.length === 0 ? (
             <View className="py-8 items-center">
-              <Text className="text-gray-500 text-sm">No market prices available</Text>
+              <Text className="text-gray-500 text-sm">{t('market.noPricesAvailable')}</Text>
             </View>
           ) : (
             <View className="gap-4">
@@ -491,51 +497,51 @@ function BuyerHomeContent() {
         <View className="px-6 mb-8">
           <View className="flex-row mb-4 gap-2">
             <TouchableOpacity
-              onPress={() => setActiveTab("Nearby Crops")}
+              onPress={() => setActiveTab(t('buyerHome.nearbyCrops'))}
               className={`px-6 py-3 rounded-full ${
-                activeTab === "Nearby Crops"
+                activeTab === t('buyerHome.nearbyCrops')
                   ? "shadow-lg"
                   : ""
               }`}
               style={{
-                backgroundColor: activeTab === "Nearby Crops" ? '#B27E4C' : '#B27E4C20',
+                backgroundColor: activeTab === t('buyerHome.nearbyCrops') ? '#B27E4C' : '#B27E4C20',
               }}
             >
               <Text
                 className={`font-semibold ${
-                  activeTab === "Nearby Crops"
+                  activeTab === t('buyerHome.nearbyCrops')
                     ? "text-white"
                     : "text-gray-700"
                 }`}
               >
-                Nearby Crops
+                {t('buyerHome.nearbyCrops')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setActiveTab("Nearby Farmers")}
+              onPress={() => setActiveTab(t('buyerHome.nearbyFarmers'))}
               className={`px-6 py-3 rounded-full ${
-                activeTab === "Nearby Farmers"
+                activeTab === t('buyerHome.nearbyFarmers')
                   ? "shadow-lg"
                   : ""
               }`}
               style={{
-                backgroundColor: activeTab === "Nearby Farmers" ? '#B27E4C' : '#B27E4C20',
+                backgroundColor: activeTab === t('buyerHome.nearbyFarmers') ? '#B27E4C' : '#B27E4C20',
               }}
             >
               <Text
                 className={`font-semibold ${
-                  activeTab === "Nearby Farmers"
+                  activeTab === t('buyerHome.nearbyFarmers')
                     ? "text-white"
                     : "text-gray-700"
                 }`}
               >
-                Nearby Farmers
+                {t('buyerHome.nearbyFarmers')}
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Tab Content */}
-          {activeTab === "Nearby Crops" ? (
+          {activeTab === t('buyerHome.nearbyCrops') ? (
             <View className="gap-4">
               {cropsPreview.slice(0, 2).map((crop) => (
                 <TouchableOpacity
@@ -590,7 +596,7 @@ function BuyerHomeContent() {
                   />
                   <View className="flex-1">
                     <Text className="text-gray-800 font-bold text-base">{farmer.name}</Text>
-                    <Text className="text-gray-500 text-sm">{farmer.distance} away</Text>
+                    <Text className="text-gray-500 text-sm">{farmer.distance} {t('buyerHome.away')}</Text>
                   </View>
                   <TouchableOpacity className="p-2">
                     <MapPin size={20} color="#B27E4C" />

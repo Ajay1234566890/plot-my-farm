@@ -2,31 +2,33 @@ import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from "expo-router";
 import {
-    ArrowLeft,
-    CheckCircle,
-    CreditCard,
-    MapPin,
-    Truck,
-    Wallet
+  ArrowLeft,
+  CheckCircle,
+  CreditCard,
+  MapPin,
+  Truck,
+  Wallet
 } from "lucide-react-native";
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function CheckoutScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [deliveryInfo, setDeliveryInfo] = useState({
-    name: "John Doe",
-    address: "123 Main Street",
-    city: "Bengaluru",
-    state: "Karnataka",
+    name: t('checkout.sampleName'),
+    address: t('checkout.sampleAddress'),
+    city: t('checkout.sampleCity'),
+    state: t('checkout.sampleState'),
     zipCode: "560001",
     phone: "9876543210",
   });
@@ -45,11 +47,11 @@ export default function CheckoutScreen() {
 
   const handlePlaceOrder = () => {
     Alert.alert(
-      "Order Placed!",
-      "Your order has been successfully placed. You will receive a confirmation shortly.",
+      t('checkout.orderPlaced'),
+      t('checkout.orderPlacedMessage'),
       [
         {
-          text: "OK",
+          text: t('common.ok'),
           onPress: () => router.push("/my-orders"),
         },
       ]
@@ -74,7 +76,7 @@ export default function CheckoutScreen() {
           >
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Checkout</Text>
+          <Text className="text-white text-xl font-bold">{t('checkout.checkout')}</Text>
         </View>
       </View>
 
@@ -87,12 +89,12 @@ export default function CheckoutScreen() {
           <View className="flex-row items-center mb-3">
             <MapPin size={20} color="#3b82f6" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">
-              Delivery Information
+              {t('checkout.deliveryInformation')}
             </Text>
           </View>
 
           <View className="mb-3">
-            <Text className="text-gray-600 text-sm mb-1">Full Name</Text>
+            <Text className="text-gray-600 text-sm mb-1">{t('checkout.fullName')}</Text>
             <TextInput
               value={deliveryInfo.name}
               onChangeText={(text) => handleInputChange("name", text)}
@@ -101,7 +103,7 @@ export default function CheckoutScreen() {
           </View>
 
           <View className="mb-3">
-            <Text className="text-gray-600 text-sm mb-1">Address</Text>
+            <Text className="text-gray-600 text-sm mb-1">{t('checkout.address')}</Text>
             <TextInput
               value={deliveryInfo.address}
               onChangeText={(text) => handleInputChange("address", text)}
@@ -111,7 +113,7 @@ export default function CheckoutScreen() {
 
           <View className="flex-row gap-3 mb-3">
             <View className="flex-1">
-              <Text className="text-gray-600 text-sm mb-1">City</Text>
+              <Text className="text-gray-600 text-sm mb-1">{t('checkout.city')}</Text>
               <TextInput
                 value={deliveryInfo.city}
                 onChangeText={(text) => handleInputChange("city", text)}
@@ -119,7 +121,7 @@ export default function CheckoutScreen() {
               />
             </View>
             <View className="flex-1">
-              <Text className="text-gray-600 text-sm mb-1">State</Text>
+              <Text className="text-gray-600 text-sm mb-1">{t('checkout.state')}</Text>
               <TextInput
                 value={deliveryInfo.state}
                 onChangeText={(text) => handleInputChange("state", text)}
@@ -130,7 +132,7 @@ export default function CheckoutScreen() {
 
           <View className="flex-row gap-3 mb-3">
             <View className="flex-1">
-              <Text className="text-gray-600 text-sm mb-1">ZIP Code</Text>
+              <Text className="text-gray-600 text-sm mb-1">{t('checkout.zipCode')}</Text>
               <TextInput
                 value={deliveryInfo.zipCode}
                 onChangeText={(text) => handleInputChange("zipCode", text)}
@@ -139,7 +141,7 @@ export default function CheckoutScreen() {
               />
             </View>
             <View className="flex-1">
-              <Text className="text-gray-600 text-sm mb-1">Phone</Text>
+              <Text className="text-gray-600 text-sm mb-1">{t('checkout.phone')}</Text>
               <TextInput
                 value={deliveryInfo.phone}
                 onChangeText={(text) => handleInputChange("phone", text)}
@@ -155,7 +157,7 @@ export default function CheckoutScreen() {
           <View className="flex-row items-center mb-3">
             <CreditCard size={20} color="#3b82f6" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">
-              Payment Method
+              {t('checkout.paymentMethod')}
             </Text>
           </View>
 
@@ -165,10 +167,10 @@ export default function CheckoutScreen() {
             </View>
             <View>
               <Text className="text-gray-800 font-medium">
-                Cash on Delivery
+                {t('checkout.cashOnDelivery')}
               </Text>
               <Text className="text-gray-600 text-sm">
-                Pay with cash when your order is delivered
+                {t('checkout.cashOnDeliveryDesc')}
               </Text>
             </View>
           </View>
@@ -179,29 +181,29 @@ export default function CheckoutScreen() {
           <View className="flex-row items-center mb-3">
             <Truck size={20} color="#3b82f6" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">
-              Order Summary
+              {t('checkout.orderSummary')}
             </Text>
           </View>
 
           <View className="border-b border-gray-200 pb-2 mb-2">
             <View className="flex-row justify-between mb-1">
               <Text className="text-gray-600">
-                Items ({orderSummary.items})
+                {t('checkout.items', { count: orderSummary.items })}
               </Text>
               <Text className="text-gray-800">₹{orderSummary.subtotal}</Text>
             </View>
             <View className="flex-row justify-between mb-1">
-              <Text className="text-gray-600">Delivery Fee</Text>
+              <Text className="text-gray-600">{t('checkout.deliveryFee')}</Text>
               <Text className="text-gray-800">₹{orderSummary.deliveryFee}</Text>
             </View>
             <View className="flex-row justify-between mb-1">
-              <Text className="text-gray-600">Discount</Text>
+              <Text className="text-gray-600">{t('checkout.discount')}</Text>
               <Text className="text-green-600">-₹{orderSummary.discount}</Text>
             </View>
           </View>
 
           <View className="flex-row justify-between mt-2">
-            <Text className="text-lg font-semibold text-gray-800">Total</Text>
+            <Text className="text-lg font-semibold text-gray-800">{t('checkout.total')}</Text>
             <Text className="text-xl font-bold" style={{ color: '#B27E4C' }}>
               ₹{orderSummary.total}
             </Text>
@@ -218,7 +220,7 @@ export default function CheckoutScreen() {
         >
           <CheckCircle size={20} color="white" />
           <Text className="text-white text-lg font-semibold ml-2">
-            Place Order
+            {t('checkout.placeOrder')}
           </Text>
         </TouchableOpacity>
       </View>

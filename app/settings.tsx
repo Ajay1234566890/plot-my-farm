@@ -1,9 +1,12 @@
 import { useAuth } from '@/contexts/auth-context';
+import { SUPPORTED_LANGUAGES } from '@/i18n/config';
 import { useRouter } from 'expo-router';
 import {
     ArrowLeft,
     Bell,
+    ChevronDown,
     Cloud,
+    Globe,
     Leaf,
     Mail,
     Phone,
@@ -11,8 +14,11 @@ import {
     User
 } from "lucide-react-native";
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
     Alert,
+    Modal,
+    ScrollView,
     Switch,
     Text,
     TouchableOpacity,
@@ -21,7 +27,8 @@ import {
 
 export default function Settings() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { t } = useTranslation();
+  const { logout, selectLanguage, selectedLanguage } = useAuth();
   const [pushNotifications, setPushNotifications] = useState(true);
   const [cropAlerts, setCropAlerts] = useState(true);
   const [weatherAlerts, setWeatherAlerts] = useState(true);
@@ -29,6 +36,7 @@ export default function Settings() {
   const [profileName, setProfileName] = useState("John Doe");
   const [phoneNumber, setPhoneNumber] = useState("+1 234 567 8900");
   const [email, setEmail] = useState("john.doe@example.com");
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -122,6 +130,77 @@ export default function Settings() {
               <Text className="text-gray-800">{email}</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Language Selection */}
+          <View className="mb-6">
+            <View className="flex-row items-center mb-2">
+              <Globe size={20} color="#666" />
+              <Text className="text-base font-medium text-gray-700 ml-2">
+                Language / భాష / भाषा / மொழி / ಭಾಷೆ
+              </Text>
+            </View>
+            <TouchableOpacity
+              className="bg-gray-50 rounded-xl p-4 flex-row items-center justify-between"
+              onPress={() => setShowLanguageModal(true)}
+            >
+              <Text className="text-gray-800">
+                {SUPPORTED_LANGUAGES.find(l => l.code === selectedLanguage)?.nativeName || 'English'}
+              </Text>
+              <ChevronDown size={20} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Language Selection Modal */}
+          <Modal
+            visible={showLanguageModal}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowLanguageModal(false)}
+          >
+            <View className="flex-1 justify-end bg-black/50">
+              <View className="bg-white rounded-t-3xl p-6">
+                <Text className="text-xl font-bold text-gray-900 mb-4">
+                  Select Language
+                </Text>
+                <ScrollView className="max-h-96">
+                  {SUPPORTED_LANGUAGES.map((language) => (
+                    <TouchableOpacity
+                      key={language.code}
+                      onPress={async () => {
+                        await selectLanguage(language.code as any);
+                        setShowLanguageModal(false);
+                        Alert.alert(
+                          t('common.success'),
+                          t('success.languageChanged')
+                        );
+                      }}
+                      className={`p-4 rounded-xl mb-2 ${
+                        selectedLanguage === language.code ? 'bg-green-50' : 'bg-gray-50'
+                      }`}
+                    >
+                      <Text
+                        className={`text-base font-medium ${
+                          selectedLanguage === language.code
+                            ? 'text-green-600'
+                            : 'text-gray-900'
+                        }`}
+                      >
+                        {language.nativeName}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <TouchableOpacity
+                  onPress={() => setShowLanguageModal(false)}
+                  className="mt-4 p-4 bg-gray-200 rounded-xl"
+                >
+                  <Text className="text-center text-gray-700 font-medium">
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
 
           {/* Notification Settings */}
           <View className="mb-6">

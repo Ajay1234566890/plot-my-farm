@@ -3,20 +3,22 @@ import { formatLocation, getIconColor, getTextColorClass, getWeatherBackground }
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
-    AlertCircle,
-    ArrowLeft,
-    Cloud,
-    Droplets,
-    MapPin,
-    RefreshCw,
-    Sun,
-    ThermometerSun
+  AlertCircle,
+  ArrowLeft,
+  Cloud,
+  Droplets,
+  MapPin,
+  RefreshCw,
+  Sun,
+  ThermometerSun
 } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function WeatherScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const {
     weatherData,
     locationData,
@@ -71,14 +73,14 @@ export default function WeatherScreen() {
   const generateFarmAdvisory = () => {
     if (!weatherData) {
       return {
-        temperature: "Loading...",
-        temperatureStatus: "Fetching weather data",
+        temperature: t('weather.loading'),
+        temperatureStatus: t('weather.fetchingWeatherData'),
         rainfall: "--",
-        rainfallStatus: "Loading forecast",
-        soilStatus: "Unknown",
-        soilDetails: "Weather data required",
+        rainfallStatus: t('weather.loadingForecast'),
+        soilStatus: t('weather.unknown'),
+        soilDetails: t('weather.weatherDataRequired'),
         uvIndex: "--",
-        uvDetails: "Loading UV data",
+        uvDetails: t('weather.loadingUVData'),
       };
     }
 
@@ -87,18 +89,18 @@ export default function WeatherScreen() {
     const uvIndex = weatherData.current.uvIndex || 0;
 
     return {
-      temperature: temp >= 20 && temp <= 30 ? "Optimal" : temp > 30 ? "High" : "Low",
-      temperatureStatus: temp >= 20 && temp <= 30 ? "Good for most crops" :
-                        temp > 30 ? "Consider irrigation" : "Monitor cold-sensitive crops",
+      temperature: temp >= 20 && temp <= 30 ? t('weather.optimal') : temp > 30 ? t('weather.high') : t('weather.low'),
+      temperatureStatus: temp >= 20 && temp <= 30 ? t('weather.goodForMostCrops') :
+                        temp > 30 ? t('weather.considerIrrigation') : t('weather.monitorColdSensitiveCrops'),
       rainfall: `${humidity}%`,
-      rainfallStatus: humidity > 70 ? "High humidity, monitor for diseases" :
-                     humidity < 40 ? "Low humidity, increase irrigation" : "Good moisture levels",
-      soilStatus: humidity >= 40 && humidity <= 70 ? "Good" : "Monitor",
-      soilDetails: humidity >= 40 && humidity <= 70 ? "Optimal moisture levels" :
-                  humidity > 70 ? "May be too wet" : "May need irrigation",
-      uvIndex: uvIndex > 7 ? "High" : uvIndex > 3 ? "Moderate" : "Low",
-      uvDetails: uvIndex > 7 ? "Use protection, limit field work" :
-                uvIndex > 3 ? "Good for outdoor work" : "Safe conditions",
+      rainfallStatus: humidity > 70 ? t('weather.highHumidityMonitorDiseases') :
+                     humidity < 40 ? t('weather.lowHumidityIncreaseIrrigation') : t('weather.goodMoistureLevels'),
+      soilStatus: humidity >= 40 && humidity <= 70 ? t('weather.good') : t('weather.monitor'),
+      soilDetails: humidity >= 40 && humidity <= 70 ? t('weather.optimalMoistureLevels') :
+                  humidity > 70 ? t('weather.mayBeTooWet') : t('weather.mayNeedIrrigation'),
+      uvIndex: uvIndex > 7 ? t('weather.high') : uvIndex > 3 ? t('weather.moderate') : t('weather.low'),
+      uvDetails: uvIndex > 7 ? t('weather.useProtectionLimitFieldWork') :
+                uvIndex > 3 ? t('weather.goodForOutdoorWork') : t('weather.safeConditions'),
     };
   };
 
@@ -113,7 +115,7 @@ export default function WeatherScreen() {
             <ArrowLeft size={24} color="#1D4ED8" />
           </TouchableOpacity>
           <Text className="text-lg font-semibold text-gray-900">
-            Detailed Weather
+            {t('weather.detailedWeather')}
           </Text>
         </View>
         <TouchableOpacity onPress={handleRefresh} className="p-2">
@@ -150,12 +152,12 @@ export default function WeatherScreen() {
                 {weatherData?.current.temperature ? `${weatherData.current.temperature}°` : '--°'}
               </Text>
               <Text className={`${getTextColorClass(weatherBackground)} mt-1 opacity-90`}>
-                {weatherData?.current.description || weatherData?.current.condition || 'Loading...'}
+                {weatherData?.current.description || weatherData?.current.condition || t('weather.loading')}
               </Text>
               {(weatherError || locationError) && (
                 <TouchableOpacity onPress={handleRefresh} className="flex-row items-center gap-1 mt-2">
                   <AlertCircle color={getIconColor(weatherBackground)} size={14} />
-                  <Text className={`${getTextColorClass(weatherBackground)} text-sm opacity-80`}>Tap to retry</Text>
+                  <Text className={`${getTextColorClass(weatherBackground)} text-sm opacity-80`}>{t('weather.tapToRetry')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -170,19 +172,19 @@ export default function WeatherScreen() {
 
           <View className={`flex-row justify-between mt-6 rounded-xl p-4 shadow-sm ${getTextColorClass(weatherBackground) === 'text-white' ? 'bg-white/20' : 'bg-black/10'}`}>
             <View className="items-center">
-              <Text className={`${getTextColorClass(weatherBackground)} opacity-80`}>Humidity</Text>
+              <Text className={`${getTextColorClass(weatherBackground)} opacity-80`}>{t('weather.humidity')}</Text>
               <Text className={`${getTextColorClass(weatherBackground)} font-medium mt-1`}>
                 {weatherData?.current.humidity ? `${weatherData.current.humidity}%` : '--'}
               </Text>
             </View>
             <View className="items-center">
-              <Text className={`${getTextColorClass(weatherBackground)} opacity-80`}>Wind</Text>
+              <Text className={`${getTextColorClass(weatherBackground)} opacity-80`}>{t('weather.wind')}</Text>
               <Text className={`${getTextColorClass(weatherBackground)} font-medium mt-1`}>
                 {weatherData?.current.windSpeed ? `${weatherData.current.windSpeed} km/h` : '--'}
               </Text>
             </View>
             <View className="items-center">
-              <Text className={`${getTextColorClass(weatherBackground)} opacity-80`}>Pressure</Text>
+              <Text className={`${getTextColorClass(weatherBackground)} opacity-80`}>{t('weather.pressure')}</Text>
               <Text className={`${getTextColorClass(weatherBackground)} font-medium mt-1`}>
                 {weatherData?.current.pressure ? `${weatherData.current.pressure} hPa` : '--'}
               </Text>
@@ -192,7 +194,7 @@ export default function WeatherScreen() {
 
         {/* Hourly Forecast */}
         <View className="mt-6 px-4">
-          <Text className="text-lg font-semibold mb-4">Hourly Forecast</Text>
+          <Text className="text-lg font-semibold mb-4">{t('weather.hourlyForecast')}</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -222,7 +224,7 @@ export default function WeatherScreen() {
                   }}
                 >
                   <Text className={`${getTextColorClass(hourBackground)} text-sm`}>
-                    {index === 0 ? 'Now' : new Date(hour.time * 1000).toLocaleTimeString('en-US', {
+                    {index === 0 ? t('weather.now') : new Date(hour.time * 1000).toLocaleTimeString('en-US', {
                       hour: 'numeric',
                       hour12: true
                     })}
@@ -264,7 +266,7 @@ export default function WeatherScreen() {
 
         {/* 5-Day Forecast */}
         <View className="mt-6 px-4">
-          <Text className="text-lg font-semibold mb-4">5-Day Forecast</Text>
+          <Text className="text-lg font-semibold mb-4">{t('weather.fiveDayForecast')}</Text>
           <View className="bg-white rounded-xl shadow-sm overflow-hidden">
             {weatherData?.daily.map((day, index) => (
               <View
@@ -299,13 +301,13 @@ export default function WeatherScreen() {
 
         {/* Farm Advisory */}
         <View className="mt-6 px-4 mb-8">
-          <Text className="text-lg font-semibold mb-4">Farm Advisory</Text>
+          <Text className="text-lg font-semibold mb-4">{t('weather.farmAdvisory')}</Text>
           <View className="bg-white rounded-xl shadow-sm p-4 border border-blue-100">
             <View className="flex-row justify-between mb-4">
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <ThermometerSun size={20} color="#4B5563" />
-                  <Text className="text-gray-600 ml-2">Temperature</Text>
+                  <Text className="text-gray-600 ml-2">{t('weather.temperature')}</Text>
                 </View>
                 <Text className="text-gray-900 font-medium mt-1">
                   {farmAdvisory.temperature}
@@ -317,7 +319,7 @@ export default function WeatherScreen() {
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Droplets size={20} color="#4B5563" />
-                  <Text className="text-gray-600 ml-2">Rainfall</Text>
+                  <Text className="text-gray-600 ml-2">{t('weather.rainfall')}</Text>
                 </View>
                 <Text className="text-gray-900 font-medium mt-1">
                   {farmAdvisory.rainfall}
@@ -332,7 +334,7 @@ export default function WeatherScreen() {
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Cloud size={20} color="#4B5563" />
-                  <Text className="text-gray-600 ml-2">Soil Status</Text>
+                  <Text className="text-gray-600 ml-2">{t('weather.soilStatus')}</Text>
                 </View>
                 <Text className="text-gray-900 font-medium mt-1">
                   {farmAdvisory.soilStatus}
@@ -344,7 +346,7 @@ export default function WeatherScreen() {
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Sun size={20} color="#4B5563" />
-                  <Text className="text-gray-600 ml-2">UV Index</Text>
+                  <Text className="text-gray-600 ml-2">{t('weather.uvIndex')}</Text>
                 </View>
                 <Text className="text-gray-900 font-medium mt-1">
                   {farmAdvisory.uvIndex}

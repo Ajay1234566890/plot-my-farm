@@ -2,6 +2,7 @@ import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Filter, Search } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import {
     Image,
     ScrollView,
@@ -11,47 +12,48 @@ import {
     View,
 } from "react-native";
 
-const mockCrops = [
-  {
-    id: 1,
-    name: "Organic Tomatoes",
-    farm: "Alex Farms",
-    price: "$2.99/kg",
-    quantity: "50 kg available",
-    image:
-      "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: 2,
-    name: "Sweet Carrots",
-    farm: "Green Valley",
-    price: "$1.99/kg",
-    quantity: "80 kg available",
-    image:
-      "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: 3,
-    name: "Fresh Lettuce",
-    farm: "Green Valley",
-    price: "$2.50/kg",
-    quantity: "30 kg available",
-    image:
-      "https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: 4,
-    name: "Gala Apples",
-    farm: "Orchard Grove",
-    price: "$3.50/kg",
-    quantity: "120 kg available",
-    image:
-      "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=800&auto=format&fit=crop&q=60",
-  },
-];
-
 export default function NearbyCrops() {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const mockCrops = [
+    {
+      id: 1,
+      name: t('buyer.organicTomatoes'),
+      farm: t('buyer.alexFarms'),
+      price: "$2.99/kg",
+      quantity: t('buyer.kgAvailable', { count: 50 }),
+      image:
+        "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&auto=format&fit=crop&q=60",
+    },
+    {
+      id: 2,
+      name: t('buyer.sweetCarrots'),
+      farm: t('buyer.greenValley'),
+      price: "$1.99/kg",
+      quantity: t('buyer.kgAvailable', { count: 80 }),
+      image:
+        "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800&auto=format&fit=crop&q=60",
+    },
+    {
+      id: 3,
+      name: t('buyer.freshLettuce'),
+      farm: t('buyer.greenValley'),
+      price: "$2.50/kg",
+      quantity: t('buyer.kgAvailable', { count: 30 }),
+      image:
+        "https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?w=800&auto=format&fit=crop&q=60",
+    },
+    {
+      id: 4,
+      name: t('buyer.galaApples'),
+      farm: t('buyer.orchardGrove'),
+      price: "$3.50/kg",
+      quantity: t('buyer.kgAvailable', { count: 120 }),
+      image:
+        "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=800&auto=format&fit=crop&q=60",
+    },
+  ];
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
@@ -71,7 +73,7 @@ export default function NearbyCrops() {
           >
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Nearby Crops</Text>
+          <Text className="text-white text-xl font-bold">{t('buyer.nearbyCrops')}</Text>
           <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full bg-white/20">
             <Filter color="white" size={24} />
           </TouchableOpacity>
@@ -82,7 +84,7 @@ export default function NearbyCrops() {
           <Search size={20} color="white" />
           <TextInput
             className="flex-1 ml-3 text-white text-base"
-            placeholder="Search for crops"
+            placeholder={t('buyer.searchForCrops')}
             placeholderTextColor="rgba(255, 255, 255, 0.7)"
           />
         </View>
@@ -120,7 +122,7 @@ export default function NearbyCrops() {
                       {crop.name}
                     </Text>
                     <Text className="text-sm text-gray-500 mt-1">
-                      by {crop.farm}
+                      {t('buyer.by')} {crop.farm}
                     </Text>
                   </View>
                   <Text className="text-lg font-bold" style={{ color: '#B27E4C' }}>
@@ -139,7 +141,7 @@ export default function NearbyCrops() {
                   style={{ backgroundColor: '#B27E4C' }}
                 >
                   <Text className="text-white text-center font-semibold">
-                    View Details
+                    {t('buyer.viewDetails')}
                   </Text>
                 </TouchableOpacity>
               </View>

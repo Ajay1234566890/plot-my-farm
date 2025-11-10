@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Paperclip, Phone, Send, Video } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface Message {
@@ -11,45 +12,46 @@ interface Message {
 }
 
 export default function ChatScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
   const [message, setMessage] = useState('');
 
   // Get user data from params
   const userId = params.userId as string;
-  const userName = params.userName as string || 'User';
+  const userName = params.userName as string || t('chatScreen.user');
   const userAvatar = params.userAvatar as string || 'https://randomuser.me/api/portraits/men/32.jpg';
-  const userRole = params.userRole as string || 'Buyer';
+  const userRole = params.userRole as string || t('chatScreen.buyer');
 
   // Mock chat messages - in a real app, this would be fetched based on userId
   const messages: Message[] = [
     {
       id: '1',
-      text: 'Hi there! I\'m interested in your organic tomatoes.',
+      text: t('chatScreen.message1'),
       time: '10:15 AM',
       sender: 'other',
     },
     {
       id: '2',
-      text: 'Hello! Yes, I have 50kg available at $3/kg',
+      text: t('chatScreen.message2'),
       time: '10:17 AM',
       sender: 'me',
     },
     {
       id: '3',
-      text: 'That works for me. When can I pick up?',
+      text: t('chatScreen.message3'),
       time: '10:20 AM',
       sender: 'other',
     },
     {
       id: '4',
-      text: 'Anytime tomorrow morning would be fine',
+      text: t('chatScreen.message4'),
       time: '10:22 AM',
       sender: 'me',
     },
     {
       id: '5',
-      text: 'Yes, I can pick up tomorrow morning',
+      text: t('chatScreen.message5'),
       time: '10:30 AM',
       sender: 'other',
     },
@@ -92,7 +94,7 @@ export default function ChatScreen() {
             />
             <View>
               <Text className="text-lg font-bold text-white">{userName}</Text>
-              <Text className="text-white/80 text-sm">{userRole} • Online</Text>
+              <Text className="text-white/80 text-sm">{userRole} • {t('chatScreen.online')}</Text>
             </View>
           </View>
           <View className="flex-row">
@@ -162,7 +164,7 @@ export default function ChatScreen() {
           </TouchableOpacity>
           <TextInput
             className="flex-1 text-base text-gray-900 max-h-20"
-            placeholder="Type a message..."
+            placeholder={t('chatScreen.typeMessage')}
             placeholderTextColor="#9CA3AF"
             value={message}
             onChangeText={setMessage}

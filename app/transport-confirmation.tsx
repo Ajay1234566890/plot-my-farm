@@ -1,104 +1,106 @@
+import { Clock, DollarSign, Leaf, MapPin, Truck } from 'lucide-react-native';
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
-import { MapPin, Clock, Leaf, Truck, DollarSign } from 'lucide-react-native';
-import { TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function TransportConfirmation() {
+  const { t } = useTranslation();
+
   return (
     <ScrollView className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row items-center p-4 border-b border-gray-200">
-        <Text className="text-xl font-semibold text-gray-800">Transport Summary</Text>
+        <Text className="text-xl font-semibold text-gray-800">{t('transportConfirmation.transportSummary')}</Text>
       </View>
 
       {/* Pickup Details Section */}
       <View className="p-4">
-        <Text className="text-lg font-semibold text-gray-800 mb-3">Pickup Details</Text>
-        
+        <Text className="text-lg font-semibold text-gray-800 mb-3">{t('transportConfirmation.pickupDetails')}</Text>
+
         <View className="flex-row items-start mb-3">
           <MapPin className="text-gray-600" size={20} />
           <View className="ml-3">
-            <Text className="text-gray-800 font-medium">Pickup Address</Text>
-            <Text className="text-gray-600">123 Farm Lane, Rural County, State, 54321</Text>
+            <Text className="text-gray-800 font-medium">{t('transportConfirmation.pickupAddress')}</Text>
+            <Text className="text-gray-600">{t('transportConfirmation.samplePickupAddress')}</Text>
           </View>
         </View>
 
         <View className="flex-row items-start mb-3">
           <Clock className="text-gray-600" size={20} />
           <View className="ml-3">
-            <Text className="text-gray-800 font-medium">Pickup Time</Text>
-            <Text className="text-gray-600">Available 9 AM - 5 PM</Text>
+            <Text className="text-gray-800 font-medium">{t('transportConfirmation.pickupTime')}</Text>
+            <Text className="text-gray-600">{t('transportConfirmation.available9to5')}</Text>
           </View>
         </View>
       </View>
 
       {/* Delivery Details Section */}
       <View className="p-4 border-t border-gray-100">
-        <Text className="text-lg font-semibold text-gray-800 mb-3">Delivery Details</Text>
-        
+        <Text className="text-lg font-semibold text-gray-800 mb-3">{t('transportConfirmation.deliveryDetails')}</Text>
+
         <View className="flex-row items-start mb-3">
           <MapPin className="text-gray-600" size={20} />
           <View className="ml-3">
-            <Text className="text-gray-800 font-medium">Delivery Address</Text>
-            <Text className="text-gray-600">456 Market St, City, State, 67890</Text>
+            <Text className="text-gray-800 font-medium">{t('checkout.deliveryAddress')}</Text>
+            <Text className="text-gray-600">{t('transportConfirmation.sampleDeliveryAddress')}</Text>
           </View>
         </View>
 
         <View className="flex-row items-start mb-3">
           <Clock className="text-gray-600" size={20} />
           <View className="ml-3">
-            <Text className="text-gray-800 font-medium">Delivery Time</Text>
-            <Text className="text-gray-600">Preferred 10 AM - 6 PM</Text>
+            <Text className="text-gray-800 font-medium">{t('transportConfirmation.deliveryTime')}</Text>
+            <Text className="text-gray-600">{t('transportConfirmation.preferred10to6')}</Text>
           </View>
         </View>
       </View>
 
       {/* Crop Information */}
       <View className="p-4 border-t border-gray-100">
-        <Text className="text-lg font-semibold text-gray-800 mb-3">Crop Information</Text>
-        
+        <Text className="text-lg font-semibold text-gray-800 mb-3">{t('transportConfirmation.cropInformation')}</Text>
+
         <View className="flex-row items-start mb-3">
           <Leaf className="text-gray-600" size={20} />
           <View className="ml-3">
-            <Text className="text-gray-800 font-medium">Crop Type: Tomatoes</Text>
-            <Text className="text-gray-600">1000 lbs</Text>
+            <Text className="text-gray-800 font-medium">{t('transportConfirmation.cropTypeTomatoes')}</Text>
+            <Text className="text-gray-600">{t('transportConfirmation.weight1000lbs')}</Text>
           </View>
         </View>
       </View>
 
       {/* Transport Preferences */}
       <View className="p-4 border-t border-gray-100">
-        <Text className="text-lg font-semibold text-gray-800 mb-3">Transport Preferences</Text>
-        
+        <Text className="text-lg font-semibold text-gray-800 mb-3">{t('transportConfirmation.transportPreferences')}</Text>
+
         <View className="flex-row items-start mb-3">
           <Truck className="text-gray-600" size={20} />
           <View className="ml-3">
-            <Text className="text-gray-800 font-medium">Vehicle Type: Refrigerated Truck</Text>
+            <Text className="text-gray-800 font-medium">{t('transportConfirmation.vehicleTypeRefrigeratedTruck')}</Text>
           </View>
         </View>
       </View>
 
       {/* Cost */}
       <View className="p-4 border-t border-gray-100">
-        <Text className="text-lg font-semibold text-gray-800 mb-3">Cost</Text>
-        
+        <Text className="text-lg font-semibold text-gray-800 mb-3">{t('transportConfirmation.cost')}</Text>
+
         <View className="flex-row items-start mb-3">
           <DollarSign className="text-gray-600" size={20} />
           <View className="ml-3">
-            <Text className="text-gray-800 font-medium">Estimated Cost: $250</Text>
+            <Text className="text-gray-800 font-medium">{t('transportConfirmation.estimatedCost250')}</Text>
           </View>
         </View>
       </View>
 
       {/* Confirm Button */}
       <View className="p-4 mt-2">
-        <TouchableOpacity 
+        <TouchableOpacity
           className="bg-blue-600 rounded-lg py-4 items-center"
           onPress={() => {
             // Handle booking confirmation
           }}
         >
-          <Text className="text-white font-semibold text-lg">Confirm Booking</Text>
+          <Text className="text-white font-semibold text-lg">{t('transportConfirmation.confirmBooking')}</Text>
         </TouchableOpacity>
       </View>
 

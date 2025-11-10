@@ -1,9 +1,12 @@
-import { useAuth } from '@/contexts/auth-context';
+import { Language, useAuth } from '@/contexts/auth-context';
+import { SUPPORTED_LANGUAGES } from '@/i18n/config';
 import { useRouter } from 'expo-router';
 import { ChevronDown, ShoppingCart, Sprout } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
+    Alert,
     ScrollView,
     Text,
     TouchableOpacity,
@@ -12,31 +15,24 @@ import {
 
 export default function SelectRole() {
   const router = useRouter();
-  const { selectRole } = useAuth();
+  const { t } = useTranslation();
+  const { selectRole, selectLanguage: setLanguage } = useAuth();
   const [selectedRole, setSelectedRole] = useState<'farmer' | 'buyer' | null>(null);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('English');
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>('en');
   const [isLoading, setIsLoading] = useState(false);
-
-  const languages = [
-    'English',
-    'हिंदी',
-    'తెలుగు',
-    'தமிழ்',
-    'ಕನ್ನಡ',
-  ];
 
   const roles = [
     {
       id: 'farmer' as const,
-      title: 'Farmer',
-      description: 'Sell your crops and connect with buyers',
+      title: t('auth.farmer'),
+      description: t('auth.farmerDesc'),
       icon: Sprout,
     },
     {
       id: 'buyer' as const,
-      title: 'Buyer',
-      description: 'Buy fresh crops directly from farmers',
+      title: t('auth.buyer'),
+      description: t('auth.buyerDesc'),
       icon: ShoppingCart,
     },
   ];
@@ -50,6 +46,14 @@ export default function SelectRole() {
     setIsLoading(true);
     try {
       console.log('🎯 [ROLE-SELECT] User selected role:', selectedRole);
+      console.log('🌐 [ROLE-SELECT] User selected language:', selectedLanguage);
+
+      // Save language selection first
+      console.log('🔄 [ROLE-SELECT] Calling selectLanguage() from auth context...');
+      await setLanguage(selectedLanguage);
+      console.log('✅ [ROLE-SELECT] selectLanguage() completed successfully');
+
+      // Then save role selection
       console.log('🔄 [ROLE-SELECT] Calling selectRole() from auth context...');
       await selectRole(selectedRole);
       console.log('✅ [ROLE-SELECT] selectRole() completed successfully');
@@ -58,7 +62,7 @@ export default function SelectRole() {
       router.replace('/login');
     } catch (error) {
       console.error('❌ [ROLE-SELECT] Role selection error:', error);
-      Alert.alert('Error', 'Failed to save role selection. Please try again.');
+      Alert.alert(t('common.error'), t('errors.tryAgain'));
     } finally {
       setIsLoading(false);
     }
@@ -69,10 +73,10 @@ export default function SelectRole() {
       <View className="px-6 pt-12 pb-6">
         {/* Header */}
         <Text className="text-3xl font-bold text-gray-900 mb-2">
-          Choose Your Role
+          {t('auth.selectRole')}
         </Text>
         <Text className="text-gray-600 mb-8">
-          Select how you want to use the app
+          {t('auth.selectRoleDesc')}
         </Text>
 
         {/* Role Selection */}
@@ -124,7 +128,7 @@ export default function SelectRole() {
         {/* Language Selection */}
         <View className="mb-8">
           <Text className="text-sm font-medium text-gray-700 mb-2">
-            Language
+            Language / భాష / भाषा / மொழி / ಭಾಷೆ
           </Text>
           <TouchableOpacity
             onPress={() => setIsLanguageOpen(!isLanguageOpen)}
@@ -132,7 +136,7 @@ export default function SelectRole() {
             className="p-4 rounded-xl border border-gray-200 flex-row items-center justify-between bg-white"
           >
             <Text className="text-base font-medium text-gray-900">
-              {selectedLanguage}
+              {SUPPORTED_LANGUAGES.find(l => l.code === selectedLanguage)?.nativeName || 'English'}
             </Text>
             <ChevronDown
               size={20}
@@ -145,26 +149,26 @@ export default function SelectRole() {
 
           {isLanguageOpen && (
             <View className="mt-2 border border-gray-200 rounded-xl overflow-hidden bg-white">
-              {languages.map((language) => (
+              {SUPPORTED_LANGUAGES.map((language) => (
                 <TouchableOpacity
-                  key={language}
+                  key={language.code}
                   onPress={() => {
-                    setSelectedLanguage(language);
+                    setSelectedLanguage(language.code as Language);
                     setIsLanguageOpen(false);
                   }}
                   disabled={isLoading}
                   className={`p-4 border-b border-gray-100 ${
-                    selectedLanguage === language ? 'bg-green-50' : 'bg-white'
+                    selectedLanguage === language.code ? 'bg-green-50' : 'bg-white'
                   }`}
                 >
                   <Text
                     className={`text-base font-medium ${
-                      selectedLanguage === language
+                      selectedLanguage === language.code
                         ? 'text-green-600'
                         : 'text-gray-900'
                     }`}
                   >
-                    {language}
+                    {language.nativeName}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -184,7 +188,7 @@ export default function SelectRole() {
             <ActivityIndicator color="#ffffff" />
           ) : (
             <Text className="text-white text-center text-lg font-semibold">
-              Continue
+              {t('auth.continue')}
             </Text>
           )}
         </TouchableOpacity>
@@ -196,7 +200,7 @@ export default function SelectRole() {
           className="mt-4"
         >
           <Text className="text-gray-600 text-center text-base">
-            Back to Login
+            {t('common.back')}
           </Text>
         </TouchableOpacity>
       </View>
