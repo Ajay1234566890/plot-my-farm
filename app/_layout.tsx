@@ -39,15 +39,26 @@ function RootLayoutNav() {
   const { isLoading } = useAuth();
 
   useEffect(() => {
+    console.log('🎬 [LAYOUT] isLoading changed:', isLoading);
     if (!isLoading) {
       // Hide the splash screen once the app is ready
-      SplashScreen.hideAsync();
+      console.log('🎬 [LAYOUT] Hiding splash screen...');
+      SplashScreen.hideAsync()
+        .then(() => {
+          console.log('✅ [LAYOUT] Splash screen hidden successfully');
+        })
+        .catch((error) => {
+          console.error('❌ [LAYOUT] Failed to hide splash screen:', error);
+        });
     }
   }, [isLoading]);
 
   if (isLoading) {
+    console.log('⏳ [LAYOUT] Still loading, showing splash screen...');
     return null; // Show splash screen or loading indicator
   }
+
+  console.log('✅ [LAYOUT] Loading complete, rendering navigation stack');
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

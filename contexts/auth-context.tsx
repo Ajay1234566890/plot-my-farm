@@ -1,5 +1,5 @@
 import { changeLanguage } from '@/i18n/config';
-import { startLocationAutoUpdate, updateLocationNow } from '@/services/location-auto-update';
+import { startLocationAutoUpdate, stopLocationAutoUpdate, updateLocationNow } from '@/services/location-auto-update';
 import { supabase } from '@/utils/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -53,6 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initialize auth state from AsyncStorage
   useEffect(() => {
     const bootstrapAsync = async () => {
+      console.log('🚀 [AUTH] Starting app initialization...');
       try {
         const storedUser = await AsyncStorage.getItem('user');
         const storedLanguage = await AsyncStorage.getItem('language');
@@ -62,29 +63,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
+          console.log('✅ [AUTH] Restored user:', parsedUser.phone);
 
-          // Start location auto-update for logged-in user
+          // Start location auto-update for logged-in user (non-blocking)
           if (parsedUser?.id) {
             console.log('🗺️ [AUTH] Starting location auto-update for user:', parsedUser.id);
-            try {
-              await updateLocationNow(parsedUser.id);
-              await startLocationAutoUpdate(parsedUser.id, 5); // Update every 5 minutes
-            } catch (error) {
-              console.error('❌ [AUTH] Failed to start location auto-update:', error);
-            }
+            // Don't await - run in background to avoid blocking initialization
+            updateLocationNow(parsedUser.id)
+              .then(() => startLocationAutoUpdate(parsedUser.id, 5))
+              .catch((error) => {
+                console.error('❌ [AUTH] Failed to start location auto-update:', error);
+              });
           }
         }
-        if (storedLanguage) {
-          setSelectedLanguage(storedLanguage as Language);
-          // Initialize i18next with stored language
-          await changeLanguage(storedLanguage);
-          console.log('✅ [AUTH] Restored language:', storedLanguage);
-        } else {
-          // Default to English if no language is stored
+
+        // Initialize language (with timeout to prevent hanging)
+        try {
+          const languageToUse = storedLanguage || 'en';
+          setSelectedLanguage(languageToUse as Language);
+
+          // Set a timeout for language initialization
+          await Promise.race([
+            changeLanguage(languageToUse),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Language initialization timeout')), 3000)
+            )
+          ]);
+          console.log('✅ [AUTH] Language initialized:', languageToUse);
+        } catch (langError) {
+          console.error('⚠️ [AUTH] Language initialization failed, continuing anyway:', langError);
+          // Continue with default language
           setSelectedLanguage('en');
-          await changeLanguage('en');
-          console.log('✅ [AUTH] Defaulting to English');
         }
+
         if (storedSplash) {
           setHasSeenSplash(JSON.parse(storedSplash));
           console.log('✅ [AUTH] Restored splash seen status:', storedSplash);
@@ -96,13 +107,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('ℹ️ [AUTH] No selectedRole found in AsyncStorage');
         }
       } catch (e) {
-        console.error('Failed to restore token', e);
+        console.error('❌ [AUTH] Failed to restore auth state:', e);
       } finally {
+        console.log('✅ [AUTH] App initialization complete, setting isLoading to false');
         setIsLoading(false);
       }
     };
 
-    bootstrapAsync();
+    // Add a safety timeout to ensure isLoading becomes false even if something goes wrong
+    const timeoutId = setTimeout(() => {
+      console.warn('⚠️ [AUTH] Initialization timeout - forcing isLoading to false');
+      setIsLoading(false);
+    }, 5000); // 5 second timeout
+
+    bootstrapAsync().finally(() => {
+      clearTimeout(timeoutId);
+    });
   }, []);
 
   const login = async (phone: string, otp: string): Promise<UserRole> => {
