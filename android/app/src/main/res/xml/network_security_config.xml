@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+  <!-- Allow HTTPS connections to MapTiler API for tiles, glyphs, and sprites -->
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="true">api.maptiler.com</domain>
+  </domain-config>
+</network-security-config>
+
