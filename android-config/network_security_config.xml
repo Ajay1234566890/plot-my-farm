@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow MapTiler API with HTTPS -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">api.maptiler.com</domain>
+        <domain includeSubdomains="true">maptiler.com</domain>
+    </domain-config>
+
+    <!-- Allow Supabase API with HTTPS -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">supabase.co</domain>
+        <domain includeSubdomains="true">dlwbvoqowqiugyjdfyax.supabase.co</domain>
+    </domain-config>
+
+    <!-- Base config - allow cleartext for debugging (disable in production) -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
+

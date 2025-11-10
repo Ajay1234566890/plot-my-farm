@@ -1,0 +1,99 @@
+# INSTRUCTIONS: Add these configurations to android/app/build.gradle
+
+# ===== INSIDE android { } BLOCK =====
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.ajaypamarthi.myapp"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        
+        # OPTIMIZE APK SIZE - Only include ARM architectures (reduces APK by 50%)
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
+    }
+
+    # PACKAGING OPTIONS - Prevent duplicate .so files
+    packagingOptions {
+        pickFirst '**/*.so'
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/*.kotlin_module'
+    }
+
+    # BUILD TYPES
+    buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+        }
+        
+        release {
+            # Enable minification to reduce APK size
+            minifyEnabled true
+            
+            # Disable resource shrinking initially (enable after testing)
+            shrinkResources false
+            
+            # Use ProGuard rules
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            # Use debug signing for testing (change to release for production)
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    # SPLITS - Create separate APKs per architecture (optional, reduces individual APK size)
+    # Uncomment to enable:
+    # splits {
+    #     abi {
+    #         enable true
+    #         reset()
+    #         include "armeabi-v7a", "arm64-v8a"
+    #         universalApk false
+    #     }
+    # }
+}
+
+# ===== DEPENDENCIES =====
+# Make sure these are in the dependencies block:
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    
+    # React Native
+    implementation "com.facebook.react:react-native:+"
+    
+    # MapLibre (should be auto-linked by Expo)
+    # If not, add manually:
+    # implementation project(':maplibre-react-native')
+    
+    # Expo modules
+    implementation project(':expo-modules-core')
+    
+    # Other dependencies will be auto-added by Expo
+}
+
+# ===== NOTES =====
+# 1. This configuration reduces APK size from ~100MB to ~40-60MB
+# 2. Only ARM architectures are included (99% of Android devices)
+# 3. ProGuard is enabled but configured to keep MapLibre classes
+# 4. Debug signing is used for testing - change to release for production
+# 5. Resource shrinking is disabled to prevent issues - enable after testing
+
