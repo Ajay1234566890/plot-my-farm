@@ -122,18 +122,10 @@ android {
         }
     }
     packagingOptions {
-        // CRITICAL: Prevent duplicate .so files from MapLibre
-        pickFirst '**/*.so'
         jniLibs {
             def enableLegacyPackaging = findProperty('expo.useLegacyPackaging') ?: 'false'
             useLegacyPackaging enableLegacyPackaging.toBoolean()
         }
-    }
-
-    // Java 17 compatibility (required for React Native 0.81+)
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'

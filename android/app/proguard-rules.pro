@@ -11,29 +11,18 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
-# Add any project specific keep options here:
-
-# ========================================
-# MapLibre + MapTiler JNI Protection
-# ========================================
-# CRITICAL: Keep all MapLibre classes to prevent JNI crashes in release builds
+# MapLibre / MapTiler - Prevent class stripping
 -keep class org.maplibre.** { *; }
 -keep class com.mapbox.** { *; }
 -keep class com.maptiler.** { *; }
+-keep class com.google.gson.** { *; }
 -dontwarn org.maplibre.**
 -dontwarn com.mapbox.**
 -dontwarn com.maptiler.**
 
-# Keep all native methods (required for JNI)
+# Keep native methods
 -keepclassmembers class * {
     native <methods>;
 }
 
-# Keep MapLibre annotations
--keepattributes *Annotation*
--keepattributes Signature
--keepattributes Exceptions
-
-# Keep Geolocation classes
--keep class com.facebook.react.modules.location.** { *; }
--keep class com.reactnativecommunity.geolocation.** { *; }
+# Add any project specific keep options here:

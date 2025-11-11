@@ -1,155 +1,140 @@
 /**
- * MapLibre View Component - Production Ready
- * Using MapTiler + OpenStreetMap with real-time location
+ * 🗺️ MapLibre View Component — Production Version
+ * MapTiler + OpenStreetMap + Real-time location
+ * Full world map with roads, cities, landmarks, labels
+ * Works in Android/iOS release builds (no Expo, no Google Maps)
  */
 
+import MapLibreGL from "@maplibre/maplibre-react-native";
 import Geolocation from "@react-native-community/geolocation";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, PermissionsAndroid, Platform, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  PermissionsAndroid,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-// Conditional MapLibre import - only for native platforms
-let MapboxGL: any = null;
-let isMapLibreAvailable = false;
+// ✅ MapLibre configuration
+MapLibreGL.setAccessToken(null);
+MapLibreGL.setConnected(true);
 
-if (Platform.OS !== 'web') {
-  try {
-    MapboxGL = require('@maplibre/maplibre-react-native').default;
-
-    // Configure MapLibre
-    if (MapboxGL) {
-      MapboxGL.setAccessToken(null);
-      MapboxGL.setConnected(true);
-      MapboxGL.setTelemetryEnabled(false);
-      isMapLibreAvailable = true;
-      console.log('✅ [MapLibre] Module loaded successfully');
-    }
-  } catch (error: any) {
-    console.error('❌ [MapLibre] Failed to load:', error?.message);
-    isMapLibreAvailable = false;
-  }
-} else {
-  console.log('ℹ️ [MapLibre] Web platform - MapLibre not available');
-}
-
-// MapTiler API Key - hardcoded for production (streets-v2 for proper glyphs/sprites)
 const MAPTILER_API_KEY = "S1newPOTVEpCrOQg9RYx";
+const STYLE_URL = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_API_KEY}`;
+
+// Default location (India center) - map shows immediately
+const DEFAULT_COORDS: [number, number] = [78.9629, 20.5937];
 
 export default function MapLibreView() {
-  const [coords, setCoords] = useState<[number, number] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [coords, setCoords] = useState<[number, number]>(DEFAULT_COORDS);
+  const [isReady, setIsReady] = useState(false);
 
+  // ✅ Get user location (non-blocking)
   useEffect(() => {
-    (async () => {
-      if (Platform.OS === "android") {
-        try {
+    const fetchLocation = async () => {
+      try {
+        if (Platform.OS === "android") {
           const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
           );
           if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            console.log("❌ Location permission denied");
-            setIsLoading(false);
+            console.log("❌ Location permission denied - using default location");
+            setIsReady(true);
             return;
           }
-        } catch (err) {
-          console.warn("❌ Permission error:", err);
-          setIsLoading(false);
-          return;
         }
-      }
 
-      Geolocation.getCurrentPosition(
-        (pos) => {
-          const location: [number, number] = [pos.coords.longitude, pos.coords.latitude];
-          setCoords(location);
-          setIsLoading(false);
-          console.log("✅ Location obtained:", location);
-        },
-        (err) => {
-          console.error("❌ Location error:", err);
-          setIsLoading(false);
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-      );
-    })();
+        Geolocation.getCurrentPosition(
+          (pos) => {
+            const location: [number, number] = [
+              pos.coords.longitude,
+              pos.coords.latitude,
+            ];
+            setCoords(location);
+            setIsReady(true);
+            console.log("✅ Location obtained:", location);
+          },
+          (err) => {
+            console.error("❌ Location error:", err);
+            setIsReady(true); // Show map anyway with default location
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+      } catch (error) {
+        console.error("❌ Permission error:", error);
+        setIsReady(true); // Show map anyway
+      }
+    };
+
+    fetchLocation();
   }, []);
 
-  // Web or MapLibre not available fallback
-  if (Platform.OS === 'web' || !isMapLibreAvailable) {
+  // Web platform fallback
+  if (Platform.OS === 'web') {
     return (
       <View style={styles.center}>
         <Text style={styles.fallbackText}>
-          {Platform.OS === 'web'
-            ? 'Map view is available on mobile devices'
-            : 'Map feature temporarily unavailable'}
+          Map view is available on mobile devices
         </Text>
       </View>
     );
   }
 
-  // Loading state
-  if (isLoading || !coords) {
+  // Show loading only briefly
+  if (!isReady) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Getting your location...</Text>
+        <Text style={styles.loadingText}>Loading map...</Text>
       </View>
     );
   }
 
-  // Render map with MapLibre - Using streets-v2 for CORS-safe glyphs/sprites
+  // ✅ Render full world map with all roads, cities, landmarks
   return (
     <View style={styles.container}>
-      <MapboxGL.MapView
+      <MapLibreGL.MapView
         style={styles.map}
-        // ✅ Use MapTiler's v2 style (has correct glyph + sprite URLs)
-        styleURL={`https://api.maptiler.com/maps/streets-v2/style.json?key=S1newPOTVEpCrOQg9RYx`}
-
-        // ✅ CRITICAL: Disable local font lookup (forces network glyph fetching)
-        localIdeographFontFamily={false}
-
-        // ✅ Production-safe options
+        mapStyle={STYLE_URL}
         logoEnabled={false}
         attributionEnabled={true}
         attributionPosition={{ bottom: 8, left: 8 }}
-
-        onDidFinishLoadingMap={() => {
-          console.log('✅ [MapLibre] Map with labels loaded successfully');
-          setIsLoading(false);
-        }}
-        onDidFailLoadingMap={(error: any) => {
-          console.error('❌ [MapLibre] Map failed to load:', error);
-          setError('Failed to load map');
-          setIsLoading(false);
-        }}
+        onDidFinishLoadingMap={() =>
+          console.log("✅ Full MapTiler map loaded with all labels")
+        }
+        onDidFailLoadingMap={() =>
+          console.log("❌ Map load failed")
+        }
       >
-        <MapboxGL.Camera
+        <MapLibreGL.Camera
           zoomLevel={13}
           centerCoordinate={coords}
           animationMode="flyTo"
+          animationDuration={1000}
         />
-        <MapboxGL.UserLocation visible={true} androidRenderMode="compass" />
-      </MapboxGL.MapView>
+        <MapLibreGL.UserLocation
+          visible={true}
+          androidRenderMode="compass"
+          showsUserHeadingIndicator={true}
+        />
+      </MapLibreGL.MapView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  },
-  map: {
-    flex: 1
-  },
+  container: { flex: 1 },
+  map: { flex: 1 },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f5f5f5",
-    padding: 20,
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: 10,
     fontSize: 16,
     color: "#6b7280",
   },
@@ -157,14 +142,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#6b7280",
     textAlign: "center",
-  },
-  marker: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: "#007AFF",
-    borderWidth: 2,
-    borderColor: "#fff",
   },
 });
 
