@@ -1,5 +1,6 @@
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import { OffersProvider } from "@/contexts/offers-context";
 import { WeatherProvider } from "@/contexts/weather-context";
 import "@/global.css";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -24,12 +25,14 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <WeatherProvider>
-        <GluestackUIProvider mode="dark">
-          <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-            <RootLayoutNav />
-            <StatusBar style="auto" />
-          </ThemeProvider>
-        </GluestackUIProvider>
+        <OffersProvider>
+          <GluestackUIProvider mode="dark">
+            <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+              <RootLayoutNav />
+              <StatusBar style="auto" />
+            </ThemeProvider>
+          </GluestackUIProvider>
+        </OffersProvider>
       </WeatherProvider>
     </AuthProvider>
   );

@@ -7,25 +7,25 @@ import { MarketPrice, marketPricesService } from '@/services/market-prices-servi
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from "expo-router";
 import {
-  Bell,
-  CloudSun,
-  DollarSign,
-  MapPin,
-  Plus,
-  Search,
-  TrendingUp
+    Bell,
+    CloudSun,
+    DollarSign,
+    MapPin,
+    Plus,
+    Search,
+    TrendingUp
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Dimensions,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Dimensions,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
@@ -111,22 +111,22 @@ function FarmerHomeContent() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
-      {/* Curved Header Section */}
+      {/* Compact Header Section */}
       <View className="relative">
         <View
-          className="px-6 pt-12 pb-32"
+          className="px-5 pt-10 pb-6"
           style={{
             backgroundColor: '#7C8B3A', // Olive/army green matching reference image
-            borderBottomLeftRadius: 40,
-            borderBottomRightRadius: 40,
+            borderBottomLeftRadius: 30,
+            borderBottomRightRadius: 30,
           }}
         >
-          {/* Header Content - Personalized Greeting with Avatar (Option 1) */}
-          <View className="flex-row items-start justify-between">
+          {/* Header Content - Personalized Greeting with Avatar */}
+          <View className="flex-row items-center justify-between mb-3">
             <View className="flex-1">
               {/* Farmer Avatar + Personalized Greeting */}
-              <View className="flex-row items-center mb-2">
-                <View className="w-12 h-12 rounded-full bg-white/20 overflow-hidden border-2 border-white/30 mr-3">
+              <View className="flex-row items-center mb-1">
+                <View className="w-10 h-10 rounded-full bg-white/20 overflow-hidden border-2 border-white/30 mr-2">
                   <Image
                     source={{
                       uri: user?.profileImage || "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTF8fHVzZXJ8ZW58MHx8MHx8fDA%3D",
@@ -135,26 +135,30 @@ function FarmerHomeContent() {
                     resizeMode="cover"
                   />
                 </View>
-                <Text className="text-white text-xl font-bold">
-                  {t('farmerHome.hello')}, {user?.name || t('farmerHome.farmer')}
-                </Text>
+                <View className="flex-1">
+                  <Text className="text-white text-base font-bold">
+                    {t('farmerHome.hello')}, {user?.name || t('farmerHome.farmer')}
+                  </Text>
+                  {/* Date - Aligned with greeting text */}
+                  <Text className="text-white/70 text-xs mt-0.5">
+                    {new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short' })}
+                  </Text>
+                </View>
               </View>
-              {/* Date */}
-              <Text className="text-white/80 text-sm ml-13">{new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}</Text>
             </View>
             {/* Notification Bell */}
             <TouchableOpacity
               onPress={() => router.push("/notifications")}
-              className="w-10 h-10 rounded-full bg-white/20 items-center justify-center"
+              className="w-9 h-9 rounded-full bg-white/20 items-center justify-center"
             >
-              <Bell size={20} color="#FFFFFF" />
+              <Bell size={18} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
-          {/* Search Bar - Positioned below date with increased width */}
-          <View className="absolute bottom-16 left-4 right-4">
+          {/* Search Bar - Compact version */}
+          <View className="mt-2">
             <View
-              className="flex-row items-center rounded-3xl px-4 py-3"
+              className="flex-row items-center rounded-2xl px-3 py-2"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.2)', // Translucent white
                 borderWidth: 1,
@@ -166,98 +170,18 @@ function FarmerHomeContent() {
                 elevation: 4,
               }}
             >
-              <Search size={20} color="rgba(255, 255, 255, 0.8)" />
+              <Search size={18} color="rgba(255, 255, 255, 0.8)" />
               <TextInput
                 placeholder={t('common.searchHere')}
-                className="flex-1 ml-3 text-base"
+                className="flex-1 ml-2 text-sm"
                 placeholderTextColor="rgba(255, 255, 255, 0.7)"
                 style={{ color: 'white' }}
               />
-              <TouchableOpacity className="p-2">
+              <TouchableOpacity className="p-1">
                 <MapPin size={16} color="rgba(255, 255, 255, 0.8)" />
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-
-
-
-      </View>
-
-      {/* Floating Map Card - Positioned below search bar */}
-      <View
-        className="absolute rounded-3xl z-10 overflow-hidden"
-        style={{
-          top: 200, // Position below search bar
-          alignSelf: 'center', // Perfect horizontal centering
-          width: '90%', // Maintain 90% width
-          height: 280,
-          shadowColor: '#7C8B3A',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.3,
-          shadowRadius: 15,
-          elevation: 10,
-        }}
-      >
-        <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
-          <MapLibreView
-            showFarmers={true}
-            showBuyers={true}
-            radiusInMeters={RADIUS_PRESETS.DEFAULT}
-            onUserPress={(user) => {
-              if (user.role === 'buyer') {
-                router.push({
-                  pathname: "/nearby-buyers",
-                  params: { selectedBuyerId: user.id }
-                });
-              } else {
-                router.push({
-                  pathname: "/nearby-farmers",
-                  params: { selectedFarmerId: user.id }
-                });
-              }
-            }}
-          />
-        </MapErrorBoundary>
-
-        {/* Floating Buttons on Map */}
-        <View
-          className="absolute top-4 left-4 right-4 flex-row justify-between"
-          style={{ gap: 8 }}
-        >
-          <TouchableOpacity
-            onPress={() => router.push("/nearby-buyers")}
-            className="px-4 py-2 rounded-full flex-row items-center"
-            style={{
-              backgroundColor: 'rgba(124, 139, 58, 0.9)', // Semi-transparent olive green
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 5,
-            }}
-          >
-            <Text className="text-xs font-semibold text-white">
-              {t('farmerHome.nearbyBuyers')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => router.push("/nearby-farmers")}
-            className="px-4 py-2 rounded-full flex-row items-center"
-            style={{
-              backgroundColor: 'rgba(124, 139, 58, 0.9)', // Semi-transparent olive green
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 5,
-            }}
-          >
-            <Text className="text-xs font-semibold text-white">
-              {t('farmerHome.nearbyFarmers')}
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -266,9 +190,84 @@ function FarmerHomeContent() {
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         contentContainerStyle={{
-          paddingTop: 340, // Space for the floating map card (increased from 320)
+          paddingTop: 20, // Reduced padding since map is now in scroll
         }}
       >
+        {/* Map Card - Now inside ScrollView for smooth scrolling */}
+        <View className="px-5 mb-6">
+          <View
+            className="rounded-3xl overflow-hidden"
+            style={{
+              height: 280,
+              shadowColor: '#7C8B3A',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.3,
+              shadowRadius: 15,
+              elevation: 10,
+            }}
+          >
+            <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
+              <MapLibreView
+                showFarmers={true}
+                showBuyers={true}
+                radiusInMeters={RADIUS_PRESETS.DEFAULT}
+                onUserPress={(user) => {
+                  if (user.role === 'buyer') {
+                    router.push({
+                      pathname: "/nearby-buyers",
+                      params: { selectedBuyerId: user.id }
+                    });
+                  } else {
+                    router.push({
+                      pathname: "/nearby-farmers",
+                      params: { selectedFarmerId: user.id }
+                    });
+                  }
+                }}
+              />
+            </MapErrorBoundary>
+
+            {/* Floating Buttons on Map */}
+            <View
+              className="absolute top-4 left-4 right-4 flex-row justify-between"
+              style={{ gap: 8 }}
+            >
+              <TouchableOpacity
+                onPress={() => router.push("/nearby-buyers")}
+                className="px-4 py-2 rounded-full flex-row items-center"
+                style={{
+                  backgroundColor: 'rgba(124, 139, 58, 0.9)', // Semi-transparent olive green
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 5,
+                }}
+              >
+                <Text className="text-xs font-semibold text-white">
+                  {t('farmerHome.nearbyBuyers')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => router.push("/nearby-farmers")}
+                className="px-4 py-2 rounded-full flex-row items-center"
+                style={{
+                  backgroundColor: 'rgba(124, 139, 58, 0.9)', // Semi-transparent olive green
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 5,
+                }}
+              >
+                <Text className="text-xs font-semibold text-white">
+                  {t('farmerHome.nearbyFarmers')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
 
         {/* Market Prices - Redesigned with olive green accent */}
         <View className="mb-6">

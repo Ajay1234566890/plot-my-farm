@@ -1,13 +1,33 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
-import { useRouter } from "expo-router";
+import { useOffers } from "@/contexts/offers-context";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+
+// Crop type to image mapping with high-quality images
+const cropImageMap: { [key: string]: string } = {
+  'Rice': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
+  'Wheat': 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
+  'Corn': 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
+  'Soybeans': 'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
+  'Potatoes': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
+  'Tomatoes': 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
+  'Onions': 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
+  'Cotton': 'https://images.unsplash.com/photo-1616431101491-554c0932ea40?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
+  'Carrots': 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
+};
 
 export default function AddOffer() {
   const router = useRouter();
   const { t } = useTranslation();
+  const params = useLocalSearchParams();
+  const { addOffer, updateOffer } = useOffers();
+
+  // Check if we're in edit mode
+  const isEditMode = params.editMode === 'true';
+  const offerId = params.offerId ? parseInt(params.offerId as string) : null;
 
   const cropTypes = [
     t('crops.rice'),
@@ -27,17 +47,66 @@ export default function AddOffer() {
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [showCropTypes, setShowCropTypes] = useState(false);
 
+  // Load existing data if in edit mode
+  useEffect(() => {
+    if (isEditMode && params.cropType) {
+      setCropType(params.cropType as string);
+      setQuantity((params.quantity as string)?.replace(' kg', '') || '');
+      setPricePerUnit((params.price as string)?.replace('₹', '').replace('/kg', '') || '');
+    }
+  }, [isEditMode, params]);
+
   const handleSubmit = () => {
-    // In a real app, this would submit to a backend
-    console.log({
-      cropType,
-      quantity,
-      pricePerUnit,
-      minOrderQuantity,
-      availabilityDates,
-      additionalNotes,
-    });
-    router.push("/farmer-home");
+    // Validation
+    if (!cropType || !quantity || !pricePerUnit) {
+      Alert.alert(
+        t('common.error'),
+        t('addOffer.fillRequiredFields'),
+        [{ text: t('common.ok') }]
+      );
+      return;
+    }
+
+    // Get the English crop name for image mapping
+    const cropTypeEnglish = cropType.split(' ').pop() || cropType;
+    const image = cropImageMap[cropTypeEnglish] || cropImageMap['Tomatoes'];
+
+    // Create/Update the offer
+    const offerData = {
+      title: `${t('crops.fresh')} ${cropType}`,
+      cropType: cropType,
+      price: `₹${pricePerUnit}/kg`,
+      quantity: `${quantity} kg`,
+      image: image,
+    };
+
+    if (isEditMode && offerId) {
+      // Update existing offer
+      updateOffer(offerId, offerData);
+      Alert.alert(
+        t('common.success'),
+        'Offer updated successfully!',
+        [
+          {
+            text: t('common.ok'),
+            onPress: () => router.push("/farmer-offers"),
+          },
+        ]
+      );
+    } else {
+      // Create new offer
+      addOffer(offerData);
+      Alert.alert(
+        t('common.success'),
+        t('addOffer.offerCreatedSuccess'),
+        [
+          {
+            text: t('common.ok'),
+            onPress: () => router.push("/farmer-offers"),
+          },
+        ]
+      );
+    }
   };
 
   return (
@@ -58,10 +127,12 @@ export default function AddOffer() {
           >
             <ArrowLeft size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">{t('addOffer.createOffer')}</Text>
+          <Text className="text-xl font-bold text-white">
+            {isEditMode ? 'Edit Offer' : t('addOffer.createOffer')}
+          </Text>
         </View>
         <Text className="text-white/80">
-          {t('addOffer.createOfferSubtitle')}
+          {isEditMode ? 'Update your offer details' : t('addOffer.createOfferSubtitle')}
         </Text>
       </View>
 

@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { ArrowLeft, Bell, CheckCircle, Clock, MessageSquare, Package } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from 'react-i18next';
@@ -7,6 +8,7 @@ import FarmerBottomNav from './components/FarmerBottomNav';
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
   const { t } = useTranslation();
+  const router = useRouter();
 
   // Mock notifications data
   const notifications = [
@@ -80,6 +82,7 @@ export default function Notifications() {
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
             <TouchableOpacity
+              onPress={() => router.back()}
               className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
               accessibilityLabel="Go back"
               accessibilityRole="button"

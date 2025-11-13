@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import {
     Alert,
     Image,
+    Linking,
     ScrollView,
     Text,
     TouchableOpacity,
@@ -92,9 +93,23 @@ export default function CropDetails() {
     ));
   };
 
+  const handleCall = () => {
+    const phoneNumber = '+1234567890'; // Replace with actual farmer phone
+    Alert.alert(
+      t('common.call'),
+      t('common.calling') + ' farmer',
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.call'), onPress: () => Linking.openURL(`tel:${phoneNumber}`) }
+      ]
+    );
+  };
+
   const handleMessageFarmer = () => {
-    Alert.alert(t('common.message'), t('crops.openingChatWithFarmer'));
-    router.push("/messages");
+    router.push({
+      pathname: '/chat-screen',
+      params: { userId: 1, userName: 'Farmer Name', userType: 'farmer' }
+    });
   };
 
   const handleAddToCart = () => {
@@ -260,7 +275,14 @@ export default function CropDetails() {
 
       {/* Bottom Action Buttons */}
       <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-        <View className="flex-row gap-4 mb-4">
+        <View className="flex-row gap-2 mb-4">
+          <TouchableOpacity
+            onPress={handleCall}
+            className="flex-1 bg-green-600 rounded-full py-3 items-center flex-row justify-center"
+          >
+            <Phone size={18} color="white" />
+            <Text className="text-white font-semibold ml-2">{t('common.call')}</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={handleMessageFarmer}
             className="flex-1 bg-blue-600 rounded-full py-3 items-center flex-row justify-center"

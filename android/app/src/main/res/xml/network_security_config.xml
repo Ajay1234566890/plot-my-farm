@@ -1,5 +1,0 @@
-﻿<network-security-config>
-  <domain-config cleartextTrafficPermitted="true">
-    <domain includeSubdomains="true">api.maptiler.com</domain>
-  </domain-config>
-</network-security-config>

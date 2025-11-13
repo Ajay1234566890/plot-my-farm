@@ -11,18 +11,4 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
-# MapLibre / MapTiler - Prevent class stripping
--keep class org.maplibre.** { *; }
--keep class com.mapbox.** { *; }
--keep class com.maptiler.** { *; }
--keep class com.google.gson.** { *; }
--dontwarn org.maplibre.**
--dontwarn com.mapbox.**
--dontwarn com.maptiler.**
-
-# Keep native methods
--keepclassmembers class * {
-    native <methods>;
-}
-
 # Add any project specific keep options here:

@@ -273,6 +273,41 @@ export default function Settings() {
             </View>
           </View>
 
+          {/* Others Section */}
+          <View className="mb-6">
+            <Text className="text-lg font-semibold text-gray-800 mb-4">
+              Others
+            </Text>
+
+            {/* Terms & Conditions */}
+            <TouchableOpacity
+              className="flex-row items-center justify-between mb-4 bg-gray-50 rounded-xl p-4"
+              onPress={() => router.push('/terms')}
+            >
+              <View className="flex-row items-center">
+                <Mail size={20} color="#666" />
+                <Text className="text-base font-medium text-gray-700 ml-2">
+                  Terms & Conditions
+                </Text>
+              </View>
+              <Text className="text-gray-400">›</Text>
+            </TouchableOpacity>
+
+            {/* About App */}
+            <TouchableOpacity
+              className="flex-row items-center justify-between bg-gray-50 rounded-xl p-4"
+              onPress={() => router.push('/about')}
+            >
+              <View className="flex-row items-center">
+                <Mail size={20} color="#666" />
+                <Text className="text-base font-medium text-gray-700 ml-2">
+                  About App
+                </Text>
+              </View>
+              <Text className="text-gray-400">›</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Logout Button */}
           <View className="mt-auto">
             <TouchableOpacity

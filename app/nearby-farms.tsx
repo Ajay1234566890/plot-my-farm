@@ -1,12 +1,11 @@
-import React from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
+import { useRouter } from 'expo-router';
 import {
-  ArrowLeft,
-  MessageCircle,
-  Heart,
-  Share2,
-  Phone,
+    ArrowLeft,
+    MessageCircle,
+    Phone
 } from "lucide-react-native";
+import React from "react";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 // Mock data for farms
 const farms = [
@@ -49,11 +48,13 @@ const farms = [
 ];
 
 export default function NearbyFarms() {
+  const router = useRouter();
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row items-center px-4 py-3 bg-blue-600">
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()}>
           <ArrowLeft color="white" size={24} />
         </TouchableOpacity>
         <Text className="flex-1 text-lg font-semibold text-white text-center ml-4">

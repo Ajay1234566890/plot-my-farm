@@ -1,32 +1,63 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import MapLibreView from "@/components/MapLibreView";
 import { RADIUS_PRESETS } from "@/utils/haversine";
+import { useRouter } from 'expo-router';
 import {
-    ArrowLeft,
-    MapPin,
-    MessageSquare,
-    Mic,
-    Phone,
-    Search,
-    SlidersHorizontal,
-    Star,
+  ArrowLeft,
+  MapPin,
+  MessageSquare,
+  Mic,
+  Phone,
+  Search,
+  SlidersHorizontal,
+  Star,
 } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Image,
+  Linking,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const { width } = Dimensions.get("window");
 
 export default function NearbyBuyers() {
   const { t } = useTranslation();
+  const router = useRouter();
+
+  // Handler functions for Call and Message
+  const handleCall = (buyerName: string, phone?: string) => {
+    const phoneNumber = phone || '+1234567890'; // Mock phone number
+    Alert.alert(
+      t('common.call'),
+      `${t('common.calling')} ${buyerName}`,
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.call'),
+          onPress: () => Linking.openURL(`tel:${phoneNumber}`)
+        }
+      ]
+    );
+  };
+
+  const handleMessage = (buyerName: string, buyerId: number) => {
+    router.push({
+      pathname: '/chat-screen',
+      params: {
+        userId: buyerId,
+        userName: buyerName,
+        userType: 'buyer'
+      }
+    });
+  };
 
   // Mock data for nearby buyers with enhanced details
   const buyers = [
@@ -77,7 +108,10 @@ export default function NearbyBuyers() {
         }}
       >
         <View className="flex-row items-center mb-4">
-          <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4">
+          <TouchableOpacity
+            className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
+            onPress={() => router.back()}
+          >
             <ArrowLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text className="text-xl font-bold text-white">{t('buyer.nearbyBuyers')}</Text>
@@ -193,11 +227,17 @@ export default function NearbyBuyers() {
 
               {/* Action Buttons */}
               <View className="flex-row mt-4 gap-3">
-                <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3.5 shadow-sm">
+                <TouchableOpacity
+                  className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3.5 shadow-sm"
+                  onPress={() => handleCall(buyer.name)}
+                >
                   <Phone size={18} color="#FFFFFF" />
                   <Text className="text-white font-semibold ml-2">{t('common.call')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-emerald-50 rounded-xl py-3.5 shadow-sm">
+                <TouchableOpacity
+                  className="flex-1 flex-row items-center justify-center bg-emerald-50 rounded-xl py-3.5 shadow-sm"
+                  onPress={() => handleMessage(buyer.name, buyer.id)}
+                >
                   <MessageSquare size={18} color="#059669" />
                   <Text className="text-emerald-700 font-semibold ml-2">
                     {t('common.message')}

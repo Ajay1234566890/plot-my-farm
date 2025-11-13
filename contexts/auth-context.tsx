@@ -322,9 +322,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (createError) {
-        console.error('Failed to create user profile:', createError);
-        // Continue with local user object if database insert fails
+        console.error('❌ Failed to create user profile in Supabase:', createError);
+        console.error('❌ Table:', tableName);
+        console.error('❌ Profile data:', userProfile);
+        // Throw error instead of continuing - we need the data in Supabase
+        throw new Error(`Failed to save profile to database: ${createError.message}`);
       }
+
+      console.log('✅ Profile created in Supabase:', createdProfile);
 
       // Create our app user object
       const newUser: User = {

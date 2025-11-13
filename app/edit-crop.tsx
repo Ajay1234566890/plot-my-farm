@@ -1,4 +1,7 @@
 import FarmerBottomNav from '@/app/components/FarmerBottomNav';
+import { useAuth } from '@/contexts/auth-context';
+import { supabase } from '@/utils/supabase';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Calendar, ChevronDown, Mic, Upload } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -8,6 +11,8 @@ import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'reac
 export default function EditCrop() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     image: '',
     cropName: '',
@@ -27,7 +32,46 @@ export default function EditCrop() {
   const units = ['kg', 'quintal', 'ton', 'bag', 'bunch'];
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
 
-  const handleSave = () => {
+  // Image picker function
+  const handleImagePick = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        Alert.alert(t('common.error'), 'Permission to access camera roll is required!');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setFormData({...formData, image: result.assets[0].uri});
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert(t('common.error'), 'Failed to pick image');
+    }
+  };
+
+  // Date picker function (simplified - you can use a proper date picker library)
+  const handleDatePick = () => {
+    // For now, just set today's date
+    const today = new Date();
+    const dateString = today.toISOString().split('T')[0];
+    setFormData({...formData, harvestDate: dateString});
+  };
+
+  // Voice input function
+  const handleVoiceInput = () => {
+    Alert.alert(t('common.info'), 'Voice input feature coming soon!');
+  };
+
+  const handleSave = async () => {
     const newErrors = {
       cropName: !formData.cropName,
       quantity: !formData.quantity,
@@ -38,10 +82,54 @@ export default function EditCrop() {
     setErrors(newErrors);
 
     if (Object.values(newErrors).some(error => error)) {
+      Alert.alert(t('common.error'), t('errors.fillAllFields'));
       return;
     }
 
-    Alert.alert(t('common.success'), t('success.cropUpdated'));
+    setIsSaving(true);
+
+    try {
+      // Save to Supabase
+      const { data, error } = await supabase
+        .from('crops')
+        .insert([
+          {
+            farmer_id: user?.id,
+            name: formData.cropName,
+            quantity: parseFloat(formData.quantity),
+            unit: formData.unit,
+            price: parseFloat(formData.price),
+            harvest_date: formData.harvestDate,
+            image_url: formData.image,
+            status: 'available',
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select();
+
+      if (error) {
+        console.error('Error saving crop:', error);
+        Alert.alert(t('common.error'), 'Failed to save crop: ' + error.message);
+        return;
+      }
+
+      console.log('✅ Crop saved successfully:', data);
+      Alert.alert(
+        t('common.success'),
+        t('success.cropUpdated'),
+        [
+          {
+            text: t('common.ok'),
+            onPress: () => router.back()
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error saving crop:', error);
+      Alert.alert(t('common.error'), 'Failed to save crop');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -98,11 +186,21 @@ export default function EditCrop() {
         <Text className="text-base text-gray-700 mb-2">{t('crops.uploadImage')}</Text>
         <TouchableOpacity
           className="border-2 border-dashed border-gray-300 rounded-lg p-6 items-center justify-center mb-6"
-          onPress={() => {/* Image picker logic would go here */}}
+          onPress={handleImagePick}
         >
-          <Upload size={24} className="text-gray-400 mb-2" />
-          <Text className="text-gray-500 text-center">{t('crops.clickToUpload')}</Text>
-          <Text className="text-gray-400 text-sm">{t('crops.imageFormats')}</Text>
+          {formData.image ? (
+            <Image
+              source={{ uri: formData.image }}
+              className="w-full h-48 rounded-lg mb-2"
+              resizeMode="cover"
+            />
+          ) : (
+            <>
+              <Upload size={24} className="text-gray-400 mb-2" />
+              <Text className="text-gray-500 text-center">{t('crops.clickToUpload')}</Text>
+              <Text className="text-gray-400 text-sm">{t('crops.imageFormats')}</Text>
+            </>
+          )}
         </TouchableOpacity>
 
         {/* Crop Name */}
@@ -116,7 +214,7 @@ export default function EditCrop() {
               value={formData.cropName}
               onChangeText={(text) => setFormData({...formData, cropName: text})}
             />
-            <TouchableOpacity className="absolute right-3 top-3">
+            <TouchableOpacity className="absolute right-3 top-3" onPress={handleVoiceInput}>
               <Mic size={24} className="text-gray-400" />
             </TouchableOpacity>
           </View>
@@ -183,7 +281,7 @@ export default function EditCrop() {
               value={formData.price}
               onChangeText={(text) => setFormData({...formData, price: text})}
             />
-            <TouchableOpacity className="absolute right-3 top-3">
+            <TouchableOpacity className="absolute right-3 top-3" onPress={handleVoiceInput}>
               <Mic size={24} className="text-gray-400" />
             </TouchableOpacity>
           </View>
@@ -201,7 +299,7 @@ export default function EditCrop() {
               value={formData.harvestDate}
               onChangeText={(text) => setFormData({...formData, harvestDate: text})}
             />
-            <TouchableOpacity className="absolute right-3 top-3">
+            <TouchableOpacity className="absolute right-3 top-3" onPress={handleDatePick}>
               <Calendar size={24} className="text-gray-400" />
             </TouchableOpacity>
           </View>
@@ -219,10 +317,13 @@ export default function EditCrop() {
 
           <TouchableOpacity
             className="flex-1 p-3 rounded-lg"
-            style={{ backgroundColor: '#7C8B3A' }}
+            style={{ backgroundColor: isSaving ? '#9CA3AF' : '#7C8B3A' }}
             onPress={handleSave}
+            disabled={isSaving}
           >
-            <Text className="text-white text-center text-base font-medium">{t('common.save')}</Text>
+            <Text className="text-white text-center text-base font-medium">
+              {isSaving ? t('common.saving') || 'Saving...' : t('common.save')}
+            </Text>
           </TouchableOpacity>
         </View>
         </View>

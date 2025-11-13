@@ -1,11 +1,13 @@
 import MapLibreView from "@/components/MapLibreView";
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import {
     ArrowLeft,
     Home,
     MessageCircle,
     Mic,
+    Phone,
     Search,
     SlidersHorizontal,
     Sprout,
@@ -15,14 +17,16 @@ import {
 import { cssInterop } from "nativewind";
 import React from "react";
 import {
+    Alert,
     Dimensions,
     Image,
+    Linking,
     SafeAreaView,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 
 // Enable className support for LinearGradient
@@ -33,6 +37,28 @@ cssInterop(LinearGradient, {
 const { width } = Dimensions.get("window");
 
 export default function NearbyFarmers() {
+  const router = useRouter();
+
+  // Handler functions
+  const handleCall = (farmerName: string, phone?: string) => {
+    const phoneNumber = phone || '+1234567890';
+    Alert.alert(
+      'Call',
+      `Calling ${farmerName}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Call', onPress: () => Linking.openURL(`tel:${phoneNumber}`) }
+      ]
+    );
+  };
+
+  const handleMessage = (farmerName: string, farmerId: number) => {
+    router.push({
+      pathname: '/chat-screen',
+      params: { userId: farmerId, userName: farmerName, userType: 'farmer' }
+    });
+  };
+
   // Mock data for nearby farmers
   const farmers = [
     {
@@ -81,7 +107,7 @@ export default function NearbyFarmers() {
         className="px-4 pt-4 pb-4"
       >
         <View className="flex-row items-center justify-between">
-          <TouchableOpacity className="p-2">
+          <TouchableOpacity className="p-2" onPress={() => router.back()}>
             <ArrowLeft color="white" size={24} />
           </TouchableOpacity>
           <Text className="text-white text-lg font-semibold">Nearby Farmers</Text>
@@ -142,11 +168,20 @@ export default function NearbyFarmers() {
                 </View>
               </View>
             </View>
-            <View className="px-4 pb-4">
-              <TouchableOpacity className="bg-blue-500 rounded-full py-3">
-                <Text className="text-white text-center font-semibold">
-                  View Details
-                </Text>
+            <View className="px-4 pb-4 flex-row gap-2">
+              <TouchableOpacity
+                className="flex-1 bg-green-500 rounded-full py-3 flex-row items-center justify-center"
+                onPress={() => handleCall(farmer.name)}
+              >
+                <Phone size={18} color="white" />
+                <Text className="text-white font-semibold ml-2">Call</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 bg-blue-500 rounded-full py-3 flex-row items-center justify-center"
+                onPress={() => handleMessage(farmer.name, farmer.id)}
+              >
+                <MessageCircle size={18} color="white" />
+                <Text className="text-white font-semibold ml-2">Message</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
