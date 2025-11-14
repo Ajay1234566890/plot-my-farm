@@ -5,7 +5,6 @@ import {
     ChevronLeft,
     ChevronRight,
     FileText,
-    Globe,
     Heart,
     Info,
     LogOut
@@ -20,6 +19,7 @@ export default function Profile() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const [notificationsExpanded, setNotificationsExpanded] = useState(false);
+  const [profileImage] = useState(user?.profileImage || '');
   const [notificationSettings, setNotificationSettings] = useState({
     messageAlerts: true,
     offerAlerts: true,
@@ -42,6 +42,10 @@ export default function Profile() {
         }
       ]
     );
+  };
+
+  const handleEditProfile = () => {
+    router.push('/farmer-profile-setup');
   };
 
   return (
@@ -81,18 +85,20 @@ export default function Profile() {
             elevation: 8,
           }}
         >
-          <View className="w-24 h-24 rounded-full overflow-hidden" style={{ backgroundColor: '#F5F3F0' }}>
-            <Image
-              source={{ uri: user?.profileImage || "https://example.com/placeholder.jpg" }}
-              className="w-full h-full"
-            />
+          <View className="relative">
+            <View className="w-24 h-24 rounded-full overflow-hidden" style={{ backgroundColor: '#F5F3F0' }}>
+              <Image
+                source={{ uri: profileImage || user?.profileImage || "https://example.com/placeholder.jpg" }}
+                className="w-full h-full"
+              />
+            </View>
           </View>
           <Text className="mt-4 text-xl font-bold text-gray-900">{user?.name || t('profile.farmer')}</Text>
           <Text className="text-sm text-gray-500">{user?.phone || t('profile.farmerPhone')}</Text>
           <TouchableOpacity
             className="mt-4 px-6 py-3 rounded-xl"
             style={{ backgroundColor: '#7C8B3A' }}
-            onPress={() => Alert.alert(t('profile.editProfile'), t('profile.profileEditingComingSoon'))}
+            onPress={handleEditProfile}
           >
             <Text className="text-white font-semibold">{t('profile.editProfile')}</Text>
           </TouchableOpacity>
@@ -172,24 +178,12 @@ export default function Profile() {
             <ChevronRight size={20} color="#4B5563" />
           </TouchableOpacity>
 
-          {/* Settings */}
-          <TouchableOpacity
-            className="flex-row items-center justify-between py-4 border-b border-gray-100"
-            onPress={() => {/* Handle language selection */}}
-          >
-            <View className="flex-row items-center">
-              <Globe size={20} color="#4B5563" />
-              <Text className="ml-3 text-base">{t('profile.language')}</Text>
-            </View>
-            <ChevronRight size={20} color="#4B5563" />
-          </TouchableOpacity>
-
           {/* Others */}
           <Text className="text-lg font-semibold mt-6 mb-2">{t('profile.others')}</Text>
 
           <TouchableOpacity
             className="flex-row items-center justify-between py-4 border-b border-gray-100"
-            onPress={() => {/* Handle terms */}}
+            onPress={() => router.push('/terms')}
           >
             <View className="flex-row items-center">
               <FileText size={20} color="#4B5563" />
@@ -200,7 +194,7 @@ export default function Profile() {
 
           <TouchableOpacity
             className="flex-row items-center justify-between py-4 border-b border-gray-100"
-            onPress={() => {/* Handle about */}}
+            onPress={() => router.push('/about')}
           >
             <View className="flex-row items-center">
               <Info size={20} color="#4B5563" />

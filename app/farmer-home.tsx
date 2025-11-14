@@ -9,16 +9,18 @@ import { useRouter } from "expo-router";
 import {
     Bell,
     CloudSun,
-    DollarSign,
     MapPin,
+    MessageCircle,
     Plus,
     Search,
+    Tag,
     TrendingUp
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
+    Animated,
     Dimensions,
     Image,
     ScrollView,
@@ -49,6 +51,9 @@ function FarmerHomeContent() {
   const { user } = useAuth();
   const [marketPrices, setMarketPrices] = useState<MarketPrice[]>([]);
   const [loadingPrices, setLoadingPrices] = useState(true);
+
+  // Scroll animation for glass card fade effect
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // Fetch real market prices on mount
   useEffect(() => {
@@ -96,7 +101,7 @@ function FarmerHomeContent() {
       route: "/market-real-prices" as const,
     },
     {
-      icon: <DollarSign size={24} color="#4B5563" />,
+      icon: <Tag size={24} color="#4B5563" />,
       label: t('farmerHome.myOffers'),
       route: "/farmer-offers" as const,
     },
@@ -155,14 +160,16 @@ function FarmerHomeContent() {
             </TouchableOpacity>
           </View>
 
-          {/* Search Bar - Compact version */}
+          {/* Search Bar - Single Light Green Background */}
           <View className="mt-2">
             <View
-              className="flex-row items-center rounded-2xl px-3 py-2"
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Translucent white
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.3)',
+                backgroundColor: '#A8C686', // Single light green color
+                borderRadius: 16,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.1,
@@ -170,14 +177,19 @@ function FarmerHomeContent() {
                 elevation: 4,
               }}
             >
-              <Search size={18} color="rgba(255, 255, 255, 0.8)" />
+              <Search size={18} color="#FFFFFF" />
               <TextInput
                 placeholder={t('common.searchHere')}
-                className="flex-1 ml-2 text-sm"
-                placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                style={{ color: 'white' }}
+                placeholderTextColor="rgba(255, 255, 255, 0.9)"
+                style={{
+                  flex: 1,
+                  marginLeft: 8,
+                  fontSize: 14,
+                  color: 'white',
+                  backgroundColor: 'transparent'
+                }}
               />
-              <TouchableOpacity className="p-1">
+              <TouchableOpacity style={{ padding: 4 }}>
                 <MapPin size={16} color="rgba(255, 255, 255, 0.8)" />
               </TouchableOpacity>
             </View>
@@ -185,25 +197,43 @@ function FarmerHomeContent() {
         </View>
       </View>
 
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1 pb-24"
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
         contentContainerStyle={{
-          paddingTop: 20, // Reduced padding since map is now in scroll
+          paddingTop: 20,
+          paddingBottom: 100, // Fixed padding for bottom navigation
         }}
       >
-        {/* Map Card - Now inside ScrollView for smooth scrolling */}
+        {/* Map Card - Glass Card with Fade Effect */}
         <View className="px-5 mb-6">
-          <View
+          <Animated.View
             className="rounded-3xl overflow-hidden"
             style={{
               height: 280,
+              backgroundColor: 'rgba(255, 255, 255, 0.85)', // Glass effect
               shadowColor: '#7C8B3A',
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.3,
               shadowRadius: 15,
               elevation: 10,
+              opacity: scrollY.interpolate({
+                inputRange: [0, 150],
+                outputRange: [1, 0],
+                extrapolate: 'clamp',
+              }),
+              transform: [{
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 150],
+                  outputRange: [0, -30],
+                  extrapolate: 'clamp',
+                }),
+              }],
             }}
           >
             <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
@@ -266,16 +296,17 @@ function FarmerHomeContent() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Animated.View>
         </View>
 
         {/* Market Prices - Redesigned with olive green accent */}
-        <View className="mb-6">
+        <View className="mb-6" style={{ marginTop: 0 }}>
           <View className="px-6 flex-row justify-between items-center mb-4">
             <Text className="text-xl font-bold text-gray-800">
               {t('market.marketPrices')}
             </Text>
             <TouchableOpacity
+              onPress={() => router.push("/market-real-prices")}
               className="px-4 py-2 rounded-full"
               style={{ backgroundColor: '#7C8B3A' }}
             >
@@ -376,7 +407,11 @@ function FarmerHomeContent() {
                       {React.cloneElement(action.icon, { color: '#FFFFFF', size: 26 })}
                     </View>
                   </View>
-                  <Text className="text-gray-800 text-sm font-semibold text-center leading-tight">
+                  <Text
+                    className="text-gray-800 font-semibold text-center"
+                    numberOfLines={1}
+                    style={{ fontSize: 11, lineHeight: 14 }}
+                  >
                     {action.label}
                   </Text>
                 </View>
@@ -438,11 +473,17 @@ function FarmerHomeContent() {
                 <Text className="text-sm text-gray-500">{buyer.location}</Text>
               </View>
               <View className="flex-row gap-2">
-                <TouchableOpacity className="p-2 bg-emerald-100 rounded-full">
+                <TouchableOpacity
+                  onPress={() => router.push("/nearby-buyers")}
+                  className="p-2 bg-emerald-100 rounded-full"
+                >
                   <MapPin size={20} color="#059669" />
                 </TouchableOpacity>
-                <TouchableOpacity className="p-2 bg-blue-100 rounded-full">
-                  <Bell size={20} color="#2563EB" />
+                <TouchableOpacity
+                  onPress={() => router.push("/chat-screen")}
+                  className="p-2 bg-blue-100 rounded-full"
+                >
+                  <MessageCircle size={20} color="#2563EB" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -450,7 +491,7 @@ function FarmerHomeContent() {
         </View>
 
         {/* My Fields Section - Styled like reference image */}
-        <View className="px-6 mb-8">
+        <View className="px-6" style={{ marginBottom: 20 }}>
           <Text className="text-gray-800 text-lg font-bold mb-4">{t('farmerHome.myFields')}</Text>
           <TouchableOpacity
             onPress={() => router.push("/my-farms")}
@@ -479,7 +520,7 @@ function FarmerHomeContent() {
             </View>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Bottom Navigation - Absolute Positioning */}
       <View className="absolute bottom-0 left-0 right-0">

@@ -14,16 +14,16 @@ import {
     SlidersHorizontal,
     Sun,
 } from "lucide-react-native";
-import React from "react";
+import React, { useRef } from "react";
 import { useTranslation } from 'react-i18next';
 import {
+    Animated,
     Dimensions,
     Image,
-    ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -32,7 +32,10 @@ export default function MyFarms() {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useTranslation();
-  // Mock data for farms
+
+  // Scroll animation for glass card fade effect
+  const scrollY = useRef(new Animated.Value(0)).current;
+  // Mock data for farms with crop-specific images
   const farms = [
     {
       id: 1,
@@ -41,7 +44,7 @@ export default function MyFarms() {
       size: "12 acres",
       crops: ["Wheat", "Tomatoes", "Potatoes"],
       status: "Harvesting",
-      image: "https://images.unsplash.com/photo-1597038185869-9ad1b4bc9e1f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
+      image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&auto=format&fit=crop&q=60", // Golden wheat field
       yield: "2.4 tons",
       lastHarvest: "2 days ago",
     },
@@ -52,7 +55,7 @@ export default function MyFarms() {
       size: "8 acres",
       crops: ["Rice", "Onions"],
       status: "Growing",
-      image: "https://images.unsplash.com/photo-1597038185869-9ad1b4bc9e1f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
+      image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop&q=60", // Green rice paddy
       yield: "1.8 tons",
       lastHarvest: "1 week ago",
     },
@@ -63,7 +66,7 @@ export default function MyFarms() {
       size: "15 acres",
       crops: ["Carrots", "Spinach", "Lettuce"],
       status: "Planting",
-      image: "https://images.unsplash.com/photo-1597038185869-9ad1b4bc9e1f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
+      image: "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&auto=format&fit=crop&q=60", // Fresh vegetables farm
       yield: "0.9 tons",
       lastHarvest: "3 weeks ago",
     },
@@ -127,48 +130,64 @@ export default function MyFarms() {
         </View>
       </View>
 
-      {/* Stats Overview */}
-      <View
-        className="mx-6 mt-6 rounded-3xl bg-white p-6 shadow-lg"
-        style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.1,
-          shadowRadius: 12,
-          elevation: 8,
-        }}
+      {/* Farms List with ScrollView */}
+      <Animated.ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
       >
-        <Text className="text-xl font-bold text-gray-800 mb-4">{t('farms.farmOverview')}</Text>
-        <View className="flex-row flex-wrap justify-between">
-          {farmStats.map((stat, index) => (
-            <View key={index} className="basis-[48%] flex-row items-center rounded-xl p-3 mb-3" style={{ backgroundColor: '#F5F3F0' }}>
-              <View className="w-10 h-10 rounded-full bg-white items-center justify-center">
-                {stat.icon}
+        {/* Stats Overview - Glass Card with Fade Effect */}
+        <Animated.View
+          className="mx-6 mb-6 rounded-3xl p-6 shadow-lg"
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.85)', // Glass effect
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 12,
+            elevation: 8,
+            opacity: scrollY.interpolate({
+              inputRange: [0, 150],
+              outputRange: [1, 0],
+              extrapolate: 'clamp',
+            }),
+            transform: [{
+              translateY: scrollY.interpolate({
+                inputRange: [0, 150],
+                outputRange: [0, -30],
+                extrapolate: 'clamp',
+              }),
+            }],
+          }}
+        >
+          <Text className="text-xl font-bold text-gray-800 mb-4">{t('farms.farmOverview')}</Text>
+          <View className="flex-row flex-wrap justify-between">
+            {farmStats.map((stat, index) => (
+              <View key={index} className="basis-[48%] flex-row items-center rounded-xl p-3 mb-3" style={{ backgroundColor: '#F5F3F0' }}>
+                <View className="w-10 h-10 rounded-full bg-white items-center justify-center">
+                  {stat.icon}
+                </View>
+                <View className="ml-3">
+                  <Text className="text-lg font-bold text-gray-900">{stat.value}</Text>
+                  <Text className="text-xs text-gray-500">{stat.label}</Text>
+                </View>
               </View>
-              <View className="ml-3">
-                <Text className="text-lg font-bold text-gray-900">{stat.value}</Text>
-                <Text className="text-xs text-gray-500">{stat.label}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
+            ))}
+          </View>
+        </Animated.View>
 
-      {/* Farms List */}
-      <View className="flex-1 px-6 mt-6">
-        <View className="flex-row items-center justify-between mb-6">
+        {/* My Farms Section Header */}
+        <View className="px-6 mb-6">
           <Text className="text-xl font-bold text-gray-800">{t('farms.myFarms')} ({farms.length})</Text>
-          <TouchableOpacity
-            className="flex-row items-center px-4 py-2 rounded-full"
-            style={{ backgroundColor: '#F5F3F0' }}
-          >
-            <Text className="text-sm font-medium mr-1" style={{ color: '#7C8B3A' }}>
-              {t('farms.sortByStatus')}
-            </Text>
-          </TouchableOpacity>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} className="pb-24">
+        {/* Farms Cards */}
+        <View className="px-6">
           {farms.map((farm) => (
             <View
               key={farm.id}
@@ -261,8 +280,8 @@ export default function MyFarms() {
               </View>
             </View>
           ))}
-        </ScrollView>
-      </View>
+        </View>
+      </Animated.ScrollView>
 
       {/* Bottom Navigation - Absolute Positioning */}
       <View className="absolute bottom-0 left-0 right-0">

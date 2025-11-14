@@ -566,7 +566,19 @@
         "retailer": "Retailer",
         "wholesaler": "Wholesaler",
         "trader": "Trader",
-        "consumer": "Consumer"
+        "consumer": "Consumer",
+        "selectPhoto": "Select Photo",
+        "choosePhotoSource": "Choose photo source",
+        "takePhoto": "Take Photo",
+        "chooseFromGallery": "Choose from Gallery",
+        "cameraPermissionRequired": "Camera permission is required",
+        "galleryPermissionRequired": "Gallery permission is required",
+        "profilePictureUpdated": "Profile picture updated successfully",
+        "failedToOpenCamera": "Failed to open camera",
+        "failedToOpenGallery": "Failed to open gallery",
+        "selectLanguage": "Select Language",
+        "languageChanged": "Language changed successfully",
+        "failedToChangeLanguage": "Failed to change language"
     },
     "buyerProfile": {
         "buyer": "Buyer",
