@@ -51,7 +51,38 @@
     "thu": "గురు",
     "fri": "శుక్ర",
     "sat": "శని",
-    "sun": "ఆది"
+    "sun": "ఆది",
+    "monday": "సోమవారం",
+    "tuesday": "మంగళవారం",
+    "wednesday": "బుధవారం",
+    "thursday": "గురువారం",
+    "friday": "శుక్రవారం",
+    "saturday": "శనివారం",
+    "sunday": "ఆదివారం",
+    "jan": "జన",
+    "feb": "ఫిబ్ర",
+    "mar": "మార్చి",
+    "apr": "ఏప్రి",
+    "may": "మే",
+    "jun": "జూన్",
+    "jul": "జూలై",
+    "aug": "ఆగ",
+    "sep": "సెప్టె",
+    "oct": "అక్టో",
+    "nov": "నవం",
+    "dec": "డిసె",
+    "january": "జనవరి",
+    "february": "ఫిబ్రవరి",
+    "march": "మార్చి",
+    "april": "ఏప్రిల్",
+    "mayFull": "మే",
+    "june": "జూన్",
+    "july": "జూలై",
+    "august": "ఆగస్టు",
+    "september": "సెప్టెంబర్",
+    "october": "అక్టోబర్",
+    "november": "నవంబర్",
+    "december": "డిసెంబర్"
   },
   "units": {
     "kg": "కిలో",
@@ -182,7 +213,11 @@
     "recommendedBuyers": "సిఫార్సు చేయబడిన కొనుగోలుదారులు",
     "myFields": "నా పొలాలు",
     "organicVegetableFarm": "సేంద్రీయ కూరగాయల పొలం",
-    "farmDetails": "2.5 ఎకరాలు • క్రియాశీల పంటలు: టమోటాలు, బంగాళాదుంపలు"
+    "farmDetails": "2.5 ఎకరాలు • క్రియాశీల పంటలు: టమోటాలు, బంగాళాదుంపలు",
+    "buyerName1": "అమృత్ కుమార్",
+    "buyerLocation1": "ఢిల్లీ, భారతదేశం",
+    "buyerName2": "ప్రియా శర్మ",
+    "buyerLocation2": "ముంబై, భారతదేశం"
   },
   "buyerHome": {
     "welcome": "స్వాగతం",
@@ -262,7 +297,15 @@
     "lastYield": "చివరి దిగుబడి",
     "harvested": "కోత",
     "manage": "నిర్వహించు",
-    "insights": "అంతర్దృష్టులు"
+    "insights": "అంతర్దృష్టులు",
+    "harvesting": "కోత",
+    "growing": "పెరుగుతోంది",
+    "planting": "నాటడం",
+    "greenValleyFarm": "గ్రీన్ వ్యాలీ ఫార్మ్",
+    "sunshineFields": "సన్‌షైన్ ఫీల్డ్స్",
+    "organicHaven": "ఆర్గానిక్ హెవెన్",
+    "spinach": "పాలకూర",
+    "lettuce": "లెట్యూస్"
   },
   "crops": {
     "crops": "పంటలు",
@@ -493,7 +536,13 @@
     "buyers": "కొనుగోలుదారులు",
     "noOffersFound": "ఆఫర్లు కనుగొనబడలేదు",
     "receivedOffers": "స్వీకరించిన ఆఫర్లు",
-    "sentOffers": "పంపిన ఆఫర్లు"
+    "sentOffers": "పంపిన ఆఫర్లు",
+    "freshOrganicTomatoes": "తాజా సేంద్రీయ టమోటాలు",
+    "tomatoes": "టమోటాలు",
+    "farmFreshCarrots": "పొలం తాజా క్యారెట్లు",
+    "carrots": "క్యారెట్లు",
+    "premiumWheat": "ప్రీమియం గోధుమలు",
+    "wheat": "గోధుమలు"
   },
   "profile": {
     "profile": "ప్రొఫైల్",
@@ -1087,7 +1136,8 @@
     "quantityRequired": "పరిమాణం అవసరం",
     "priceRequired": "ధర అవసరం",
     "harvestDateRequired": "పంట కోత తేదీ అవసరం",
-    "validationError": "ధృవీకరణ లోపం"
+    "validationError": "ధృవీకరణ లోపం",
+    "imagePickFailed": "చిత్రాన్ని ఎంచుకోవడంలో విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి"
   },
   "success": {
     "loginSuccess": "లాగిన్ విజయవంతమైంది",

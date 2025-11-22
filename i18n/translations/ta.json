@@ -51,7 +51,38 @@
     "thu": "வியா",
     "fri": "வெள்",
     "sat": "சனி",
-    "sun": "ஞாயி"
+    "sun": "ஞாயி",
+    "monday": "திங்கள்",
+    "tuesday": "செவ்வாய்",
+    "wednesday": "புதன்",
+    "thursday": "வியாழன்",
+    "friday": "வெள்ளி",
+    "saturday": "சனி",
+    "sunday": "ஞாயிறு",
+    "jan": "ஜன",
+    "feb": "பிப்",
+    "mar": "மார்",
+    "apr": "ஏப்",
+    "may": "மே",
+    "jun": "ஜூன்",
+    "jul": "ஜூலை",
+    "aug": "ஆக",
+    "sep": "செப்",
+    "oct": "அக்",
+    "nov": "நவ",
+    "dec": "டிச",
+    "january": "ஜனவரி",
+    "february": "பிப்ரவரி",
+    "march": "மார்ச்",
+    "april": "ஏப்ரல்",
+    "mayFull": "மே",
+    "june": "ஜூன்",
+    "july": "ஜூலை",
+    "august": "ஆகஸ்ட்",
+    "september": "செப்டம்பர்",
+    "october": "அக்டோபர்",
+    "november": "நவம்பர்",
+    "december": "டிசம்பர்"
   },
   "units": {
     "kg": "கிலோ",
@@ -182,7 +213,11 @@
     "recommendedBuyers": "பரிந்துரைக்கப்பட்ட வாங்குபவர்கள்",
     "myFields": "எனது வயல்கள்",
     "organicVegetableFarm": "இயற்கை காய்கறி பண்ணை",
-    "farmDetails": "2.5 ஏக்கர் • செயலில் உள்ள பயிர்கள்: தக்காளி, உருளைக்கிழங்கு"
+    "farmDetails": "2.5 ஏக்கர் • செயலில் உள்ள பயிர்கள்: தக்காளி, உருளைக்கிழங்கு",
+    "buyerName1": "அம்ரித் குமார்",
+    "buyerLocation1": "டெல்லி, இந்தியா",
+    "buyerName2": "பிரியா ஷர்மா",
+    "buyerLocation2": "மும்பை, இந்தியா"
   },
   "buyerHome": {
     "welcome": "வரவேற்கிறோம்",
@@ -262,7 +297,15 @@
     "lastYield": "கடைசி விளைச்சல்",
     "harvested": "அறுவடை",
     "manage": "நிர்வகி",
-    "insights": "நுண்ணறிவுகள்"
+    "insights": "நுண்ணறிவுகள்",
+    "harvesting": "அறுவடை",
+    "growing": "வளர்கிறது",
+    "planting": "நடவு",
+    "greenValleyFarm": "கிரீன் வேலி ஃபார்ம்",
+    "sunshineFields": "சன்ஷைன் ஃபீல்ட்ஸ்",
+    "organicHaven": "ஆர்கானிக் ஹேவன்",
+    "spinach": "கீரை",
+    "lettuce": "லெட்யூஸ்"
   },
   "crops": {
     "crops": "பயிர்கள்",
@@ -493,7 +536,13 @@
     "buyers": "வாங்குபவர்கள்",
     "noOffersFound": "சலுகைகள் எதுவும் கிடைக்கவில்லை",
     "receivedOffers": "பெறப்பட்ட சலுகைகள்",
-    "sentOffers": "அனுப்பிய சலுகைகள்"
+    "sentOffers": "அனுப்பிய சலுகைகள்",
+    "freshOrganicTomatoes": "புதிய இயற்கை தக்காளி",
+    "tomatoes": "தக்காளி",
+    "farmFreshCarrots": "பண்ணை புதிய கேரட்",
+    "carrots": "கேரட்",
+    "premiumWheat": "பிரீமியம் கோதுமை",
+    "wheat": "கோதுமை"
   },
   "profile": {
     "profile": "சுயவிவரம்",
@@ -1088,7 +1137,8 @@
     "quantityRequired": "அளவு தேவை",
     "priceRequired": "விலை தேவை",
     "harvestDateRequired": "அறுவடை தேதி தேவை",
-    "validationError": "சரிபார்ப்பு பிழை"
+    "validationError": "சரிபார்ப்பு பிழை",
+    "imagePickFailed": "படத்தைத் தேர்ந்தெடுக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்"
   },
   "success": {
     "loginSuccess": "வெற்றிகரமாக உள்நுழைந்தது",

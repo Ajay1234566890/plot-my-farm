@@ -19,13 +19,16 @@ export interface FormattedLocation {
  */
 export function formatLocation(
   locationData: LocationData | null,
-  weatherData: WeatherData | null
+  weatherData: WeatherData | null,
+  t?: (key: string) => string
 ): FormattedLocation {
   // Default fallback
+  const loadingText = t ? t('weather.loading') : 'Loading location...';
+  const loadingShort = t ? t('common.loading') : 'Loading...';
   const fallback = {
-    display: 'Loading location...',
-    short: 'Loading...',
-    full: 'Loading location...'
+    display: loadingText,
+    short: loadingShort,
+    full: loadingText
   };
 
   // Try weather data location first (usually city name)

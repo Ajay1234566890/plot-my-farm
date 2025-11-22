@@ -1,5 +1,6 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import { useAuth } from "@/contexts/auth-context";
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from "expo-router";
 import {
     ArrowLeft,
@@ -34,6 +35,33 @@ export default function AddCrop() {
   const [quantity, setQuantity] = useState("");
   const [price, setPrice] = useState("");
   const [harvestDate, setHarvestDate] = useState("");
+
+  const handleImagePick = async () => {
+    try {
+      // Request permission
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        Alert.alert(t('common.error'), t('errors.cameraPermissionRequired'));
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setCropImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert(t('common.error'), t('errors.imagePickFailed'));
+    }
+  };
 
   const handleSaveCrop = () => {
     if (!cropName || !quantity || !selectedUnit || !price) {
@@ -187,7 +215,10 @@ export default function AddCrop() {
             <Text className="text-sm font-medium text-gray-700 mb-2">
               {t('crops.cropImage')}
             </Text>
-            <TouchableOpacity className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-6 items-center">
+            <TouchableOpacity
+              onPress={handleImagePick}
+              className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-6 items-center"
+            >
               {cropImage ? (
                 <Image
                   source={{ uri: cropImage }}

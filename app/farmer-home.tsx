@@ -7,27 +7,29 @@ import { MarketPrice, marketPricesService } from '@/services/market-prices-servi
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from "expo-router";
 import {
-    Bell,
-    CloudSun,
-    MapPin,
-    MessageCircle,
-    Plus,
-    Search,
-    Tag,
-    TrendingUp
+  Bell,
+  CloudSun,
+  MapPin,
+  MessageCircle,
+  Mic,
+  Plus,
+  Search,
+  Tag,
+  TrendingUp,
+  User
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Animated,
-    Dimensions,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
@@ -55,6 +57,17 @@ function FarmerHomeContent() {
   // Scroll animation for glass card fade effect
   const scrollY = useRef(new Animated.Value(0)).current;
 
+  // Format date with i18n
+  const getFormattedDate = () => {
+    const date = new Date();
+    const weekdayKey = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][date.getDay()];
+    const monthKey = ['january', 'february', 'march', 'april', 'mayFull', 'june', 'july', 'august', 'september', 'october', 'november', 'december'][date.getMonth()];
+    const day = date.getDate().toString().padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${t(`common.${weekdayKey}`)}, ${day} ${t(`common.${monthKey}`)} ${year}`;
+  };
+
   // Fetch real market prices on mount
   useEffect(() => {
     loadMarketPrices();
@@ -75,14 +88,14 @@ function FarmerHomeContent() {
   // Mock data for recommended buyers (restored from original)
   const recommendedBuyers = [
     {
-      name: "Amrit Kumar",
-      location: "Delhi, India",
+      name: t('farmerHome.buyerName1'),
+      location: t('farmerHome.buyerLocation1'),
       avatar:
         "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dXNlcnxlbnwwfHwwfHx8MA%3D%3D",
     },
     {
-      name: "Priya Sharma",
-      location: "Mumbai, India",
+      name: t('farmerHome.buyerName2'),
+      location: t('farmerHome.buyerLocation2'),
       avatar:
         "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fHVzZXJ8ZW58MHx8MHx8fDA%3D",
     },
@@ -116,126 +129,137 @@ function FarmerHomeContent() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
-      {/* Compact Header Section */}
-      <View className="relative">
+      {/* Compact Header Section - Absolutely positioned to allow content to scroll behind */}
+      <View
+        className="absolute top-0 left-0 right-0"
+        style={{
+          zIndex: 20,
+          paddingBottom: 100
+        }}
+      >
         <View
-          className="px-5 pt-10 pb-6"
+          className="px-5 pt-10 pb-20"
           style={{
             backgroundColor: '#7C8B3A', // Olive/army green matching reference image
             borderBottomLeftRadius: 30,
             borderBottomRightRadius: 30,
           }}
         >
-          {/* Header Content - Personalized Greeting with Avatar */}
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-1">
-              {/* Farmer Avatar + Personalized Greeting */}
-              <View className="flex-row items-center mb-1">
-                <View className="w-10 h-10 rounded-full bg-white/20 overflow-hidden border-2 border-white/30 mr-2">
-                  <Image
-                    source={{
-                      uri: user?.profileImage || "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTF8fHVzZXJ8ZW58MHx8MHx8fDA%3D",
-                    }}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                  />
+          {/* Header Content - Personalized Greeting with Profile Icon */}
+          <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center flex-1">
+              {/* Profile Icon */}
+              <TouchableOpacity
+                onPress={() => router.push("/profile")}
+                className="mr-3"
+              >
+                <View className="w-12 h-12 rounded-full bg-white/20 items-center justify-center overflow-hidden border-2 border-white/30">
+                  {user?.profileImage ? (
+                    <Image
+                      source={{ uri: user.profileImage }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <User size={24} color="#FFFFFF" />
+                  )}
                 </View>
-                <View className="flex-1">
-                  <Text className="text-white text-base font-bold">
-                    {t('farmerHome.hello')}, {user?.name || t('farmerHome.farmer')}
-                  </Text>
-                  {/* Date - Aligned with greeting text */}
-                  <Text className="text-white/70 text-xs mt-0.5">
-                    {new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short' })}
-                  </Text>
-                </View>
+              </TouchableOpacity>
+
+              {/* Greeting Text */}
+              <View className="flex-1">
+                <Text className="text-white text-lg font-bold">
+                  {t('farmerHome.hello')}, <Text className="font-extrabold">{user?.name || t('farmerHome.farmer')}</Text>
+                </Text>
+                <Text className="text-white/70 text-xs mt-0.5">
+                  {getFormattedDate()} ▼
+                </Text>
               </View>
             </View>
-            {/* Notification Bell */}
+
+            {/* Notification Icon */}
             <TouchableOpacity
               onPress={() => router.push("/notifications")}
-              className="w-9 h-9 rounded-full bg-white/20 items-center justify-center"
-            >
-              <Bell size={18} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Search Bar - Single Light Green Background */}
-          <View className="mt-2">
-            <View
+              className="w-10 h-10 rounded-full bg-white items-center justify-center"
               style={{
-                backgroundColor: '#A8C686', // Single light green color
-                borderRadius: 16,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                flexDirection: 'row',
-                alignItems: 'center',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 4,
+                shadowRadius: 4,
+                elevation: 3,
               }}
             >
-              <Search size={18} color="#FFFFFF" />
+              <Bell size={18} color="#7C8B3A" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Search Bar - Matching reference design */}
+          <View className="mt-2 mb-4">
+            <View
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.25)', // Semi-transparent white
+                borderRadius: 25,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+              }}
+            >
+              <Search size={20} color="rgba(255, 255, 255, 0.9)" />
               <TextInput
-                placeholder={t('common.searchHere')}
-                placeholderTextColor="rgba(255, 255, 255, 0.9)"
+                placeholder="Search here..."
+                placeholderTextColor="rgba(255, 255, 255, 0.7)"
                 style={{
                   flex: 1,
-                  marginLeft: 8,
-                  fontSize: 14,
+                  marginLeft: 12,
+                  fontSize: 15,
                   color: 'white',
                   backgroundColor: 'transparent'
                 }}
               />
               <TouchableOpacity style={{ padding: 4 }}>
-                <MapPin size={16} color="rgba(255, 255, 255, 0.8)" />
+                <Mic size={18} color="rgba(255, 255, 255, 0.9)" />
               </TouchableOpacity>
             </View>
           </View>
         </View>
-      </View>
 
-      <Animated.ScrollView
-        className="flex-1 pb-24"
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={16}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        contentContainerStyle={{
-          paddingTop: 20,
-          paddingBottom: 100, // Fixed padding for bottom navigation
-        }}
-      >
-        {/* Map Card - Glass Card with Fade Effect */}
-        <View className="px-5 mb-6">
-          <Animated.View
-            className="rounded-3xl overflow-hidden"
-            style={{
-              height: 280,
-              backgroundColor: 'rgba(255, 255, 255, 0.85)', // Glass effect
-              shadowColor: '#7C8B3A',
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.3,
-              shadowRadius: 15,
-              elevation: 10,
-              opacity: scrollY.interpolate({
+        {/* Map Card - Floating/Overlapping Effect with Fade Animation */}
+        <Animated.View
+          className="absolute px-5"
+          style={{
+            top: 195, // Position to overlap the green section with spacing from search bar
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            opacity: scrollY.interpolate({
+              inputRange: [0, 150],
+              outputRange: [1, 0],
+              extrapolate: 'clamp',
+            }),
+            transform: [{
+              translateY: scrollY.interpolate({
                 inputRange: [0, 150],
-                outputRange: [1, 0],
+                outputRange: [0, -30],
                 extrapolate: 'clamp',
               }),
-              transform: [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, -30],
-                  extrapolate: 'clamp',
-                }),
-              }],
+            }],
+          }}
+        >
+          <View
+            className="bg-white rounded-3xl overflow-hidden"
+            style={{
+              height: 260,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.15,
+              shadowRadius: 20,
+              elevation: 12,
             }}
           >
+            {/* Map Component */}
             <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
               <MapLibreView
                 showFarmers={true}
@@ -257,7 +281,7 @@ function FarmerHomeContent() {
               />
             </MapErrorBoundary>
 
-            {/* Floating Buttons on Map */}
+            {/* Floating Buttons on Map - Top */}
             <View
               className="absolute top-4 left-4 right-4 flex-row justify-between"
               style={{ gap: 8 }}
@@ -266,7 +290,7 @@ function FarmerHomeContent() {
                 onPress={() => router.push("/nearby-buyers")}
                 className="px-4 py-2 rounded-full flex-row items-center"
                 style={{
-                  backgroundColor: 'rgba(124, 139, 58, 0.9)', // Semi-transparent olive green
+                  backgroundColor: 'rgba(124, 139, 58, 0.95)', // Semi-transparent olive green
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.2,
@@ -283,7 +307,7 @@ function FarmerHomeContent() {
                 onPress={() => router.push("/nearby-farmers")}
                 className="px-4 py-2 rounded-full flex-row items-center"
                 style={{
-                  backgroundColor: 'rgba(124, 139, 58, 0.9)', // Semi-transparent olive green
+                  backgroundColor: 'rgba(124, 139, 58, 0.95)', // Semi-transparent olive green
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.2,
@@ -296,8 +320,23 @@ function FarmerHomeContent() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </Animated.View>
-        </View>
+          </View>
+        </Animated.View>
+      </View>
+
+      <Animated.ScrollView
+        className="flex-1 pb-24"
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        contentContainerStyle={{
+          paddingTop: 475, // Map card top position (195) + map card height (260) + spacing (20) = 475
+          paddingBottom: 100, // Fixed padding for bottom navigation
+        }}
+      >
 
         {/* Market Prices - Redesigned with olive green accent */}
         <View className="mb-6" style={{ marginTop: 0 }}>
