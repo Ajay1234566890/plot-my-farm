@@ -5,13 +5,13 @@ import { ChevronLeft } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 export default function Login() {
@@ -179,12 +179,24 @@ export default function Login() {
     router.push('/select-role');
   };
 
+  const handleBackPress = () => {
+    if (isOtpSent) {
+      // If on OTP screen, go back to phone input
+      setIsOtpSent(false);
+      setOtp('');
+      setError('');
+    } else {
+      // If on phone input screen, go back to role selection
+      router.replace('/select-role');
+    }
+  };
+
   return (
     <ScrollView className="flex-1 bg-white">
       <View className="px-6 pt-12 pb-6">
         {/* Back Button */}
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={handleBackPress}
           className="w-10 h-10 items-center justify-center rounded-full border border-gray-200 mb-6"
         >
           <ChevronLeft size={24} color="#374151" />

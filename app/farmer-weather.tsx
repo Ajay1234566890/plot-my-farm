@@ -4,16 +4,16 @@ import { formatLocation, getIconColor, getTextColorClass, getWeatherBackground }
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
-  AlertCircle,
-  ArrowLeft,
-  Cloud,
-  Droplets,
-  Eye,
-  MapPin,
-  RefreshCw,
-  Sun,
-  ThermometerSun,
-  Wind
+    AlertCircle,
+    ArrowLeft,
+    Cloud,
+    Droplets,
+    Eye,
+    MapPin,
+    RefreshCw,
+    Sun,
+    ThermometerSun,
+    Wind
 } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from 'react-i18next';
@@ -35,7 +35,7 @@ export default function FarmerWeather() {
   } = useWeather();
 
   // Get formatted location and weather background
-  const location = formatLocation(locationData, weatherData);
+  const location = formatLocation(locationData, weatherData, t);
   const weatherBackground = getWeatherBackground(weatherData);
 
   // Handle refresh

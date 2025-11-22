@@ -53,7 +53,38 @@
         "thu": "Thu",
         "fri": "Fri",
         "sat": "Sat",
-        "sun": "Sun"
+        "sun": "Sun",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday",
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Aug",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dec",
+        "january": "January",
+        "february": "February",
+        "march": "March",
+        "april": "April",
+        "mayFull": "May",
+        "june": "June",
+        "july": "July",
+        "august": "August",
+        "september": "September",
+        "october": "October",
+        "november": "November",
+        "december": "December"
     },
     "units": {
         "kg": "kg",
@@ -184,7 +215,11 @@
         "recommendedBuyers": "Recommended Buyers",
         "myFields": "My Fields",
         "organicVegetableFarm": "Organic Vegetable Farm",
-        "farmDetails": "2.5 acres • Active crops: Tomatoes, Potatoes"
+        "farmDetails": "2.5 acres • Active crops: Tomatoes, Potatoes",
+        "buyerName1": "Amrit Kumar",
+        "buyerLocation1": "Delhi, India",
+        "buyerName2": "Priya Sharma",
+        "buyerLocation2": "Mumbai, India"
     },
     "buyerHome": {
         "welcome": "Welcome",
@@ -264,7 +299,15 @@
         "lastYield": "Last Yield",
         "harvested": "Harvested",
         "manage": "Manage",
-        "insights": "Insights"
+        "insights": "Insights",
+        "harvesting": "Harvesting",
+        "growing": "Growing",
+        "planting": "Planting",
+        "greenValleyFarm": "Green Valley Farm",
+        "sunshineFields": "Sunshine Fields",
+        "organicHaven": "Organic Haven",
+        "spinach": "Spinach",
+        "lettuce": "Lettuce"
     },
     "crops": {
         "crops": "Crops",
@@ -504,7 +547,13 @@
         "buyers": "buyers",
         "noOffersFound": "No offers found",
         "receivedOffers": "Received Offers",
-        "sentOffers": "Sent Offers"
+        "sentOffers": "Sent Offers",
+        "freshOrganicTomatoes": "Fresh Organic Tomatoes",
+        "tomatoes": "Tomatoes",
+        "farmFreshCarrots": "Farm Fresh Carrots",
+        "carrots": "Carrots",
+        "premiumWheat": "Premium Wheat",
+        "wheat": "Wheat"
     },
     "profile": {
         "profile": "Profile",
@@ -1112,7 +1161,8 @@
         "quantityRequired": "Quantity is required",
         "priceRequired": "Price is required",
         "harvestDateRequired": "Harvest date is required",
-        "validationError": "Validation Error"
+        "validationError": "Validation Error",
+        "imagePickFailed": "Failed to pick image. Please try again"
     },
     "success": {
         "loginSuccess": "Login successful",
@@ -1166,5 +1216,16 @@
         "missingInformation": "Missing Information",
         "selectTestAndLocation": "Please select a test and enter location",
         "requestSubmitted": "Your soil test request has been submitted successfully!"
+    },
+    "voiceAgent": {
+        "greeting": "Hello! I'm your farming assistant. How can I help you today?",
+        "listening": "Listening...",
+        "processing": "Thinking...",
+        "speaking": "Speaking...",
+        "typeMessage": "Type a message...",
+        "voiceError": "Failed to start voice recording. Please check microphone permissions.",
+        "transcriptionError": "Failed to transcribe audio. Please try again.",
+        "voiceStopError": "Failed to stop recording. Please try again.",
+        "responseError": "Failed to get response. Please try again."
     }
 }

@@ -39,7 +39,19 @@ export default function FarmerOffersScreen() {
   };
 
   const renderOfferItem = ({ item }: { item: typeof offers[0] }) => (
-    <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-emerald-100">
+    <TouchableOpacity
+      className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-emerald-100"
+      onPress={() => {
+        router.push({
+          pathname: '/crop-details',
+          params: {
+            cropId: item.id.toString(),
+            from: 'farmer-offers'
+          }
+        });
+      }}
+      activeOpacity={0.7}
+    >
       <View className="relative">
         <Image
           source={{ uri: item.image }}
@@ -52,7 +64,8 @@ export default function FarmerOffersScreen() {
         <View className="absolute top-2 right-2 flex-row gap-2">
           <TouchableOpacity
             className="bg-white rounded-full p-2"
-            onPress={() => {
+            onPress={(e) => {
+              e.stopPropagation();
               router.push({
                 pathname: '/add-offer',
                 params: {
@@ -70,15 +83,28 @@ export default function FarmerOffersScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             className="bg-white rounded-full p-2"
-            onPress={() => handleDeleteOffer(item.id, item.title)}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleDeleteOffer(item.id, item.title);
+            }}
           >
             <Trash2 color="#ef4444" size={18} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <Text className="text-lg font-bold text-gray-800">{item.title}</Text>
-      <Text className="text-sm text-gray-500 mt-1">{item.cropType}</Text>
+      <Text className="text-lg font-bold text-gray-800">
+        {item.title === "Fresh Organic Tomatoes" ? t('offers.freshOrganicTomatoes') :
+         item.title === "Farm Fresh Carrots" ? t('offers.farmFreshCarrots') :
+         item.title === "Premium Wheat" ? t('offers.premiumWheat') :
+         item.title}
+      </Text>
+      <Text className="text-sm text-gray-500 mt-1">
+        {item.cropType === "Tomatoes" ? t('offers.tomatoes') :
+         item.cropType === "Carrots" ? t('offers.carrots') :
+         item.cropType === "Wheat" ? t('offers.wheat') :
+         item.cropType}
+      </Text>
 
       <View className="flex-row justify-between items-center mt-3">
         <View>
@@ -96,7 +122,7 @@ export default function FarmerOffersScreen() {
           <Text className="font-semibold text-sm mt-1" style={{ color: '#7C8B3A' }}>{item.buyers} {t('offers.buyers')}</Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

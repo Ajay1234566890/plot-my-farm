@@ -51,7 +51,38 @@
     "thu": "गुरु",
     "fri": "शुक्र",
     "sat": "शनि",
-    "sun": "रवि"
+    "sun": "रवि",
+    "monday": "सोमवार",
+    "tuesday": "मंगलवार",
+    "wednesday": "बुधवार",
+    "thursday": "गुरुवार",
+    "friday": "शुक्रवार",
+    "saturday": "शनिवार",
+    "sunday": "रविवार",
+    "jan": "जन",
+    "feb": "फर",
+    "mar": "मार्च",
+    "apr": "अप्रै",
+    "may": "मई",
+    "jun": "जून",
+    "jul": "जुला",
+    "aug": "अग",
+    "sep": "सित",
+    "oct": "अक्टू",
+    "nov": "नव",
+    "dec": "दिस",
+    "january": "जनवरी",
+    "february": "फरवरी",
+    "march": "मार्च",
+    "april": "अप्रैल",
+    "mayFull": "मई",
+    "june": "जून",
+    "july": "जुलाई",
+    "august": "अगस्त",
+    "september": "सितंबर",
+    "october": "अक्टूबर",
+    "november": "नवंबर",
+    "december": "दिसंबर"
   },
   "units": {
     "kg": "किलो",
@@ -182,7 +213,11 @@
     "recommendedBuyers": "अनुशंसित खरीदार",
     "myFields": "मेरे खेत",
     "organicVegetableFarm": "जैविक सब्जी फार्म",
-    "farmDetails": "2.5 एकड़ • सक्रिय फसलें: टमाटर, आलू"
+    "farmDetails": "2.5 एकड़ • सक्रिय फसलें: टमाटर, आलू",
+    "buyerName1": "अमृत कुमार",
+    "buyerLocation1": "दिल्ली, भारत",
+    "buyerName2": "प्रिया शर्मा",
+    "buyerLocation2": "मुंबई, भारत"
   },
   "buyerHome": {
     "welcome": "स्वागत है",
@@ -262,7 +297,15 @@
     "lastYield": "अंतिम उपज",
     "harvested": "कटाई",
     "manage": "प्रबंधित करें",
-    "insights": "अंतर्दृष्टि"
+    "insights": "अंतर्दृष्टि",
+    "harvesting": "कटाई",
+    "growing": "बढ़ रहा है",
+    "planting": "रोपण",
+    "greenValleyFarm": "ग्रीन वैली फार्म",
+    "sunshineFields": "सनशाइन फील्ड्स",
+    "organicHaven": "ऑर्गेनिक हेवन",
+    "spinach": "पालक",
+    "lettuce": "सलाद पत्ता"
   },
   "crops": {
     "crops": "फसलें",
@@ -492,7 +535,13 @@
     "buyers": "खरीदार",
     "noOffersFound": "कोई ऑफर नहीं मिला",
     "receivedOffers": "प्राप्त ऑफर",
-    "sentOffers": "भेजे गए ऑफर"
+    "sentOffers": "भेजे गए ऑफर",
+    "freshOrganicTomatoes": "ताजा जैविक टमाटर",
+    "tomatoes": "टमाटर",
+    "farmFreshCarrots": "फार्म ताजा गाजर",
+    "carrots": "गाजर",
+    "premiumWheat": "प्रीमियम गेहूं",
+    "wheat": "गेहूं"
   },
   "profile": {
     "profile": "प्रोफ़ाइल",
@@ -1086,7 +1135,8 @@
     "quantityRequired": "मात्रा आवश्यक है",
     "priceRequired": "मूल्य आवश्यक है",
     "harvestDateRequired": "कटाई की तारीख आवश्यक है",
-    "validationError": "सत्यापन त्रुटि"
+    "validationError": "सत्यापन त्रुटि",
+    "imagePickFailed": "छवि चुनने में विफल। कृपया पुनः प्रयास करें"
   },
   "success": {
     "loginSuccess": "लॉगिन सफल",
@@ -1140,6 +1190,17 @@
     "missingInformation": "जानकारी गायब है",
     "selectTestAndLocation": "कृपया एक परीक्षण चुनें और स्थान दर्ज करें",
     "requestSubmitted": "आपका मिट्टी परीक्षण अनुरोध सफलतापूर्वक सबमिट किया गया है!"
+  },
+  "voiceAgent": {
+    "greeting": "नमस्ते! मैं आपका कृषि सहायक हूं। आज मैं आपकी कैसे मदद कर सकता हूं?",
+    "listening": "सुन रहा हूं...",
+    "processing": "सोच रहा हूं...",
+    "speaking": "बोल रहा हूं...",
+    "typeMessage": "संदेश टाइप करें...",
+    "voiceError": "वॉयस रिकॉर्डिंग शुरू करने में विफल। कृपया माइक्रोफोन अनुमतियां जांचें।",
+    "transcriptionError": "ऑडियो ट्रांसक्राइब करने में विफल। कृपया पुनः प्रयास करें।",
+    "voiceStopError": "रिकॉर्डिंग रोकने में विफल। कृपया पुनः प्रयास करें।",
+    "responseError": "प्रतिक्रिया प्राप्त करने में विफल। कृपया पुनः प्रयास करें।"
   }
 }
 

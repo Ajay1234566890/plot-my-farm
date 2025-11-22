@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Dimensions,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
@@ -20,15 +20,15 @@ import { MarketPrice, marketPricesService } from '@/services/market-prices-servi
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
-    Bell,
-    DollarSign,
-    Heart,
-    MapPin,
-    MessageSquare,
-    Package,
-    Search,
-    ShoppingCart,
-    TrendingUp
+  Bell,
+  DollarSign,
+  Heart,
+  MapPin,
+  MessageSquare,
+  Package,
+  Search,
+  ShoppingCart,
+  TrendingUp
 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");

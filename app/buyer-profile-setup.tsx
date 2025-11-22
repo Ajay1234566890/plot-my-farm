@@ -5,13 +5,13 @@ import { ChevronDown, ChevronLeft } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 export default function BuyerProfileSetup() {
@@ -181,47 +181,59 @@ export default function BuyerProfileSetup() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="px-6 pt-12 pb-6">
-        {/* Back Button */}
-        <TouchableOpacity
-          onPress={handleBackPress}
-          disabled={isLoading}
-          className="w-10 h-10 items-center justify-center rounded-full border border-gray-200 mb-6"
-        >
-          <ChevronLeft size={24} color="#374151" />
-        </TouchableOpacity>
-
-        {/* Progress Indicator */}
-        <View className="flex-row mb-8">
-          {['personal', 'business', 'preferences'].map((s, idx) => (
-            <View
-              key={s}
-              className={`flex-1 h-1 rounded-full mr-2 ${
-                step === s || (step === 'preferences' && s !== 'personal')
-                  ? 'bg-green-600'
-                  : 'bg-gray-200'
-              }`}
-            />
-          ))}
+    <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
+      {/* Curved Header Section */}
+      <View
+        className="px-6 pt-12 pb-8"
+        style={{
+          backgroundColor: '#B27E4C', // Buyer primary color (brown/copper)
+          borderBottomLeftRadius: 40,
+          borderBottomRightRadius: 40,
+        }}
+      >
+        <View className="flex-row items-center mb-4">
+          <TouchableOpacity
+            onPress={handleBackPress}
+            disabled={isLoading}
+            className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
+          >
+            <ChevronLeft size={24} color="white" />
+          </TouchableOpacity>
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-white">
+              {step === 'personal'
+                ? t('profile.personalInfo')
+                : step === 'business'
+                ? t('profile.businessDetails')
+                : t('profile.preferences')}
+            </Text>
+          </View>
         </View>
 
-        {/* Title */}
-        <Text className="text-2xl font-bold text-gray-900 mb-2">
-          {step === 'personal'
-            ? t('profile.personalInfo')
-            : step === 'business'
-            ? t('profile.businessDetails')
-            : t('profile.preferences')}
-        </Text>
-
-        <Text className="text-gray-600 mb-8">
+        <Text className="text-white/80 mb-4">
           {step === 'personal'
             ? t('profile.tellAboutYourself')
             : step === 'business'
             ? t('profile.tellAboutBusiness')
             : t('profile.selectInterestedCrops')}
         </Text>
+
+        {/* Progress Indicator */}
+        <View className="flex-row">
+          {['personal', 'business', 'preferences'].map((s, idx) => (
+            <View
+              key={s}
+              className={`flex-1 h-1 rounded-full mr-2 ${
+                step === s || (step === 'preferences' && s !== 'personal')
+                  ? 'bg-white'
+                  : 'bg-white/30'
+              }`}
+            />
+          ))}
+        </View>
+      </View>
+
+      <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
 
         {step === 'personal' ? (
           <>
@@ -378,9 +390,8 @@ export default function BuyerProfileSetup() {
             <TouchableOpacity
               onPress={handleNextStep}
               disabled={isLoading}
-              className={`p-4 rounded-xl flex-row items-center justify-center ${
-                !isLoading ? 'bg-green-600' : 'bg-gray-300'
-              }`}
+              className="p-4 rounded-xl flex-row items-center justify-center"
+              style={{ backgroundColor: !isLoading ? '#B27E4C' : '#D1D5DB' }}
             >
               {isLoading ? (
                 <ActivityIndicator color="#ffffff" />
@@ -450,16 +461,16 @@ export default function BuyerProfileSetup() {
                         setErrors({ ...errors, buyerType: '' });
                       }}
                       disabled={isLoading}
-                      className={`p-4 border-b border-gray-100 ${
-                        buyerType === type ? 'bg-green-50' : 'bg-white'
-                      }`}
+                      className="p-4 border-b border-gray-100"
+                      style={{
+                        backgroundColor: buyerType === type ? '#F5F3F0' : '#FFFFFF'
+                      }}
                     >
                       <Text
-                        className={`text-base font-medium ${
-                          buyerType === type
-                            ? 'text-green-600'
-                            : 'text-gray-900'
-                        }`}
+                        className="text-base font-medium"
+                        style={{
+                          color: buyerType === type ? '#B27E4C' : '#111827'
+                        }}
                       >
                         {type}
                       </Text>
@@ -480,9 +491,10 @@ export default function BuyerProfileSetup() {
               <TouchableOpacity
                 onPress={() => setStep('personal')}
                 disabled={isLoading}
-                className="flex-1 p-4 rounded-xl border border-gray-300"
+                className="flex-1 p-4 rounded-xl border-2"
+                style={{ borderColor: '#B27E4C' }}
               >
-                <Text className="text-gray-900 text-center text-lg font-semibold">
+                <Text className="text-center text-lg font-semibold" style={{ color: '#B27E4C' }}>
                   {t('common.back')}
                 </Text>
               </TouchableOpacity>
@@ -490,9 +502,8 @@ export default function BuyerProfileSetup() {
               <TouchableOpacity
                 onPress={handleNextStep}
                 disabled={isLoading}
-                className={`flex-1 p-4 rounded-xl flex-row items-center justify-center ${
-                  !isLoading ? 'bg-green-600' : 'bg-gray-300'
-                }`}
+                className="flex-1 p-4 rounded-xl flex-row items-center justify-center"
+                style={{ backgroundColor: !isLoading ? '#B27E4C' : '#D1D5DB' }}
               >
                 {isLoading ? (
                   <ActivityIndicator color="#ffffff" />
@@ -518,18 +529,17 @@ export default function BuyerProfileSetup() {
                     key={crop}
                     onPress={() => toggleCrop(crop)}
                     disabled={isLoading}
-                    className={`px-4 py-2 rounded-full border-2 ${
-                      selectedCrops.includes(crop)
-                        ? 'border-green-600 bg-green-50'
-                        : 'border-gray-200 bg-white'
-                    }`}
+                    className="px-4 py-2 rounded-full border-2"
+                    style={{
+                      borderColor: selectedCrops.includes(crop) ? '#B27E4C' : '#E5E7EB',
+                      backgroundColor: selectedCrops.includes(crop) ? '#F5F3F0' : '#FFFFFF'
+                    }}
                   >
                     <Text
-                      className={`font-medium ${
-                        selectedCrops.includes(crop)
-                          ? 'text-green-600'
-                          : 'text-gray-900'
-                      }`}
+                      className="font-medium"
+                      style={{
+                        color: selectedCrops.includes(crop) ? '#B27E4C' : '#111827'
+                      }}
                     >
                       {crop}
                     </Text>
@@ -539,13 +549,14 @@ export default function BuyerProfileSetup() {
             </View>
 
             {/* Navigation Buttons */}
-            <View className="flex-row gap-3">
+            <View className="flex-row gap-3 mb-6">
               <TouchableOpacity
                 onPress={() => setStep('business')}
                 disabled={isLoading}
-                className="flex-1 p-4 rounded-xl border border-gray-300"
+                className="flex-1 p-4 rounded-xl border-2"
+                style={{ borderColor: '#B27E4C' }}
               >
-                <Text className="text-gray-900 text-center text-lg font-semibold">
+                <Text className="text-center text-lg font-semibold" style={{ color: '#B27E4C' }}>
                   {t('common.back')}
                 </Text>
               </TouchableOpacity>
@@ -553,9 +564,8 @@ export default function BuyerProfileSetup() {
               <TouchableOpacity
                 onPress={handleCompleteSetup}
                 disabled={isLoading}
-                className={`flex-1 p-4 rounded-xl flex-row items-center justify-center ${
-                  !isLoading ? 'bg-green-600' : 'bg-gray-300'
-                }`}
+                className="flex-1 p-4 rounded-xl flex-row items-center justify-center"
+                style={{ backgroundColor: !isLoading ? '#B27E4C' : '#D1D5DB' }}
               >
                 {isLoading ? (
                   <ActivityIndicator color="#ffffff" />
@@ -568,8 +578,8 @@ export default function BuyerProfileSetup() {
             </View>
           </>
         )}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

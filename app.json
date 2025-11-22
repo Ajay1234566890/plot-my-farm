@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app needs access to your location to provide accurate weather information for your farm.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to provide accurate weather information for your farm."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to provide accurate weather information for your farm.",
+        "NSMicrophoneUsageDescription": "This app needs access to your microphone to enable voice commands and voice AI assistant features."
       }
     },
     "android": {
@@ -29,6 +30,7 @@
       "permissions": [
         "INTERNET",
         "CAMERA",
+        "RECORD_AUDIO",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "ACCESS_FINE_LOCATION",

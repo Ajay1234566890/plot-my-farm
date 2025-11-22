@@ -12,7 +12,7 @@ import {
     MoreHorizontal,
     Search,
     SlidersHorizontal,
-    Sun,
+    Sun
 } from "lucide-react-native";
 import React, { useRef } from "react";
 import { useTranslation } from 'react-i18next';
@@ -39,36 +39,36 @@ export default function MyFarms() {
   const farms = [
     {
       id: 1,
-      name: "Green Valley Farm",
+      name: t('farms.greenValleyFarm'),
       location: "Delhi, India",
-      size: "12 acres",
-      crops: ["Wheat", "Tomatoes", "Potatoes"],
-      status: "Harvesting",
+      size: `12 ${t('units.acres')}`,
+      crops: [t('market.wheat'), t('market.tomatoes'), t('market.potatoes')],
+      status: t('farms.harvesting'),
       image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&auto=format&fit=crop&q=60", // Golden wheat field
-      yield: "2.4 tons",
-      lastHarvest: "2 days ago",
+      yield: `2.4 ${t('units.ton')}`,
+      lastHarvest: t('common.daysAgo', { count: 2 }),
     },
     {
       id: 2,
-      name: "Sunshine Fields",
+      name: t('farms.sunshineFields'),
       location: "Mumbai, India",
-      size: "8 acres",
-      crops: ["Rice", "Onions"],
-      status: "Growing",
+      size: `8 ${t('units.acres')}`,
+      crops: [t('market.rice'), t('market.onions')],
+      status: t('farms.growing'),
       image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop&q=60", // Green rice paddy
-      yield: "1.8 tons",
-      lastHarvest: "1 week ago",
+      yield: `1.8 ${t('units.ton')}`,
+      lastHarvest: t('common.oneWeekAgo'),
     },
     {
       id: 3,
-      name: "Organic Haven",
+      name: t('farms.organicHaven'),
       location: "Bangalore, India",
-      size: "15 acres",
-      crops: ["Carrots", "Spinach", "Lettuce"],
-      status: "Planting",
+      size: `15 ${t('units.acres')}`,
+      crops: [t('market.carrots'), t('farms.spinach'), t('farms.lettuce')],
+      status: t('farms.planting'),
       image: "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&auto=format&fit=crop&q=60", // Fresh vegetables farm
-      yield: "0.9 tons",
-      lastHarvest: "3 weeks ago",
+      yield: `0.9 ${t('units.ton')}`,
+      lastHarvest: t('common.weeksAgo', { count: 3 }),
     },
   ];
 

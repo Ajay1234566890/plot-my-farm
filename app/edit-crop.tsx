@@ -38,7 +38,7 @@ export default function EditCrop() {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (permissionResult.granted === false) {
-        Alert.alert(t('common.error'), 'Permission to access camera roll is required!');
+        Alert.alert(t('common.error'), t('errors.cameraPermissionRequired'));
         return;
       }
 
@@ -49,12 +49,12 @@ export default function EditCrop() {
         quality: 0.8,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets && result.assets[0]) {
         setFormData({...formData, image: result.assets[0].uri});
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert(t('common.error'), 'Failed to pick image');
+      Alert.alert(t('common.error'), t('errors.imagePickFailed'));
     }
   };
 
