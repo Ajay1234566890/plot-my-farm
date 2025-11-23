@@ -1,5 +1,9 @@
+import { formDefinitions } from '@/config/form-definitions';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Constants from 'expo-constants';
+import { conversationStateService } from './conversation-state-service';
+import { formAutomationService } from './form-automation-service';
+import { ScreenContext, screenContextService } from './screen-context-service';
 
 export interface Message {
   id: string;
@@ -17,6 +21,8 @@ export interface ConversationContext {
   taskData?: any;
   userName?: string; // For personalized greetings
   location?: string;
+  screenContext?: ScreenContext; // Current screen context
+  isFormConversation?: boolean; // Is this a form-filling conversation?
 }
 
 export interface VoiceAgentResponse {
@@ -25,9 +31,12 @@ export interface VoiceAgentResponse {
     type: string;
     route?: string;
     params?: any;
+    fieldName?: string; // For form field updates
+    fieldValue?: any; // For form field updates
   };
   requiresInput?: boolean;
   options?: string[];
+  progress?: number; // Form completion progress (0-100)
 }
 
 class VoiceAgentService {
@@ -67,6 +76,48 @@ class VoiceAgentService {
       conversationHistory: context.conversationHistory || [],
       currentTask: context.currentTask,
       taskData: context.taskData,
+      screenContext: context.screenContext,
+      isFormConversation: context.isFormConversation || false,
+    };
+  }
+
+  /**
+   * Start a form-filling conversation
+   */
+  startFormConversation(screenName: string): VoiceAgentResponse {
+    console.log('🎬 [VOICE-AGENT] Starting form conversation for:', screenName);
+
+    // Get form definition
+    const formDef = formDefinitions[screenName];
+    if (!formDef) {
+      console.warn('⚠️ [VOICE-AGENT] No form definition found for:', screenName);
+      return {
+        text: "I'm sorry, I can't help with this form right now.",
+        requiresInput: false,
+      };
+    }
+
+    // Start conversation state
+    conversationStateService.startConversation(formDef);
+
+    // Get first field
+    const firstField = conversationStateService.getNextField();
+    if (!firstField) {
+      return {
+        text: "This form doesn't have any fields to fill.",
+        requiresInput: false,
+      };
+    }
+
+    // Mark as form conversation
+    if (this.conversationContext) {
+      this.conversationContext.isFormConversation = true;
+    }
+
+    return {
+      text: `Great! Let me help you with that. ${firstField.voicePrompt}`,
+      requiresInput: true,
+      progress: 0,
     };
   }
 
@@ -75,6 +126,10 @@ class VoiceAgentService {
       if (!this.conversationContext) {
         throw new Error('Conversation context not initialized');
       }
+
+      // Check if we're in a form conversation
+      const screenContext = screenContextService.getContext();
+      const conversationState = conversationStateService.getState();
 
       // Add user message to history
       const userMessage: Message = {
@@ -85,12 +140,17 @@ class VoiceAgentService {
       };
       this.conversationContext.conversationHistory.push(userMessage);
 
-      // Get response from Gemini or mock
+      // If we're in a form conversation, handle it specially
       let response: VoiceAgentResponse;
-      if (this.initialized && this.genAI) {
-        response = await this.getGeminiResponse(userInput);
+      if (conversationState && screenContext?.hasForm) {
+        response = await this.handleFormConversation(userInput, screenContext, conversationState);
       } else {
-        response = await this.getMockResponse(userInput);
+        // Regular conversation
+        if (this.initialized && this.genAI) {
+          response = await this.getGeminiResponse(userInput);
+        } else {
+          response = await this.getMockResponse(userInput);
+        }
       }
 
       // Add assistant message to history
@@ -107,6 +167,65 @@ class VoiceAgentService {
       console.error('Error processing user input:', error);
       throw error;
     }
+  }
+
+  /**
+   * Handle form-filling conversation
+   */
+  private async handleFormConversation(
+    userInput: string,
+    screenContext: ScreenContext,
+    conversationState: any
+  ): Promise<VoiceAgentResponse> {
+    console.log('📝 [VOICE-AGENT] Handling form conversation');
+
+    // Get the next field to fill
+    const nextField = conversationStateService.getNextField();
+
+    if (!nextField) {
+      // All fields filled
+      return {
+        text: `Great! I have all the information. Would you like me to save this now?`,
+        requiresInput: true,
+        progress: 100,
+      };
+    }
+
+    // Parse the user's input for the current field
+    const parsedValue = formAutomationService.parseVoiceInput(
+      userInput,
+      nextField.type,
+      nextField.options
+    );
+
+    // Set the field value in the conversation state
+    conversationStateService.setFieldValue(nextField.name, parsedValue, true);
+
+    // Try to auto-fill the form field
+    formAutomationService.setFieldValue(screenContext.screenName, nextField.name, parsedValue);
+
+    // Get the next field
+    const newNextField = conversationStateService.getNextField();
+    const progress = conversationStateService.getProgress();
+
+    if (!newNextField) {
+      // All fields filled
+      return {
+        text: `Perfect! I've filled in all the details. Would you like me to save this?`,
+        requiresInput: true,
+        progress: 100,
+        action: {
+          type: 'formComplete',
+        },
+      };
+    }
+
+    // Ask for the next field
+    return {
+      text: `Got it! ${newNextField.voicePrompt}`,
+      requiresInput: true,
+      progress,
+    };
   }
 
   private async getGeminiResponse(userInput: string): Promise<VoiceAgentResponse> {
@@ -143,11 +262,18 @@ class VoiceAgentService {
     const role = context.userRole;
     const language = context.language;
 
-    return `You are an intelligent voice assistant for a farming marketplace app. Your role is to help ${role}s navigate the app and complete tasks through natural conversation.
+    return `You are a friendly and patient voice assistant for "Plot My Farm", a farming marketplace app. You help farmers and buyers who may not be tech-savvy to use the app through natural conversation.
 
 User Role: ${role}
 Language: ${language}
 Current Task: ${context.currentTask || 'None'}
+
+Your Personality:
+- Warm, friendly, and patient like a helpful neighbor
+- Use simple, clear language that farmers can easily understand
+- Be encouraging and supportive
+- Explain things step-by-step without overwhelming the user
+- Celebrate small wins ("Great!", "Perfect!", "Well done!")
 
 Available Actions for ${role}s:
 ${role === 'farmer' ? `
@@ -159,6 +285,7 @@ ${role === 'farmer' ? `
 - View my offers (farmer-offers)
 - View my farms (my-farms)
 - View notifications (notifications)
+- View voice AI help (voice-ai)
 ` : `
 - Register as a buyer (buyer-profile-setup)
 - Find crops to buy (nearby-crops)
@@ -167,22 +294,36 @@ ${role === 'farmer' ? `
 - View my orders (my-orders)
 - View cart (cart)
 - View offers (buyer-offers)
+- View voice AI help (buyer-voice-ai)
 `}
 
-Instructions:
-1. Be friendly, conversational, and helpful
-2. Keep responses concise and actionable
-3. When user wants to perform an action, guide them step by step
-4. For multi-step processes (like registration), ask for information one field at a time
-5. Always confirm actions before executing them
-6. Use the user's language (${language}) for responses
-7. Provide relevant suggestions based on the user's role
+Conversation Guidelines:
+1. **First-time users**: Greet warmly and offer to help them get started
+2. **Be conversational**: Use natural language, not robotic responses
+3. **One step at a time**: Don't overwhelm with too many options
+4. **Confirm understanding**: Ask "Does that make sense?" or "Would you like me to help with that?"
+5. **Provide context**: Explain WHY an action is useful before suggesting it
+6. **Use examples**: "For example, you can add tomatoes, wheat, or rice"
+7. **Be proactive**: Suggest next steps based on what the user just did
+8. **Handle confusion gracefully**: If user seems lost, offer to start over or explain differently
+9. **Multilingual support**: Respond in the user's language (${language})
+10. **Accessibility**: Remember many users may not read well, so voice is their primary interface
 
-Response Format:
-- Provide a natural language response
-- If an action should be taken, indicate it clearly
-- If more information is needed, ask specific questions
-- Offer helpful suggestions when appropriate`;
+Response Style:
+- Keep responses SHORT (1-3 sentences max)
+- Ask ONE question at a time
+- Use simple words, avoid technical jargon
+- Be encouraging and positive
+- End with a clear next step or question
+
+Example Good Responses:
+- "Hello! Welcome to Plot My Farm. Are you a farmer looking to sell crops, or a buyer looking to purchase?"
+- "Great! Let me help you add your first crop. What crop would you like to add?"
+- "Perfect! I'll show you today's market prices. This helps you know the best price for your crops."
+
+Example Bad Responses:
+- "Please navigate to the crop management interface and input your agricultural produce data."
+- "You have multiple options: registration, crop addition, market analysis, buyer discovery, weather monitoring..."`;
   }
 
   private parseResponse(responseText: string, userInput: string): VoiceAgentResponse {
@@ -192,8 +333,28 @@ Response Format:
 
     let action: VoiceAgentResponse['action'] = undefined;
 
-    // Detect common intents and map to actions
-    if (this.conversationContext?.userRole === 'farmer') {
+    // Check for role selection (for select-role page)
+    if (lowerInput.includes('farmer') && (lowerInput.includes('i am') || lowerInput.includes('i\'m') || lowerInput.includes('select') || lowerInput.includes('choose'))) {
+      action = { type: 'selectRole', params: { role: 'farmer' } };
+    } else if (lowerInput.includes('buyer') && (lowerInput.includes('i am') || lowerInput.includes('i\'m') || lowerInput.includes('select') || lowerInput.includes('choose'))) {
+      action = { type: 'selectRole', params: { role: 'buyer' } };
+    }
+
+    // Check for language selection
+    if (lowerInput.includes('english')) {
+      action = { type: 'selectLanguage', params: { language: 'en' } };
+    } else if (lowerInput.includes('telugu') || lowerInput.includes('తెలుగు')) {
+      action = { type: 'selectLanguage', params: { language: 'te' } };
+    } else if (lowerInput.includes('hindi') || lowerInput.includes('हिंदी')) {
+      action = { type: 'selectLanguage', params: { language: 'hi' } };
+    } else if (lowerInput.includes('tamil') || lowerInput.includes('தமிழ்')) {
+      action = { type: 'selectLanguage', params: { language: 'ta' } };
+    } else if (lowerInput.includes('kannada') || lowerInput.includes('ಕನ್ನಡ')) {
+      action = { type: 'selectLanguage', params: { language: 'kn' } };
+    }
+
+    // Detect common intents and map to actions (only if no role/language action detected)
+    if (!action && this.conversationContext?.userRole === 'farmer') {
       if (lowerInput.includes('register') || lowerInput.includes('sign up') || lowerInput.includes('पंजीकरण')) {
         action = { type: 'navigate', route: '/farmer-profile-setup' };
       } else if (lowerInput.includes('add crop') || lowerInput.includes('new crop') || lowerInput.includes('फसल')) {
@@ -206,8 +367,10 @@ Response Format:
         action = { type: 'navigate', route: '/farmer-weather' };
       } else if (lowerInput.includes('offer') || lowerInput.includes('ऑफर')) {
         action = { type: 'navigate', route: '/farmer-offers' };
+      } else if (lowerInput.includes('voice') || lowerInput.includes('help')) {
+        action = { type: 'navigate', route: '/voice-ai' };
       }
-    } else {
+    } else if (!action && this.conversationContext?.userRole === 'buyer') {
       if (lowerInput.includes('register') || lowerInput.includes('sign up')) {
         action = { type: 'navigate', route: '/buyer-profile-setup' };
       } else if (lowerInput.includes('crop') || lowerInput.includes('buy')) {
@@ -220,6 +383,8 @@ Response Format:
         action = { type: 'navigate', route: '/my-orders' };
       } else if (lowerInput.includes('cart')) {
         action = { type: 'navigate', route: '/cart' };
+      } else if (lowerInput.includes('voice') || lowerInput.includes('help')) {
+        action = { type: 'navigate', route: '/buyer-voice-ai' };
       }
     }
 
@@ -290,13 +455,13 @@ Response Format:
   private getMockResponsesByLanguage(language: string): any {
     const responseMap: { [key: string]: any } = {
       en: {
-        greeting: "Hello! I'm your farming assistant. How can I help you today? You can ask me to register, add crops, check market prices, find buyers, or check weather.",
-        register: "Great! I'll help you register. Let me take you to the registration page where you can fill in your details.",
-        addCrop: "Perfect! I'll take you to the crop management page where you can add your crops with details like crop type, quantity, and price.",
-        marketPrices: "I'll show you the latest market prices for various crops. This will help you make informed decisions about your produce.",
-        findBuyers: "Let me help you find nearby buyers. I'll show you a map with buyers in your area.",
-        weather: "I'll show you the weather forecast for your location. This will help you plan your farming activities.",
-        default: "I can help you with registration, adding crops, checking market prices, finding buyers, or viewing weather. What would you like to do?",
+        greeting: "Hello! Welcome to Plot My Farm. I'm here to help you. Are you a farmer looking to sell crops, or a buyer looking to purchase?",
+        register: "Great! Let me help you get started. I'll take you to the registration page. It's quick and easy!",
+        addCrop: "Perfect! Let's add your crop. I'll take you to the page where you can tell me what crop you have, how much, and your price.",
+        marketPrices: "Good idea! I'll show you today's market prices. This helps you know the best price for your crops.",
+        findBuyers: "Let me help you find buyers near you. I'll show you a map with buyers in your area who might be interested.",
+        weather: "I'll show you the weather forecast. This helps you plan when to harvest or plant.",
+        default: "I'm here to help! You can ask me to add crops, check prices, find buyers, or see the weather. What would you like to do?",
       },
       hi: {
         greeting: "नमस्ते! मैं आपका कृषि सहायक हूं। आज मैं आपकी कैसे मदद कर सकता हूं? आप मुझसे पंजीकरण, फसल जोड़ने, बाजार की कीमतें देखने, खरीदार खोजने या मौसम जांचने के लिए कह सकते हैं।",

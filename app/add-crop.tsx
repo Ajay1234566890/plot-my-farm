@@ -1,5 +1,7 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import { useAuth } from "@/contexts/auth-context";
+import { formAutomationService } from "@/services/form-automation-service";
+import { screenContextService } from "@/services/screen-context-service";
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from "expo-router";
 import {
@@ -9,7 +11,7 @@ import {
     Mic,
     Upload
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
     Alert,
@@ -35,6 +37,38 @@ export default function AddCrop() {
   const [quantity, setQuantity] = useState("");
   const [price, setPrice] = useState("");
   const [harvestDate, setHarvestDate] = useState("");
+
+  // Register screen context and form fields for voice automation
+  useEffect(() => {
+    console.log('📋 [ADD-CROP] Registering screen context and form fields');
+
+    // Set screen context
+    screenContextService.setContext({
+      screenName: 'add-crop',
+      screenTitle: 'Add Crop',
+      hasForm: true,
+      formFields: ['cropName', 'quantity', 'unit', 'price', 'harvestDate', 'cropImage'],
+      userRole: 'farmer',
+    });
+
+    // Register form fields with automation service
+    formAutomationService.registerField('add-crop', 'cropName', setCropName, () => cropName);
+    formAutomationService.registerField('add-crop', 'quantity', setQuantity, () => quantity);
+    formAutomationService.registerField('add-crop', 'unit', setSelectedUnit, () => selectedUnit);
+    formAutomationService.registerField('add-crop', 'price', setPrice, () => price);
+    formAutomationService.registerField('add-crop', 'harvestDate', setHarvestDate, () => harvestDate);
+    formAutomationService.registerField('add-crop', 'cropImage', (value: boolean) => {
+      if (value) {
+        handleImagePick();
+      }
+    }, () => cropImage);
+
+    // Cleanup on unmount
+    return () => {
+      console.log('🧹 [ADD-CROP] Cleaning up screen context and form fields');
+      formAutomationService.unregisterScreen('add-crop');
+    };
+  }, [cropName, quantity, selectedUnit, price, harvestDate, cropImage]);
 
   const handleImagePick = async () => {
     try {

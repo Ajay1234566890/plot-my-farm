@@ -11,6 +11,7 @@ export default function SplashScreen() {
   const handleGetStarted = async () => {
     try {
       await setSplashSeen();
+      // Navigate to role selection screen
       router.replace('/select-role');
     } catch (error) {
       console.error('Error setting splash seen:', error);

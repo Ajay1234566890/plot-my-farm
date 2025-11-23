@@ -8,9 +8,14 @@ export default function Screen() {
   const { isSignedIn, isLoading, hasSeenSplash, user } = useAuth();
 
   useEffect(() => {
+    // Wait for auth to be loaded
     if (!isLoading) {
       console.log('🔄 [INDEX] App initialization complete, routing user...');
-      console.log('📊 [INDEX] Auth state:', { isSignedIn, hasUser: !!user, userRole: user?.role });
+      console.log('📊 [INDEX] Auth state:', {
+        isSignedIn,
+        hasUser: !!user,
+        userRole: user?.role,
+      });
 
       if (isSignedIn && user) {
         // Navigate to role-specific home screen

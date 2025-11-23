@@ -1,10 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Audio } from 'expo-av';
 import Constants from 'expo-constants';
-import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 
-// Updated to use legacy API for deprecated getInfoAsync method
+// Using legacy FileSystem API for compatibility with Expo SDK 54
 
 // Web Speech API types
 declare global {
@@ -96,23 +95,64 @@ class SpeechToTextService {
       }
 
       console.log('🔧 Setting audio mode...');
-      // Set audio mode
+      // Set audio mode with proper Android configuration
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
         staysActiveInBackground: false,
+        shouldDuckAndroid: false,
+        playThroughEarpieceAndroid: false,
       });
 
       console.log('🎙️ Creating recording instance...');
-      // Create and start recording using standard preset
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
+      // Create and start recording with explicit configuration for better Android compatibility
+      const recordingOptions = Platform.OS === 'android'
+        ? {
+            android: {
+              extension: '.m4a',
+              outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+              audioEncoder: Audio.AndroidAudioEncoder.AAC,
+              sampleRate: 44100,
+              numberOfChannels: 2,
+              bitRate: 128000,
+            },
+            ios: {
+              extension: '.m4a',
+              outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+              audioQuality: Audio.IOSAudioQuality.HIGH,
+              sampleRate: 44100,
+              numberOfChannels: 2,
+              bitRate: 128000,
+              linearPCMBitDepth: 16,
+              linearPCMIsBigEndian: false,
+              linearPCMIsFloat: false,
+            },
+            web: {
+              mimeType: 'audio/webm',
+              bitsPerSecond: 128000,
+            },
+          }
+        : Audio.RecordingOptionsPresets.HIGH_QUALITY;
+
+      const { recording } = await Audio.Recording.createAsync(recordingOptions);
 
       this.recording = recording;
       this.isRecording = true;
 
-      console.log('✅ Voice recording started successfully');
+      // Get recording status to verify it's actually recording
+      const status = await recording.getStatusAsync();
+      console.log('📊 Recording status:', {
+        canRecord: status.canRecord,
+        isRecording: status.isRecording,
+        isDoneRecording: status.isDoneRecording,
+        durationMillis: status.durationMillis,
+      });
+
+      if (status.isRecording) {
+        console.log('✅ Voice recording started successfully and is actively capturing audio');
+      } else {
+        console.warn('⚠️ Recording created but not actively recording. Status:', status);
+      }
     } catch (error: any) {
       console.error('❌ Error starting recording:', error);
       console.error('Error details:', {
@@ -128,19 +168,39 @@ class SpeechToTextService {
   async stopRecording(): Promise<string | null> {
     try {
       if (!this.recording) {
-        console.warn('No recording to stop');
+        console.warn('⚠️ No recording to stop');
         return null;
       }
 
+      console.log('🛑 Stopping recording...');
+
+      // Get final status before stopping
+      const finalStatus = await this.recording.getStatusAsync();
+      console.log('📊 Final recording status before stop:', {
+        isRecording: finalStatus.isRecording,
+        durationMillis: finalStatus.durationMillis,
+        isDoneRecording: finalStatus.isDoneRecording,
+      });
+
       await this.recording.stopAndUnloadAsync();
       const uri = this.recording.getURI();
+
+      console.log('📁 Recording URI:', uri);
+
+      // Log the recording URI (file existence will be verified when reading)
+      if (uri) {
+        console.log('✅ Recording file created at:', uri);
+      }
+
       this.recording = null;
       this.isRecording = false;
 
       console.log('✅ Recording stopped, URI:', uri);
       return uri;
     } catch (error) {
-      console.error('Error stopping recording:', error);
+      console.error('❌ Error stopping recording:', error);
+      this.recording = null;
+      this.isRecording = false;
       throw error;
     }
   }
@@ -148,28 +208,41 @@ class SpeechToTextService {
   async transcribeAudio(audioUri: string, language: string = 'en'): Promise<string> {
     try {
       console.log('🎤 Starting real-time audio transcription...');
+      console.log('📁 Audio file URI:', audioUri);
 
-      // Check if audio file exists and has content using legacy API
-      const fileInfo = await getInfoAsync(audioUri);
-      console.log('📄 Audio file info:', fileInfo);
+      // Read the audio file as base64 using fetch (new Expo SDK 54 approach)
+      console.log('📝 Reading audio file as base64...');
 
-      if (!fileInfo.exists) {
-        console.error('❌ Audio file does not exist');
-        throw new Error('Audio file not found');
+      let audioBase64: string;
+      try {
+        // Use fetch to read the file as a blob
+        const response = await fetch(audioUri);
+        const blob = await response.blob();
+
+        // Convert blob to base64
+        const reader = new FileReader();
+        audioBase64 = await new Promise<string>((resolve, reject) => {
+          reader.onloadend = () => {
+            const base64data = reader.result as string;
+            // Remove the data URL prefix (e.g., "data:audio/m4a;base64,")
+            const base64 = base64data.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch (readError) {
+        console.error('❌ Error reading audio file:', readError);
+        throw new Error('Failed to read audio file');
       }
 
-      if (fileInfo.size === 0) {
+      console.log('📊 Audio file size:', audioBase64.length, 'characters');
+
+      // Check if the file has content
+      if (!audioBase64 || audioBase64.length === 0) {
         console.error('❌ Audio file is empty');
         throw new Error('Audio recording is empty');
       }
-
-      // Read the audio file as base64
-      console.log('📝 Reading audio file as base64...');
-      const audioBase64 = await FileSystem.readAsStringAsync(audioUri, {
-        encoding: 'base64',
-      });
-
-      console.log('📊 Audio file size:', audioBase64.length, 'characters');
 
       // If Gemini is not initialized, use mock transcription but log this
       if (!this.genAI) {
@@ -190,10 +263,11 @@ class SpeechToTextService {
       const languageName = languageNames[language] || 'English';
       console.log(`🌐 Target language: ${languageName}`);
 
-      // Try multiple Gemini models for transcription
+      // Use Gemini 2.5 Pro for transcription
       const modelIds = [
+        'gemini-2.5-pro',
         'gemini-2.0-flash-exp',
-        'gemini-1.5-flash', 
+        'gemini-1.5-flash',
         'gemini-1.5-pro',
       ];
 

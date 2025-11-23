@@ -4,8 +4,8 @@
  */
 
 import * as Location from 'expo-location';
-import { updateUserLocation } from './map-service';
 import { LocationService } from './location-service';
+import { updateUserLocation } from './map-service';
 
 let locationWatchSubscription: Location.LocationSubscription | null = null;
 let isWatching = false;
@@ -93,13 +93,13 @@ export async function updateLocationNow(userId: string): Promise<void> {
       return;
     }
 
-    const { latitude, longitude } = location.coords;
+    const { latitude, longitude } = location.coordinates;
 
     // Get address using reverse geocoding
     let address: string | undefined;
     try {
       const geocoded = await locationService.reverseGeocode(latitude, longitude);
-      address = geocoded.display;
+      address = geocoded.formattedAddress;
     } catch (error) {
       console.warn('⚠️ [LOCATION AUTO-UPDATE] Failed to geocode:', error);
     }

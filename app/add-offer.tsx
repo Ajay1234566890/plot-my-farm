@@ -1,5 +1,7 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import { useOffers } from "@/contexts/offers-context";
+import { formAutomationService } from "@/services/form-automation-service";
+import { screenContextService } from "@/services/screen-context-service";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
@@ -46,6 +48,33 @@ export default function AddOffer() {
   const [availabilityDates, setAvailabilityDates] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [showCropTypes, setShowCropTypes] = useState(false);
+
+  // Register screen context and form fields for voice automation
+  useEffect(() => {
+    console.log('📋 [ADD-OFFER] Registering screen context and form fields');
+
+    // Set screen context
+    screenContextService.setContext({
+      screenName: 'add-offer',
+      screenTitle: 'Add Offer',
+      hasForm: true,
+      formFields: ['cropName', 'offerPrice', 'quantity', 'validUntil'],
+      userRole: 'farmer',
+    });
+
+    // Register form fields with automation service
+    // Note: Form definition uses 'cropName' but state uses 'cropType'
+    formAutomationService.registerField('add-offer', 'cropName', setCropType, () => cropType);
+    formAutomationService.registerField('add-offer', 'offerPrice', setPricePerUnit, () => pricePerUnit);
+    formAutomationService.registerField('add-offer', 'quantity', setQuantity, () => quantity);
+    formAutomationService.registerField('add-offer', 'validUntil', setAvailabilityDates, () => availabilityDates);
+
+    // Cleanup on unmount
+    return () => {
+      console.log('🧹 [ADD-OFFER] Cleaning up screen context and form fields');
+      formAutomationService.unregisterScreen('add-offer');
+    };
+  }, [cropType, pricePerUnit, quantity, availabilityDates]);
 
   // Load existing data if in edit mode
   useEffect(() => {

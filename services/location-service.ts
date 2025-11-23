@@ -46,8 +46,16 @@ export enum LocationPermissionStatus {
 
 // Location Service Class
 class LocationService {
+  private static instance: LocationService;
   private lastKnownLocation: LocationData | null = null;
   private locationWatchId: Location.LocationSubscription | null = null;
+
+  static getInstance(): LocationService {
+    if (!LocationService.instance) {
+      LocationService.instance = new LocationService();
+    }
+    return LocationService.instance;
+  }
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   private readonly LOCATION_CACHE_KEY = 'last_known_location';
 
@@ -542,5 +550,6 @@ class LocationService {
 }
 
 // Export singleton instance
-export const locationService = new LocationService();
+export const locationService = LocationService.getInstance();
+export { LocationService };
 export default locationService;

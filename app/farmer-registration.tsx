@@ -1,4 +1,6 @@
 import { useAuth } from '@/contexts/auth-context';
+import { formAutomationService } from '@/services/form-automation-service';
+import { screenContextService } from '@/services/screen-context-service';
 import {
     validateFarmerRegistration,
     validateOTP
@@ -33,6 +35,33 @@ export default function FarmerRegistration() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [resendTimer, setResendTimer] = useState(0);
+
+  // Register screen context and form fields for voice automation
+  useEffect(() => {
+    console.log('📋 [FARMER-REG] Registering screen context and form fields');
+
+    // Set screen context
+    screenContextService.setContext({
+      screenName: 'farmer-registration',
+      screenTitle: 'Farmer Registration',
+      hasForm: true,
+      formFields: ['fullName', 'email', 'mobileNumber', 'farmName', 'farmSize'],
+      userRole: 'farmer',
+    });
+
+    // Register form fields with automation service
+    formAutomationService.registerField('farmer-registration', 'fullName', setFullName, () => fullName);
+    formAutomationService.registerField('farmer-registration', 'email', setEmail, () => email);
+    formAutomationService.registerField('farmer-registration', 'mobileNumber', setMobileNumber, () => mobileNumber);
+    formAutomationService.registerField('farmer-registration', 'farmName', setFarmName, () => farmName);
+    formAutomationService.registerField('farmer-registration', 'farmSize', setFarmSize, () => farmSize);
+
+    // Cleanup on unmount
+    return () => {
+      console.log('🧹 [FARMER-REG] Cleaning up screen context and form fields');
+      formAutomationService.unregisterScreen('farmer-registration');
+    };
+  }, [fullName, email, mobileNumber, farmName, farmSize]);
 
   // Set phone from params if provided
   useEffect(() => {

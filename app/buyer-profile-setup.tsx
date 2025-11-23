@@ -1,4 +1,6 @@
 import { useAuth } from '@/contexts/auth-context';
+import { formAutomationService } from '@/services/form-automation-service';
+import { screenContextService } from '@/services/screen-context-service';
 import { validateEmail, validatePhone } from '@/utils/validation';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronDown, ChevronLeft } from 'lucide-react-native';
@@ -36,6 +38,35 @@ export default function BuyerProfileSetup() {
   const [errors, setErrors] = useState<any>({});
   const [showBuyerTypeDropdown, setShowBuyerTypeDropdown] = useState(false);
   const [showCropsDropdown, setShowCropsDropdown] = useState(false);
+
+  // Register screen context and form fields for voice automation
+  useEffect(() => {
+    console.log('📋 [BUYER-SETUP] Registering screen context and form fields');
+
+    // Set screen context
+    screenContextService.setContext({
+      screenName: 'buyer-profile-setup',
+      screenTitle: 'Buyer Profile Setup',
+      hasForm: true,
+      formFields: ['fullName', 'email', 'address', 'pincode', 'businessName', 'buyerType'],
+      userRole: 'buyer',
+    });
+
+    // Register form fields with automation service
+    // Note: Form definition uses 'fullName' but state uses 'name'
+    formAutomationService.registerField('buyer-profile-setup', 'fullName', setName, () => name);
+    formAutomationService.registerField('buyer-profile-setup', 'email', setEmail, () => email);
+    formAutomationService.registerField('buyer-profile-setup', 'address', setAddress, () => address);
+    formAutomationService.registerField('buyer-profile-setup', 'pincode', setPincode, () => pincode);
+    formAutomationService.registerField('buyer-profile-setup', 'businessName', setBusinessName, () => businessName);
+    formAutomationService.registerField('buyer-profile-setup', 'buyerType', setBuyerType, () => buyerType);
+
+    // Cleanup on unmount
+    return () => {
+      console.log('🧹 [BUYER-SETUP] Cleaning up screen context and form fields');
+      formAutomationService.unregisterScreen('buyer-profile-setup');
+    };
+  }, [name, email, address, pincode, businessName, buyerType]);
 
   // Set phone from params if provided
   useEffect(() => {

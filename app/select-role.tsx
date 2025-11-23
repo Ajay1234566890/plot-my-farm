@@ -1,16 +1,18 @@
+import VoiceAgentChat from '@/components/VoiceAgentChat';
 import { Language, useAuth } from '@/contexts/auth-context';
 import { SUPPORTED_LANGUAGES } from '@/i18n/config';
 import { useRouter } from 'expo-router';
-import { ChevronDown, ShoppingCart, Sprout } from 'lucide-react-native';
+import { ChevronDown, Mic, ShoppingCart, Sprout, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
+    Modal,
     ScrollView,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 
 export default function SelectRole() {
@@ -21,6 +23,7 @@ export default function SelectRole() {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('en');
   const [isLoading, setIsLoading] = useState(false);
+  const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
 
   const roles = [
     {
@@ -204,6 +207,62 @@ export default function SelectRole() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Voice Agent FAB */}
+      <TouchableOpacity
+        onPress={() => setIsVoiceAgentOpen(true)}
+        className="absolute bottom-6 right-6 w-16 h-16 bg-green-600 rounded-full items-center justify-center shadow-lg"
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+      >
+        <Mic size={28} color="#ffffff" />
+      </TouchableOpacity>
+
+      {/* Voice Agent Modal */}
+      <Modal
+        visible={isVoiceAgentOpen}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setIsVoiceAgentOpen(false)}
+      >
+        <View className="flex-1 bg-white">
+          {/* Header */}
+          <View className="px-6 pt-12 pb-4 border-b border-gray-200 flex-row items-center justify-between">
+            <Text className="text-2xl font-bold text-gray-900">
+              {t('voiceAgent.title', { defaultValue: 'Voice Assistant' })}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setIsVoiceAgentOpen(false)}
+              className="w-10 h-10 items-center justify-center"
+            >
+              <X size={24} color="#374151" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Voice Agent Chat */}
+          <VoiceAgentChat
+            userId="guest"
+            userRole={selectedRole || 'farmer'}
+            language={selectedLanguage || 'en'}
+            onClose={() => setIsVoiceAgentOpen(false)}
+            onAction={(action) => {
+              if (action.type === 'navigate' && action.route) {
+                setIsVoiceAgentOpen(false);
+                router.push(action.route as any);
+              } else if (action.type === 'selectRole' && action.params?.role) {
+                setSelectedRole(action.params.role);
+              } else if (action.type === 'selectLanguage' && action.params?.language) {
+                setSelectedLanguage(action.params.language);
+              }
+            }}
+          />
+        </View>
+      </Modal>
     </ScrollView>
   );
 }

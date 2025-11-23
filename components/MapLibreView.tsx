@@ -6,15 +6,14 @@
  */
 
 import MapLibreGL from "@maplibre/maplibre-react-native";
-import Geolocation from "@react-native-community/geolocation";
+import * as Location from 'expo-location';
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  PermissionsAndroid,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Platform,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 // ✅ MapLibre configuration
@@ -42,36 +41,29 @@ export default function MapLibreView(props: MapLibreViewProps) {
   useEffect(() => {
     const fetchLocation = async () => {
       try {
-        if (Platform.OS === "android") {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-          );
-          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            console.log("❌ Location permission denied - using default location");
-            setIsReady(true);
-            return;
-          }
+        // Request location permission
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log("❌ Location permission denied - using default location");
+          setIsReady(true);
+          return;
         }
 
-        Geolocation.getCurrentPosition(
-          (pos) => {
-            const location: [number, number] = [
-              pos.coords.longitude,
-              pos.coords.latitude,
-            ];
-            setCoords(location);
-            setIsReady(true);
-            console.log("✅ Location obtained:", location);
-          },
-          (err) => {
-            console.error("❌ Location error:", err);
-            setIsReady(true); // Show map anyway with default location
-          },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-        );
+        // Get current location
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        const coords: [number, number] = [
+          location.coords.longitude,
+          location.coords.latitude,
+        ];
+        setCoords(coords);
+        setIsReady(true);
+        console.log("✅ Location obtained:", coords);
       } catch (error) {
-        console.error("❌ Permission error:", error);
-        setIsReady(true); // Show map anyway
+        console.error("❌ Location error:", error);
+        setIsReady(true); // Show map anyway with default location
       }
     };
 
