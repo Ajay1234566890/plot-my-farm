@@ -11,6 +11,7 @@ export interface User {
   id: string;
   name: string;
   phone: string;
+  email?: string;
   role: UserRole;
   language?: Language;
   profileImage?: string;
@@ -175,22 +176,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Only check database if we have a valid Supabase user
       if (supabaseUser) {
         console.log('🔍 [AUTH] Looking for user profile with Supabase ID:', supabaseUser.id);
+        console.log('🔍 [AUTH] Selected role for lookup:', selectedRole);
 
-        // First check farmers table
-        const { data: farmerProfile, error: farmerError } = await supabase
-          .from('farmers')
-          .select('*')
-          .eq('id', supabaseUser.id)
-          .single();
+        // Prioritize lookup based on selectedRole
+        if (selectedRole === 'farmer') {
+          // Check farmers table first
+          const { data: farmerProfile, error: farmerError } = await supabase
+            .from('farmers')
+            .select('*')
+            .eq('id', supabaseUser.id)
+            .single();
 
-        console.log('🔍 [AUTH] Farmer lookup result:', { farmerProfile, farmerError });
+          console.log('🔍 [AUTH] Farmer lookup result:', { farmerProfile, farmerError });
 
-        if (farmerProfile) {
-          userProfile = farmerProfile;
-          userRole = 'farmer';
-          console.log('✅ [AUTH] Existing farmer profile found:', farmerProfile);
-        } else {
-          // Check buyers table
+          if (farmerProfile) {
+            userProfile = farmerProfile;
+            userRole = 'farmer';
+            console.log('✅ [AUTH] Existing farmer profile found:', farmerProfile);
+          } else {
+            // Check buyers table as fallback
+            const { data: buyerProfile, error: buyerError } = await supabase
+              .from('buyers')
+              .select('*')
+              .eq('id', supabaseUser.id)
+              .single();
+
+            console.log('🔍 [AUTH] Buyer lookup result (fallback):', { buyerProfile, buyerError });
+
+            if (buyerProfile) {
+              userProfile = buyerProfile;
+              userRole = 'buyer';
+              console.log('✅ [AUTH] Existing buyer profile found (fallback):', buyerProfile);
+            }
+          }
+        } else if (selectedRole === 'buyer') {
+          // Check buyers table first
           const { data: buyerProfile, error: buyerError } = await supabase
             .from('buyers')
             .select('*')
@@ -203,28 +223,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             userProfile = buyerProfile;
             userRole = 'buyer';
             console.log('✅ [AUTH] Existing buyer profile found:', buyerProfile);
+          } else {
+            // Check farmers table as fallback
+            const { data: farmerProfile, error: farmerError } = await supabase
+              .from('farmers')
+              .select('*')
+              .eq('id', supabaseUser.id)
+              .single();
+
+            console.log('🔍 [AUTH] Farmer lookup result (fallback):', { farmerProfile, farmerError });
+
+            if (farmerProfile) {
+              userProfile = farmerProfile;
+              userRole = 'farmer';
+              console.log('✅ [AUTH] Existing farmer profile found (fallback):', farmerProfile);
+            }
           }
         }
 
-        // If no profile found by ID, try lookup by phone number
+        // If no profile found by ID, try lookup by phone number with same priority
         if (!userProfile) {
           console.log('⚠️ [AUTH] No profile found by ID, trying phone lookup...');
 
-          // Try farmers table by phone
-          const { data: farmerByPhone, error: farmerPhoneError } = await supabase
-            .from('farmers')
-            .select('*')
-            .eq('phone', phone)
-            .single();
+          if (selectedRole === 'farmer') {
+            // Try farmers table by phone first
+            const { data: farmerByPhone, error: farmerPhoneError } = await supabase
+              .from('farmers')
+              .select('*')
+              .eq('phone', phone)
+              .single();
 
-          console.log('🔍 [AUTH] Farmer phone lookup result:', { farmerByPhone, farmerPhoneError });
+            console.log('🔍 [AUTH] Farmer phone lookup result:', { farmerByPhone, farmerPhoneError });
 
-          if (farmerByPhone) {
-            userProfile = farmerByPhone;
-            userRole = 'farmer';
-            console.log('✅ [AUTH] Found farmer profile by phone:', farmerByPhone);
-          } else {
-            // Try buyers table by phone
+            if (farmerByPhone) {
+              userProfile = farmerByPhone;
+              userRole = 'farmer';
+              console.log('✅ [AUTH] Found farmer profile by phone:', farmerByPhone);
+            } else {
+              // Try buyers table by phone as fallback
+              const { data: buyerByPhone, error: buyerPhoneError } = await supabase
+                .from('buyers')
+                .select('*')
+                .eq('phone', phone)
+                .single();
+
+              console.log('🔍 [AUTH] Buyer phone lookup result (fallback):', { buyerByPhone, buyerPhoneError });
+
+              if (buyerByPhone) {
+                userProfile = buyerByPhone;
+                userRole = 'buyer';
+                console.log('✅ [AUTH] Found buyer profile by phone (fallback):', buyerByPhone);
+              }
+            }
+          } else if (selectedRole === 'buyer') {
+            // Try buyers table by phone first
             const { data: buyerByPhone, error: buyerPhoneError } = await supabase
               .from('buyers')
               .select('*')
@@ -237,6 +289,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               userProfile = buyerByPhone;
               userRole = 'buyer';
               console.log('✅ [AUTH] Found buyer profile by phone:', buyerByPhone);
+            } else {
+              // Try farmers table by phone as fallback
+              const { data: farmerByPhone, error: farmerPhoneError } = await supabase
+                .from('farmers')
+                .select('*')
+                .eq('phone', phone)
+                .single();
+
+              console.log('🔍 [AUTH] Farmer phone lookup result (fallback):', { farmerByPhone, farmerPhoneError });
+
+              if (farmerByPhone) {
+                userProfile = farmerByPhone;
+                userRole = 'farmer';
+                console.log('✅ [AUTH] Found farmer profile by phone (fallback):', farmerByPhone);
+              }
             }
           }
         }

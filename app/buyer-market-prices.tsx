@@ -168,7 +168,7 @@ export default function BuyerMarketPrices() {
               }}
             >
               <Image
-                source={{ uri: crop.image }}
+                source={typeof crop.image === 'string' ? { uri: crop.image } : crop.image}
                 className="w-16 h-16 rounded-lg"
               />
               <View className="flex-1 ml-4">

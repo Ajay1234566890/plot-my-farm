@@ -4,14 +4,14 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 interface BuyerBottomNavProps {
-  activeTab?: 'home' | 'crops' | 'orders' | 'profile';
+  activeTab?: 'home' | 'crops' | 'chat' | 'profile';
 }
 
 export default function BuyerBottomNav({ activeTab = 'home' }: BuyerBottomNavProps) {
   const router = useRouter();
 
   const handleNavigation = (route: string) => {
-    router.push(route);
+    (router as any).push(route);
   };
 
   return (
@@ -66,16 +66,16 @@ export default function BuyerBottomNav({ activeTab = 'home' }: BuyerBottomNavPro
             <Mic size={28} color="white" strokeWidth={2} />
           </TouchableOpacity>
 
-          {/* Orders Tab */}
+          {/* Chat Tab */}
           <TouchableOpacity
-            onPress={() => handleNavigation("/my-orders")}
+            onPress={() => handleNavigation("/buyer-messages")}
             className="items-center justify-center p-2"
-            accessibilityLabel="Orders tab"
+            accessibilityLabel="Chat tab"
             accessibilityRole="tab"
           >
             <MessageCircle
               size={24}
-              color={activeTab === 'orders' ? "#B27E4C" : "#ffffff"}
+              color={activeTab === 'chat' ? "#B27E4C" : "#ffffff"}
               strokeWidth={2}
             />
           </TouchableOpacity>

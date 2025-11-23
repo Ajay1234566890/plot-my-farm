@@ -11,7 +11,7 @@ export default function FarmerBottomNav({ activeTab = 'home' }: FarmerBottomNavP
   const router = useRouter();
 
   const handleNavigation = (route: string) => {
-    router.push(route);
+    (router as any).push(route);
   };
 
   return (

@@ -114,13 +114,13 @@ export default function OffersScreen() {
         <TouchableOpacity className="items-center" onPress={() => router.push('/')}>
           <Text className="text-gray-600">Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity className="items-center" onPress={() => router.push('/crops')}>
+        <TouchableOpacity className="items-center" onPress={() => router.push('/crops' as any)}>
           <Text className="text-gray-600">Crops</Text>
         </TouchableOpacity>
-        <TouchableOpacity className="items-center" onPress={() => router.push('/voice')}>
+        <TouchableOpacity className="items-center" onPress={() => router.push('/voice' as any)}>
           <Text className="text-gray-600">Voice</Text>
         </TouchableOpacity>
-        <TouchableOpacity className="items-center" onPress={() => router.push('/orders')}>
+        <TouchableOpacity className="items-center" onPress={() => router.push('/orders' as any)}>
           <Text className="text-gray-600">Orders</Text>
         </TouchableOpacity>
         <TouchableOpacity className="items-center" onPress={() => router.push('/profile')}>

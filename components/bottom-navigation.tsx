@@ -146,11 +146,9 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
                 className="items-center justify-center w-14 h-14 rounded-full"
                 style={{ backgroundColor: activeColor }}
               >
-                <View style={{ color: '#ffffff' }}>
-                  {React.cloneElement(tab.icon as React.ReactElement, {
-                    color: '#ffffff',
-                  })}
-                </View>
+                {React.cloneElement(tab.icon as React.ReactElement, {
+                  color: '#ffffff',
+                })}
               </TouchableOpacity>
             );
           }
@@ -161,11 +159,9 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
               onPress={() => handleNavigation(tab.route)}
               className="flex-1 items-center"
             >
-              <View style={{ color }}>
-                {React.cloneElement(tab.icon as React.ReactElement, {
-                  color,
-                })}
-              </View>
+              {React.cloneElement(tab.icon as React.ReactElement, {
+                color,
+              })}
               <Text
                 className="text-xs mt-1"
                 style={{ color }}

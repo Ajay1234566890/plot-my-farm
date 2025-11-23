@@ -80,7 +80,7 @@ export default function ContactDriver() {
 
         <TouchableOpacity 
           className="items-center"
-          onPress={() => router.push('/past-orders')}
+          onPress={() => (router as any).push('/past-orders')}
         >
           <View className="w-6 h-6 mb-1">
             {/* You can replace this with your orders icon */}

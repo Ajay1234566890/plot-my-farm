@@ -297,7 +297,7 @@ export default function BuyerOffersScreen() {
               <TouchableOpacity
                 className="flex-row items-center px-4 py-2 rounded-lg"
                 style={{ backgroundColor: '#B27E4C' }}
-                onPress={() => router.push('/create-request')}
+                onPress={() => router.push('/create-request' as any)}
               >
                 <Plus size={16} color="white" />
                 <Text className="text-white font-semibold ml-2">{t('buyerOffers.createRequest')}</Text>

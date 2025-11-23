@@ -159,7 +159,7 @@ export default function MarketRealPrices() {
               className="bg-white rounded-xl p-4 mb-4 shadow-sm flex-row items-center"
             >
               <Image
-                source={{ uri: crop.image }}
+                source={typeof crop.image === 'string' ? { uri: crop.image } : crop.image}
                 className="w-16 h-16 rounded-lg"
               />
               <View className="flex-1 ml-4">

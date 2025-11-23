@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Dimensions,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
@@ -16,22 +17,22 @@ import { HomePageErrorBoundary } from "@/components/HomePageErrorBoundary";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import MapLibreView from "@/components/MapLibreView";
 import { useAuth } from '@/contexts/auth-context';
+import { Farmer, farmerService } from '@/services/farmer-service';
 import { MarketPrice, marketPricesService } from '@/services/market-prices-service';
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
-  Bell,
-  DollarSign,
-  Heart,
-  MapPin,
-  MessageSquare,
-  Package,
-  Search,
-  ShoppingCart,
-  TrendingUp
+    Bell,
+    DollarSign,
+    Heart,
+    MapPin,
+    Package,
+    Search,
+    ShoppingCart,
+    TrendingUp
 } from 'lucide-react-native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const screenWidth = Dimensions.get("window").width;
 
 export default function BuyerHome() {
   const { t } = useTranslation();
@@ -45,17 +46,28 @@ export default function BuyerHome() {
   );
 }
 
+enum Tab {
+  NearbyCrops,
+  NearbyFarmers,
+}
+
 function BuyerHomeContent() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState(t('buyerHome.nearbyCrops'));
+  const [activeTab, setActiveTab] = useState<Tab>(Tab.NearbyCrops);
   const [marketPrices, setMarketPrices] = useState<MarketPrice[]>([]);
   const [loadingPrices, setLoadingPrices] = useState(true);
+  const [nearbyFarmers, setNearbyFarmers] = useState<Farmer[]>([]);
+  const [loadingFarmers, setLoadingFarmers] = useState(true);
+
+  // Scroll animation for glass card fade effect (matching Farmer Dashboard)
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // Fetch real market prices on mount
   useEffect(() => {
     loadMarketPrices();
+    loadNearbyFarmers();
   }, []);
 
   const loadMarketPrices = async () => {
@@ -67,6 +79,18 @@ function BuyerHomeContent() {
       console.error('Error loading market prices:', error);
     } finally {
       setLoadingPrices(false);
+    }
+  };
+
+  const loadNearbyFarmers = async () => {
+    try {
+      setLoadingFarmers(true);
+      const farmers = await farmerService.getNearbyFarmers();
+      setNearbyFarmers(farmers);
+    } catch (error) {
+      console.error('Error loading nearby farmers:', error);
+    } finally {
+      setLoadingFarmers(false);
     }
   };
 
@@ -190,37 +214,25 @@ function BuyerHomeContent() {
                 </View>
               </View>
             </View>
-            {/* Top Icons - Compact */}
-            <View className="flex-row gap-2">
-              <TouchableOpacity
-                onPress={() => router.push("/wishlist")}
-                className="w-9 h-9 rounded-full bg-white/20 items-center justify-center"
-              >
-                <Heart size={18} color="#FFFFFF" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.push("/notifications")}
-                className="w-9 h-9 rounded-full bg-white/20 items-center justify-center"
-              >
-                <Bell size={18} color="#FFFFFF" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.push("/messages")}
-                className="w-9 h-9 rounded-full bg-white/20 items-center justify-center"
-              >
-                <MessageSquare size={18} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
+            {/* Notification Bell - Matching Farmer Dashboard */}
+            <TouchableOpacity
+              onPress={() => router.push("/notifications")}
+              className="w-9 h-9 rounded-full bg-white/20 items-center justify-center"
+            >
+              <Bell size={18} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
 
-          {/* Search Bar - Compact version */}
+          {/* Search Bar - Matching Farmer Home layout with Buyer colors */}
           <View className="mt-2">
             <View
-              className="flex-row items-center rounded-2xl px-3 py-2"
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Translucent white
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.3)',
+                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Buyer translucent white
+                borderRadius: 16,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.1,
@@ -228,14 +240,19 @@ function BuyerHomeContent() {
                 elevation: 4,
               }}
             >
-              <Search size={18} color="rgba(255, 255, 255, 0.8)" />
+              <Search size={18} color="#FFFFFF" />
               <TextInput
                 placeholder={t('buyerHome.searchForCrops')}
-                className="flex-1 ml-2 text-sm text-gray-900"
-                placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                style={{ color: 'white' }}
+                placeholderTextColor="rgba(255, 255, 255, 0.9)"
+                style={{
+                  flex: 1,
+                  marginLeft: 8,
+                  fontSize: 14,
+                  color: 'white',
+                  backgroundColor: 'transparent'
+                }}
               />
-              <TouchableOpacity className="p-1">
+              <TouchableOpacity style={{ padding: 4 }}>
                 <MapPin size={16} color="rgba(255, 255, 255, 0.8)" />
               </TouchableOpacity>
             </View>
@@ -243,25 +260,43 @@ function BuyerHomeContent() {
         </View>
       </View>
 
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1 pb-24"
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
         contentContainerStyle={{
-          paddingTop: 20, // Reduced padding since map is now in scroll
+          paddingTop: 20,
+          paddingBottom: 100, // Fixed padding for bottom navigation
         }}
       >
-        {/* Map Section - Now inside ScrollView for smooth scrolling */}
-        <View className="px-5 mb-4">
-          <View
+        {/* Map Card - Glass Card with Fade Effect (Matching Farmer Dashboard) */}
+        <View className="px-5 mb-6">
+          <Animated.View
             className="rounded-3xl overflow-hidden"
             style={{
               height: 280,
+              backgroundColor: 'rgba(255, 255, 255, 0.85)', // Glass effect
               shadowColor: '#B27E4C',
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.3,
               shadowRadius: 15,
               elevation: 10,
+              opacity: scrollY.interpolate({
+                inputRange: [0, 150],
+                outputRange: [1, 0],
+                extrapolate: 'clamp',
+              }),
+              transform: [{
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 150],
+                  outputRange: [0, -30],
+                  extrapolate: 'clamp',
+                }),
+              }],
             }}
           >
             <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
@@ -275,7 +310,8 @@ function BuyerHomeContent() {
                       pathname: "/nearby-farmers",
                       params: { selectedFarmerId: user.id }
                     });
-                  } else {
+                  }
+                  if (user.role === 'buyer') {
                     router.push({
                       pathname: "/nearby-buyers",
                       params: { selectedBuyerId: user.id }
@@ -324,7 +360,7 @@ function BuyerHomeContent() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Animated.View>
         </View>
 
         {/* Featured Crops Section - Redesigned with buyer color scheme */}
@@ -408,9 +444,7 @@ function BuyerHomeContent() {
                     className="w-14 h-14 rounded-2xl items-center justify-center mb-4"
                     style={{ backgroundColor: '#B27E4C' }}
                   >
-                    <View style={{ transform: [{ scale: 1.1 }] }}>
-                      {React.cloneElement(action.icon, { color: '#FFFFFF', size: 26 })}
-                    </View>
+                    {React.cloneElement(action.icon, { color: '#FFFFFF', size: 26 })}
                   </View>
                   <Text className="text-gray-800 text-sm font-semibold text-center leading-tight">
                     {action.label}
@@ -421,75 +455,78 @@ function BuyerHomeContent() {
           </View>
         </View>
 
-        {/* Market Real Prices - Redesigned with buyer color scheme */}
-        <View className="px-6 mb-6">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-xl font-bold text-gray-800">{t('buyerHome.marketRealPrices')}</Text>
+        {/* Market Prices - Matching Farmer Dashboard horizontal scroll design */}
+        <View className="mb-6" style={{ marginTop: 0 }}>
+          <View className="px-6 flex-row justify-between items-center mb-4">
+            <Text className="text-xl font-bold text-gray-800">
+              {t('market.marketPrices')}
+            </Text>
             <TouchableOpacity
+              onPress={() => router.push("/buyer-market-prices")}
               className="px-4 py-2 rounded-full"
               style={{ backgroundColor: '#B27E4C' }}
-              onPress={() => router.push("/buyer-market-prices")}
             >
-              <Text className="text-sm font-semibold text-white">{t('buyerHome.seeAll')}</Text>
+              <Text className="text-sm font-semibold text-white">
+                {t('common.viewAll')}
+              </Text>
             </TouchableOpacity>
           </View>
           {loadingPrices ? (
-            <View className="py-8 items-center">
+            <View className="px-6 py-8 items-center">
               <ActivityIndicator size="small" color="#B27E4C" />
               <Text className="text-gray-500 text-sm mt-2">{t('common.loadingPrices')}</Text>
             </View>
           ) : marketPrices.length === 0 ? (
-            <View className="py-8 items-center">
+            <View className="px-6 py-8 items-center">
               <Text className="text-gray-500 text-sm">{t('market.noPricesAvailable')}</Text>
             </View>
           ) : (
-            <View className="gap-4">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="px-6"
+            >
               {marketPrices.map((item, index) => (
                 <TouchableOpacity
-                  key={item.id}
-                  className="bg-white rounded-2xl p-4 flex-row items-center shadow-lg"
+                  key={index}
+                  onPress={() => router.push("/buyer-market-prices")}
+                  className="mr-4 bg-white rounded-3xl p-5 items-center shadow-lg"
                   style={{
+                    width: screenWidth * 0.32,
                     shadowColor: '#B27E4C',
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 0.1,
                     shadowRadius: 8,
                     elevation: 6,
                     borderWidth: 1,
-                    borderColor: '#B27E4C10'
+                    borderColor: '#B27E4C20'
                   }}
-                  onPress={() => router.push("/buyer-market-prices")}
                 >
                   <Image
-                    source={{ uri: item.image }}
-                    className="w-14 h-14 rounded-full mr-4"
+                    source={typeof item.image === 'string' ? { uri: item.image } : item.image}
+                    className="w-14 h-14 rounded-2xl mb-3"
+                    style={{ resizeMode: 'cover' }}
                   />
-                  <View className="flex-1">
-                    <Text className="text-gray-800 font-bold text-base">{item.commodity}</Text>
-                    {item.variety && (
-                      <Text className="text-gray-400 text-xs">{item.variety}</Text>
-                    )}
-                    <Text className="text-gray-600 text-sm">₹{item.modalPrice}/{item.unit}</Text>
-                    <View className="flex-row items-center mt-1">
-                      <MapPin size={10} color="#6B7280" />
-                      <Text className="text-gray-400 text-xs ml-1">{item.market}, {item.state}</Text>
-                    </View>
-                  </View>
+                  <Text className="text-sm font-bold text-gray-800 text-center" numberOfLines={1}>
+                    {item.commodity}
+                  </Text>
+                  <Text className="text-lg font-bold mt-2" style={{ color: '#B27E4C' }}>
+                    ₹{item.modalPrice}/{item.unit}
+                  </Text>
                   {item.trend && (
-                    <Text
-                      className={
-                        item.trend === 'up'
-                          ? "text-green-600 font-bold"
-                          : item.trend === 'down'
-                          ? "text-red-600 font-bold"
-                          : "text-gray-600 font-bold"
-                      }
+                    <View
+                      className={`px-2 py-1 rounded-full mt-2 ${item.trend === 'up' ? "bg-emerald-50" : item.trend === 'down' ? "bg-rose-50" : "bg-gray-50"}`}
                     >
-                      {item.trend === 'up' ? '↑' : item.trend === 'down' ? '↓' : '→'}
-                    </Text>
+                      <Text
+                        className={`text-xs font-semibold ${item.trend === 'up' ? "text-emerald-600" : item.trend === 'down' ? "text-rose-600" : "text-gray-600"}`}
+                      >
+                        {item.trend === 'up' ? '↑' : item.trend === 'down' ? '↓' : '→'}
+                      </Text>
+                    </View>
                   )}
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
           )}
         </View>
 
@@ -497,19 +534,19 @@ function BuyerHomeContent() {
         <View className="px-6 mb-8">
           <View className="flex-row mb-4 gap-2">
             <TouchableOpacity
-              onPress={() => setActiveTab(t('buyerHome.nearbyCrops'))}
+              onPress={() => setActiveTab(Tab.NearbyCrops)}
               className={`px-6 py-3 rounded-full ${
-                activeTab === t('buyerHome.nearbyCrops')
+                activeTab === Tab.NearbyCrops
                   ? "shadow-lg"
                   : ""
               }`}
               style={{
-                backgroundColor: activeTab === t('buyerHome.nearbyCrops') ? '#B27E4C' : '#B27E4C20',
+                backgroundColor: activeTab === Tab.NearbyCrops ? '#B27E4C' : '#B27E4C20',
               }}
             >
               <Text
                 className={`font-semibold ${
-                  activeTab === t('buyerHome.nearbyCrops')
+                  activeTab === Tab.NearbyCrops
                     ? "text-white"
                     : "text-gray-700"
                 }`}
@@ -518,19 +555,19 @@ function BuyerHomeContent() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setActiveTab(t('buyerHome.nearbyFarmers'))}
+              onPress={() => setActiveTab(Tab.NearbyFarmers)}
               className={`px-6 py-3 rounded-full ${
-                activeTab === t('buyerHome.nearbyFarmers')
+                activeTab === Tab.NearbyFarmers
                   ? "shadow-lg"
                   : ""
               }`}
               style={{
-                backgroundColor: activeTab === t('buyerHome.nearbyFarmers') ? '#B27E4C' : '#B27E4C20',
+                backgroundColor: activeTab === Tab.NearbyFarmers ? '#B27E4C' : '#B27E4C20',
               }}
             >
               <Text
                 className={`font-semibold ${
-                  activeTab === t('buyerHome.nearbyFarmers')
+                  activeTab === Tab.NearbyFarmers
                     ? "text-white"
                     : "text-gray-700"
                 }`}
@@ -541,7 +578,7 @@ function BuyerHomeContent() {
           </View>
 
           {/* Tab Content */}
-          {activeTab === t('buyerHome.nearbyCrops') ? (
+          {activeTab === Tab.NearbyCrops ? (
             <View className="gap-4">
               {cropsPreview.slice(0, 2).map((crop) => (
                 <TouchableOpacity
@@ -576,37 +613,41 @@ function BuyerHomeContent() {
             </View>
           ) : (
             <View className="gap-4">
-              {mockNearbyFarmers.map((farmer) => (
-                <TouchableOpacity
-                  key={farmer.id}
-                  className="bg-white rounded-2xl p-4 flex-row items-center shadow-lg"
-                  style={{
-                    shadowColor: '#B27E4C',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 8,
-                    elevation: 6,
-                    borderWidth: 1,
-                    borderColor: '#B27E4C10'
-                  }}
-                >
-                  <Image
-                    source={{ uri: farmer.image }}
-                    className="w-16 h-16 rounded-2xl mr-4"
-                  />
-                  <View className="flex-1">
-                    <Text className="text-gray-800 font-bold text-base">{farmer.name}</Text>
-                    <Text className="text-gray-500 text-sm">{farmer.distance} {t('buyerHome.away')}</Text>
-                  </View>
-                  <TouchableOpacity className="p-2">
-                    <MapPin size={20} color="#B27E4C" />
+              {loadingFarmers ? (
+                <ActivityIndicator size="small" color="#B27E4C" />
+              ) : (
+                nearbyFarmers.map((farmer) => (
+                  <TouchableOpacity
+                    key={farmer.id}
+                    className="bg-white rounded-2xl p-4 flex-row items-center shadow-lg"
+                    style={{
+                      shadowColor: '#B27E4C',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 8,
+                      elevation: 6,
+                      borderWidth: 1,
+                      borderColor: '#B27E4C10'
+                    }}
+                  >
+                    <Image
+                      source={{ uri: farmer.image }}
+                      className="w-16 h-16 rounded-2xl mr-4"
+                    />
+                    <View className="flex-1">
+                      <Text className="text-gray-800 font-bold text-base">{farmer.name}</Text>
+                      <Text className="text-gray-500 text-sm">{farmer.distance} {t('buyerHome.away')}</Text>
+                    </View>
+                    <TouchableOpacity className="p-2">
+                      <MapPin size={20} color="#B27E4C" />
+                    </TouchableOpacity>
                   </TouchableOpacity>
-                </TouchableOpacity>
-              ))}
+                ))
+              )}
             </View>
           )}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Bottom Navigation - Absolute Positioning */}
       <View className="absolute bottom-0 left-0 right-0">

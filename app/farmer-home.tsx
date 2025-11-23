@@ -7,29 +7,29 @@ import { MarketPrice, marketPricesService } from '@/services/market-prices-servi
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from "expo-router";
 import {
-  Bell,
-  CloudSun,
-  MapPin,
-  MessageCircle,
-  Mic,
-  Plus,
-  Search,
-  Tag,
-  TrendingUp,
-  User
+    Bell,
+    CloudSun,
+    MapPin,
+    MessageCircle,
+    Mic,
+    Plus,
+    Search,
+    Tag,
+    TrendingUp,
+    User
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
@@ -386,7 +386,7 @@ function FarmerHomeContent() {
                   }}
                 >
                   <Image
-                    source={{ uri: item.image }}
+                    source={typeof item.image === 'string' ? { uri: item.image } : item.image}
                     className="w-14 h-14 rounded-2xl mb-3"
                     style={{ resizeMode: 'cover' }}
                   />

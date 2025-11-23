@@ -27,7 +27,14 @@ const STYLE_URL = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAP
 // Default location (India center) - map shows immediately
 const DEFAULT_COORDS: [number, number] = [78.9629, 20.5937];
 
-export default function MapLibreView() {
+interface MapLibreViewProps {
+  showFarmers?: boolean;
+  showBuyers?: boolean;
+  radiusInMeters?: number;
+  onUserPress?: (user: any) => void;
+}
+
+export default function MapLibreView(props: MapLibreViewProps) {
   const [coords, setCoords] = useState<[number, number]>(DEFAULT_COORDS);
   const [isReady, setIsReady] = useState(false);
 
