@@ -1,10 +1,10 @@
 import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Bell, Eye, MessageCircle, Plus, Search, User } from 'lucide-react-native';
+import { ArrowLeft, Bell, MessageCircle, Plus, Search, User } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function BuyerOffersScreen() {
   const router = useRouter();
@@ -13,12 +13,38 @@ export default function BuyerOffersScreen() {
   const [activeTab, setActiveTab] = useState<'browse' | 'my-requests'>('browse');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Handler functions for Call and Message
+  const handleCall = (phone: string) => {
+    if (phone) {
+      Linking.openURL(`tel:${phone}`);
+    } else {
+      Alert.alert(t('common.error'), 'Phone number not available');
+    }
+  };
+
+  const handleMessage = (farmerId: string, farmerName: string, farmerAvatar: string, cropName: string) => {
+    // Navigate to in-app chat screen
+    router.push({
+      pathname: '/buyer-chat-screen',
+      params: {
+        userId: farmerId,
+        userName: farmerName,
+        userAvatar: farmerAvatar || 'https://via.placeholder.com/150',
+        userRole: 'Farmer',
+        cropName: cropName,
+      }
+    });
+  };
+
   // Mock data for available farmer offers (what buyers can browse)
   const farmerOffers = [
     {
       id: 1,
+      farmerId: 'farmer-1',
       title: t('buyerOffers.freshOrganicTomatoes'),
       farmer: t('buyerOffers.rajeshKumar'),
+      farmerPhone: '9876543210',
+      farmerAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
       location: t('buyerOffers.punjabIndia'),
       cropType: t('crops.tomatoes'),
       price: "₹45/kg",
@@ -30,8 +56,11 @@ export default function BuyerOffersScreen() {
     },
     {
       id: 2,
+      farmerId: 'farmer-2',
       title: t('buyerOffers.farmFreshCarrots'),
       farmer: t('buyerOffers.priyaSharma'),
+      farmerPhone: '9876543211',
+      farmerAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
       location: t('buyerOffers.haryanaIndia'),
       cropType: t('buyerOffers.carrots'),
       price: "₹30/kg",
@@ -43,8 +72,11 @@ export default function BuyerOffersScreen() {
     },
     {
       id: 3,
+      farmerId: 'farmer-3',
       title: t('buyerOffers.premiumWheat'),
       farmer: t('buyerOffers.sureshPatel'),
+      farmerPhone: '9876543212',
+      farmerAvatar: 'https://randomuser.me/api/portraits/men/54.jpg',
       location: t('buyerOffers.madhyaPradeshIndia'),
       cropType: t('crops.wheat'),
       price: "₹25/kg",
@@ -119,31 +151,24 @@ export default function BuyerOffersScreen() {
 
       <View className="flex-row mt-4 gap-2">
         <TouchableOpacity
-          className="flex-1 py-3 rounded-lg items-center"
-          style={{ backgroundColor: '#B27E4C' }}
-          onPress={() => router.push({
-            pathname: "/crop-details",
-            params: { cropId: item.id.toString(), from: 'buyer-offers' }
-          })}
+          onPress={() => handleCall(item.farmerPhone)}
+          className="flex-1 flex-row items-center justify-center rounded-full py-3 bg-green-600"
         >
-          <View className="flex-row items-center">
-            <Eye size={16} color="white" />
-            <Text className="text-white font-semibold ml-2">{t('buyerOffers.viewDetails')}</Text>
-          </View>
+          <Phone size={18} color="white" />
+          <Text className="text-white font-semibold ml-2">
+            {t('common.call')}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="flex-1 py-3 rounded-lg items-center border-2"
-          style={{ borderColor: '#B27E4C' }}
-          onPress={() => router.push({
-            pathname: "/messages",
-            params: { farmerId: item.farmer, cropId: item.id.toString() }
-          })}
+          onPress={() => handleMessage(item.farmerId, item.farmer, item.farmerAvatar, item.title)}
+          className="flex-1 flex-row items-center justify-center rounded-full py-3"
+          style={{ backgroundColor: '#B27E4C' }}
         >
-          <View className="flex-row items-center">
-            <MessageCircle size={16} color="#B27E4C" />
-            <Text className="font-semibold ml-2" style={{ color: '#B27E4C' }}>{t('buyerOffers.contact')}</Text>
-          </View>
+          <MessageCircle size={18} color="white" />
+          <Text className="text-white font-semibold ml-2">
+            {t('common.message')}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -180,6 +205,10 @@ export default function BuyerOffersScreen() {
         <TouchableOpacity
           className="px-4 py-2 rounded-lg"
           style={{ backgroundColor: '#B27E4C' }}
+          onPress={() => router.push({
+            pathname: "/request-responses",
+            params: { requestId: item.id.toString() }
+          })}
         >
           <Text className="text-white font-semibold">{t('buyerOffers.viewResponses')}</Text>
         </TouchableOpacity>

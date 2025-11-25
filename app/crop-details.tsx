@@ -5,6 +5,7 @@ import {
     ArrowLeft,
     Home,
     MessageCircle,
+    Phone,
     Share2,
     ShoppingCart,
     Star,

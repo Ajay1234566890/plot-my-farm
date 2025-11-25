@@ -15,13 +15,17 @@ export default function BuyerChatScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [message, setMessage] = useState('');
 
   // Get user data from params
   const userId = params.userId as string;
   const userName = params.userName as string || t('chatScreen.user');
   const userAvatar = params.userAvatar as string || 'https://randomuser.me/api/portraits/men/32.jpg';
   const userRole = params.userRole as string || t('chatScreen.farmer');
+  const cropName = params.cropName as string; // Crop name if coming from crop listing
+
+  // Pre-fill message if coming from crop listing
+  const initialMessage = cropName ? `Hi, I'm interested in your ${cropName}` : '';
+  const [message, setMessage] = useState(initialMessage);
 
   // Mock chat messages - in a real app, this would be fetched based on userId
   const messages: Message[] = [

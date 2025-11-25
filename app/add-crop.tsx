@@ -1,7 +1,9 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import { useAuth } from "@/contexts/auth-context";
+import { cropService } from "@/services/crop-service";
 import { formAutomationService } from "@/services/form-automation-service";
 import { screenContextService } from "@/services/screen-context-service";
+import { supabase } from "@/utils/supabase";
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from "expo-router";
 import {
@@ -14,13 +16,14 @@ import {
 import React, { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
+    ActivityIndicator,
     Alert,
     Image,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 
 // Mock data for units
@@ -37,6 +40,7 @@ export default function AddCrop() {
   const [quantity, setQuantity] = useState("");
   const [price, setPrice] = useState("");
   const [harvestDate, setHarvestDate] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Register screen context and form fields for voice automation
   useEffect(() => {
@@ -97,13 +101,91 @@ export default function AddCrop() {
     }
   };
 
-  const handleSaveCrop = () => {
+  const handleSaveCrop = async () => {
+    // Validation
     if (!cropName || !quantity || !selectedUnit || !price) {
       Alert.alert(t('common.error'), t('errors.fillAllFields'));
       return;
     }
-    Alert.alert(t('common.success'), t('success.cropAdded'));
-    router.push("/my-farms");
+
+    if (!user?.id) {
+      Alert.alert(t('common.error'), 'User not logged in');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      console.log('🌾 [ADD-CROP] Saving crop to database...');
+      console.log('🌾 [ADD-CROP] User ID:', user.id);
+      console.log('🌾 [ADD-CROP] User Role:', user.role);
+      console.log('🌾 [ADD-CROP] User Phone:', user.phone);
+
+      // Verify farmer exists in database
+      const { data: farmerCheck, error: farmerCheckError } = await supabase
+        .from('farmers')
+        .select('id, phone, full_name')
+        .eq('id', user.id)
+        .single();
+
+      if (farmerCheckError || !farmerCheck) {
+        console.error('❌ [ADD-CROP] Farmer not found in database:', farmerCheckError);
+        console.error('❌ [ADD-CROP] User ID:', user.id);
+        Alert.alert(
+          t('common.error'),
+          'Your farmer profile was not found. Please logout and login again.'
+        );
+        setIsSaving(false);
+        return;
+      }
+
+      console.log('✅ [ADD-CROP] Farmer verified:', farmerCheck);
+
+      // Create crop data
+      const cropData = {
+        farmer_id: user.id,
+        name: cropName,
+        crop_type: cropName, // You can add a separate crop type field if needed
+        quantity: parseFloat(quantity),
+        unit: selectedUnit,
+        price_per_unit: parseFloat(price),
+        image_uri: cropImage || undefined,
+        expected_harvest_date: harvestDate || undefined,
+      };
+
+      console.log('🌾 [ADD-CROP] Crop data:', cropData);
+
+      // Save to database
+      const result = await cropService.createCrop(cropData);
+
+      if (result) {
+        console.log('✅ [ADD-CROP] Crop saved successfully:', result.id);
+        Alert.alert(
+          t('common.success'),
+          t('success.cropAdded'),
+          [
+            {
+              text: t('common.ok'),
+              onPress: () => router.push("/my-farms")
+            }
+          ]
+        );
+      } else {
+        console.error('❌ [ADD-CROP] Failed to save crop');
+        Alert.alert(
+          t('common.error'),
+          'Failed to save crop. Please try again.'
+        );
+      }
+    } catch (error) {
+      console.error('❌ [ADD-CROP] Exception:', error);
+      Alert.alert(
+        t('common.error'),
+        'An error occurred while saving the crop.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -279,12 +361,17 @@ export default function AddCrop() {
         {/* Save Button */}
         <TouchableOpacity
           onPress={handleSaveCrop}
+          disabled={isSaving}
           className="rounded-xl py-4 mt-8"
-          style={{ backgroundColor: '#7C8B3A' }}
+          style={{ backgroundColor: isSaving ? '#9CA3AF' : '#7C8B3A' }}
         >
-          <Text className="text-white text-center font-bold text-lg">
-            {t('crops.saveCrop')}
-          </Text>
+          {isSaving ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white text-center font-bold text-lg">
+              {t('crops.saveCrop')}
+            </Text>
+          )}
         </TouchableOpacity>
         </View>
       </ScrollView>

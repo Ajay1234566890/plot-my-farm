@@ -1,59 +1,78 @@
 import BuyerBottomNav from '@/app/components/BuyerBottomNav';
+import { Crop, cropService } from '@/services/crop-service';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Filter, Search } from "lucide-react-native";
-import React from "react";
+import { ArrowLeft, Filter, MessageCircle, Phone, Search } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
+    ActivityIndicator,
+    Alert,
     Image,
+    Linking,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 
 export default function NearbyCrops() {
   const router = useRouter();
   const { t } = useTranslation();
+  const [crops, setCrops] = useState<Crop[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const mockCrops = [
-    {
-      id: 1,
-      name: t('buyer.organicTomatoes'),
-      farm: t('buyer.alexFarms'),
-      price: "$2.99/kg",
-      quantity: t('buyer.kgAvailable', { count: 50 }),
-      image:
-        "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-      id: 2,
-      name: t('buyer.sweetCarrots'),
-      farm: t('buyer.greenValley'),
-      price: "$1.99/kg",
-      quantity: t('buyer.kgAvailable', { count: 80 }),
-      image:
-        "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-      id: 3,
-      name: t('buyer.freshLettuce'),
-      farm: t('buyer.greenValley'),
-      price: "$2.50/kg",
-      quantity: t('buyer.kgAvailable', { count: 30 }),
-      image:
-        "https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-      id: 4,
-      name: t('buyer.galaApples'),
-      farm: t('buyer.orchardGrove'),
-      price: "$3.50/kg",
-      quantity: t('buyer.kgAvailable', { count: 120 }),
-      image:
-        "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=800&auto=format&fit=crop&q=60",
-    },
-  ];
+  // Fetch crops on mount
+  useEffect(() => {
+    fetchCrops();
+  }, []);
+
+  const fetchCrops = async () => {
+    try {
+      setLoading(true);
+      console.log('🌾 [NEARBY-CROPS] Fetching crops...');
+
+      // Fetch all crops (no status filter to show all available crops)
+      const fetchedCrops = await cropService.getAllCrops();
+
+      console.log(`✅ [NEARBY-CROPS] Fetched ${fetchedCrops.length} crops`);
+      setCrops(fetchedCrops);
+    } catch (error) {
+      console.error('❌ [NEARBY-CROPS] Error fetching crops:', error);
+      Alert.alert(t('common.error'), 'Failed to load crops');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCall = (phone: string) => {
+    if (phone) {
+      Linking.openURL(`tel:${phone}`);
+    } else {
+      Alert.alert(t('common.error'), 'Phone number not available');
+    }
+  };
+
+  const handleMessage = (farmerId: string, farmerName: string, farmerAvatar: string | null, cropName: string) => {
+    // Navigate to in-app chat screen
+    router.push({
+      pathname: '/buyer-chat-screen',
+      params: {
+        userId: farmerId,
+        userName: farmerName,
+        userAvatar: farmerAvatar || 'https://via.placeholder.com/150',
+        userRole: 'Farmer',
+        cropName: cropName, // Pass crop name for context
+      }
+    });
+  };
+
+  // Filter crops based on search query
+  const filteredCrops = crops.filter(crop =>
+    crop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    crop.crop_type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
@@ -86,6 +105,8 @@ export default function NearbyCrops() {
             className="flex-1 ml-3 text-white text-base"
             placeholder={t('buyer.searchForCrops')}
             placeholderTextColor="rgba(255, 255, 255, 0.7)"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
         </View>
       </View>
@@ -95,8 +116,18 @@ export default function NearbyCrops() {
         className="flex-1 px-4 pt-4"
         showsVerticalScrollIndicator={false}
       >
-        <View className="space-y-4">
-          {mockCrops.map((crop) => (
+        {loading ? (
+          <View className="flex-1 items-center justify-center py-20">
+            <ActivityIndicator size="large" color="#B27E4C" />
+            <Text className="text-gray-500 mt-4">{t('common.loading')}</Text>
+          </View>
+        ) : filteredCrops.length === 0 ? (
+          <View className="flex-1 items-center justify-center py-20">
+            <Text className="text-gray-500 text-lg">{t('buyer.noCropsFound')}</Text>
+          </View>
+        ) : (
+          <View className="space-y-4">
+            {filteredCrops.map((crop) => (
             <View
               key={crop.id}
               className="bg-white rounded-xl shadow-sm overflow-hidden"
@@ -110,44 +141,70 @@ export default function NearbyCrops() {
                 borderColor: '#B27E4C10'
               }}
             >
-              <Image
-                source={{ uri: crop.image }}
-                className="w-full h-48"
-                resizeMode="cover"
-              />
+              {crop.image_url && (
+                <Image
+                  source={{ uri: crop.image_url }}
+                  className="w-full h-48"
+                  resizeMode="cover"
+                />
+              )}
               <View className="p-4">
                 <View className="flex-row justify-between items-start">
-                  <View>
+                  <View className="flex-1">
                     <Text className="text-lg font-semibold text-gray-800">
                       {crop.name}
                     </Text>
                     <Text className="text-sm text-gray-500 mt-1">
-                      {t('buyer.by')} {crop.farm}
+                      {t('buyer.by')} {crop.farmer?.full_name || 'Unknown Farmer'}
                     </Text>
+                    {crop.location && (
+                      <Text className="text-xs text-gray-400 mt-1">
+                        📍 {crop.location}
+                      </Text>
+                    )}
                   </View>
                   <Text className="text-lg font-bold" style={{ color: '#B27E4C' }}>
-                    {crop.price}
+                    ₹{crop.price_per_unit}/{crop.unit}
                   </Text>
                 </View>
                 <Text className="text-sm text-gray-600 mt-1">
-                  {crop.quantity}
+                  {crop.quantity} {crop.unit} available
                 </Text>
-                <TouchableOpacity
-                  onPress={() => router.push({
-                    pathname: "/crop-details",
-                    params: { cropId: crop.id.toString() }
-                  })}
-                  className="mt-3 rounded-full py-3"
-                  style={{ backgroundColor: '#B27E4C' }}
-                >
-                  <Text className="text-white text-center font-semibold">
-                    {t('buyer.viewDetails')}
-                  </Text>
-                </TouchableOpacity>
+
+                {/* Contact Buttons */}
+                {crop.farmer && (
+                  <View className="flex-row gap-2 mt-3">
+                    <TouchableOpacity
+                      onPress={() => handleCall(crop.farmer!.phone)}
+                      className="flex-1 flex-row items-center justify-center rounded-full py-3 bg-green-600"
+                    >
+                      <Phone size={18} color="white" />
+                      <Text className="text-white font-semibold ml-2">
+                        {t('common.call')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleMessage(
+                        crop.farmer!.id,
+                        crop.farmer!.full_name,
+                        crop.farmer!.profile_image_url,
+                        crop.name
+                      )}
+                      className="flex-1 flex-row items-center justify-center rounded-full py-3"
+                      style={{ backgroundColor: '#B27E4C' }}
+                    >
+                      <MessageCircle size={18} color="white" />
+                      <Text className="text-white font-semibold ml-2">
+                        {t('common.message')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </View>
           ))}
-        </View>
+          </View>
+        )}
         <View className="h-6" />
       </ScrollView>
 

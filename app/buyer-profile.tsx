@@ -8,7 +8,8 @@ import {
     Globe,
     Heart,
     Info,
-    LogOut
+    LogOut,
+    Users
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -92,7 +93,7 @@ export default function BuyerProfile() {
           <TouchableOpacity
             className="mt-4 px-6 py-3 rounded-xl"
             style={{ backgroundColor: '#B27E4C' }}
-            onPress={() => Alert.alert(t('profile.editProfile'), t('profile.profileEditingComingSoon'))}
+            onPress={() => router.push('/buyer-profile-setup')}
           >
             <Text className="text-white font-semibold">{t('profile.editProfile')}</Text>
           </TouchableOpacity>
@@ -153,7 +154,10 @@ export default function BuyerProfile() {
             </View>
           )}
 
-          <TouchableOpacity className="flex-row items-center justify-between py-4 border-b border-gray-100">
+          <TouchableOpacity
+            className="flex-row items-center justify-between py-4 border-b border-gray-100"
+            onPress={() => router.push('/buyer-settings')}
+          >
             <View className="flex-row items-center">
               <Globe size={20} color="#B27E4C" />
               <Text className="ml-3 text-base">{t('profile.language')}</Text>
@@ -209,8 +213,19 @@ export default function BuyerProfile() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            className="flex-row items-center justify-between py-4 border-b border-gray-100"
+            onPress={() => router.push('/saved-farmers')}
+          >
+            <View className="flex-row items-center">
+              <Users size={20} color="#B27E4C" />
+              <Text className="ml-3 text-base">{t('profile.savedFarmers')}</Text>
+            </View>
+            <ChevronRight size={20} color="#4B5563" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             className="flex-row items-center justify-between py-4"
-            onPress={() => router.push('/settings')}
+            onPress={() => router.push('/buyer-settings')}
           >
             <View className="flex-row items-center">
               <Info size={20} color="#B27E4C" />

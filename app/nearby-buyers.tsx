@@ -1,29 +1,29 @@
-import FarmerBottomNav from "@/app/components/FarmerBottomNav";
+import BuyerBottomNav from "@/app/components/BuyerBottomNav";
 import MapLibreView from "@/components/MapLibreView";
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
-  ArrowLeft,
-  MapPin,
-  MessageSquare,
-  Mic,
-  Phone,
-  Search,
-  SlidersHorizontal,
-  Star,
+    ArrowLeft,
+    MapPin,
+    MessageSquare,
+    Mic,
+    Phone,
+    Search,
+    SlidersHorizontal,
+    Star,
 } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  Dimensions,
-  Image,
-  Linking,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    Dimensions,
+    Image,
+    Linking,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -102,7 +102,7 @@ export default function NearbyBuyers() {
       <View
         className="px-6 pt-12 pb-8"
         style={{
-          backgroundColor: '#7C8B3A', // Olive/army green matching farmer-home
+          backgroundColor: '#B27E4C', // Brown/copper matching buyer design
           borderBottomLeftRadius: 40,
           borderBottomRightRadius: 40,
         }}
@@ -250,7 +250,7 @@ export default function NearbyBuyers() {
       </View>
 
       {/* Bottom Navigation */}
-      <FarmerBottomNav activeTab="farms" />
+      <BuyerBottomNav activeTab="home" />
     </View>
   );
 }

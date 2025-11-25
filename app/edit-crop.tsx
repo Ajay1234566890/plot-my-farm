@@ -91,17 +91,18 @@ export default function EditCrop() {
     try {
       // Save to Supabase
       const { data, error } = await supabase
-        .from('crops')
+        .from('farmer_crops')
         .insert([
           {
             farmer_id: user?.id,
             name: formData.cropName,
+            crop_type: formData.cropName, // Add crop type
             quantity: parseFloat(formData.quantity),
             unit: formData.unit,
-            price: parseFloat(formData.price),
-            harvest_date: formData.harvestDate,
+            price_per_unit: parseFloat(formData.price),
+            expected_harvest_date: formData.harvestDate,
             image_url: formData.image,
-            status: 'available',
+            status: 'growing',
             created_at: new Date().toISOString()
           }
         ])

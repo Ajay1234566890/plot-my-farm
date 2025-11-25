@@ -169,144 +169,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('⚠️ [AUTH] No Supabase user returned, continuing with mock auth');
       }
 
-      // Check if user profile exists in farmers or buyers table
+      // Check if user profile exists ONLY in the selected role's table
+      // This allows same phone number to have both farmer and buyer profiles
       let userProfile = null;
       let userRole: UserRole = null;
 
-      // Only check database if we have a valid Supabase user
-      if (supabaseUser) {
-        console.log('🔍 [AUTH] Looking for user profile with Supabase ID:', supabaseUser.id);
-        console.log('🔍 [AUTH] Selected role for lookup:', selectedRole);
+      console.log('🔍 [AUTH] Looking for user profile with phone:', phone);
+      console.log('🔍 [AUTH] Selected role for lookup:', selectedRole);
 
-        // Prioritize lookup based on selectedRole
-        if (selectedRole === 'farmer') {
-          // Check farmers table first
-          const { data: farmerProfile, error: farmerError } = await supabase
-            .from('farmers')
-            .select('*')
-            .eq('id', supabaseUser.id)
-            .single();
+      // IMPORTANT: Only check the selected role's table - NO FALLBACK to other role
+      // This ensures users are logged in based on their selected role
+      if (selectedRole === 'farmer') {
+        console.log('🔍 [AUTH] Checking ONLY farmers table for phone:', phone);
 
-          console.log('🔍 [AUTH] Farmer lookup result:', { farmerProfile, farmerError });
+        // Check farmers table by phone
+        const { data: farmerProfile, error: farmerError } = await supabase
+          .from('farmers')
+          .select('*')
+          .eq('phone', phone)
+          .single();
 
-          if (farmerProfile) {
-            userProfile = farmerProfile;
-            userRole = 'farmer';
-            console.log('✅ [AUTH] Existing farmer profile found:', farmerProfile);
-          } else {
-            // Check buyers table as fallback
-            const { data: buyerProfile, error: buyerError } = await supabase
-              .from('buyers')
-              .select('*')
-              .eq('id', supabaseUser.id)
-              .single();
+        console.log('🔍 [AUTH] Farmer lookup result:', { farmerProfile, farmerError });
 
-            console.log('🔍 [AUTH] Buyer lookup result (fallback):', { buyerProfile, buyerError });
-
-            if (buyerProfile) {
-              userProfile = buyerProfile;
-              userRole = 'buyer';
-              console.log('✅ [AUTH] Existing buyer profile found (fallback):', buyerProfile);
-            }
-          }
-        } else if (selectedRole === 'buyer') {
-          // Check buyers table first
-          const { data: buyerProfile, error: buyerError } = await supabase
-            .from('buyers')
-            .select('*')
-            .eq('id', supabaseUser.id)
-            .single();
-
-          console.log('🔍 [AUTH] Buyer lookup result:', { buyerProfile, buyerError });
-
-          if (buyerProfile) {
-            userProfile = buyerProfile;
-            userRole = 'buyer';
-            console.log('✅ [AUTH] Existing buyer profile found:', buyerProfile);
-          } else {
-            // Check farmers table as fallback
-            const { data: farmerProfile, error: farmerError } = await supabase
-              .from('farmers')
-              .select('*')
-              .eq('id', supabaseUser.id)
-              .single();
-
-            console.log('🔍 [AUTH] Farmer lookup result (fallback):', { farmerProfile, farmerError });
-
-            if (farmerProfile) {
-              userProfile = farmerProfile;
-              userRole = 'farmer';
-              console.log('✅ [AUTH] Existing farmer profile found (fallback):', farmerProfile);
-            }
-          }
+        if (farmerProfile) {
+          userProfile = farmerProfile;
+          userRole = 'farmer';
+          console.log('✅ [AUTH] Existing farmer profile found for phone:', phone);
+        } else {
+          console.log('⚠️ [AUTH] No farmer profile found for phone:', phone);
+          console.log('ℹ️ [AUTH] User will need to complete farmer registration');
         }
+      } else if (selectedRole === 'buyer') {
+        console.log('🔍 [AUTH] Checking ONLY buyers table for phone:', phone);
 
-        // If no profile found by ID, try lookup by phone number with same priority
-        if (!userProfile) {
-          console.log('⚠️ [AUTH] No profile found by ID, trying phone lookup...');
+        // Check buyers table by phone
+        const { data: buyerProfile, error: buyerError } = await supabase
+          .from('buyers')
+          .select('*')
+          .eq('phone', phone)
+          .single();
 
-          if (selectedRole === 'farmer') {
-            // Try farmers table by phone first
-            const { data: farmerByPhone, error: farmerPhoneError } = await supabase
-              .from('farmers')
-              .select('*')
-              .eq('phone', phone)
-              .single();
+        console.log('🔍 [AUTH] Buyer lookup result:', { buyerProfile, buyerError });
 
-            console.log('🔍 [AUTH] Farmer phone lookup result:', { farmerByPhone, farmerPhoneError });
-
-            if (farmerByPhone) {
-              userProfile = farmerByPhone;
-              userRole = 'farmer';
-              console.log('✅ [AUTH] Found farmer profile by phone:', farmerByPhone);
-            } else {
-              // Try buyers table by phone as fallback
-              const { data: buyerByPhone, error: buyerPhoneError } = await supabase
-                .from('buyers')
-                .select('*')
-                .eq('phone', phone)
-                .single();
-
-              console.log('🔍 [AUTH] Buyer phone lookup result (fallback):', { buyerByPhone, buyerPhoneError });
-
-              if (buyerByPhone) {
-                userProfile = buyerByPhone;
-                userRole = 'buyer';
-                console.log('✅ [AUTH] Found buyer profile by phone (fallback):', buyerByPhone);
-              }
-            }
-          } else if (selectedRole === 'buyer') {
-            // Try buyers table by phone first
-            const { data: buyerByPhone, error: buyerPhoneError } = await supabase
-              .from('buyers')
-              .select('*')
-              .eq('phone', phone)
-              .single();
-
-            console.log('🔍 [AUTH] Buyer phone lookup result:', { buyerByPhone, buyerPhoneError });
-
-            if (buyerByPhone) {
-              userProfile = buyerByPhone;
-              userRole = 'buyer';
-              console.log('✅ [AUTH] Found buyer profile by phone:', buyerByPhone);
-            } else {
-              // Try farmers table by phone as fallback
-              const { data: farmerByPhone, error: farmerPhoneError } = await supabase
-                .from('farmers')
-                .select('*')
-                .eq('phone', phone)
-                .single();
-
-              console.log('🔍 [AUTH] Farmer phone lookup result (fallback):', { farmerByPhone, farmerPhoneError });
-
-              if (farmerByPhone) {
-                userProfile = farmerByPhone;
-                userRole = 'farmer';
-                console.log('✅ [AUTH] Found farmer profile by phone (fallback):', farmerByPhone);
-              }
-            }
-          }
+        if (buyerProfile) {
+          userProfile = buyerProfile;
+          userRole = 'buyer';
+          console.log('✅ [AUTH] Existing buyer profile found for phone:', phone);
+        } else {
+          console.log('⚠️ [AUTH] No buyer profile found for phone:', phone);
+          console.log('ℹ️ [AUTH] User will need to complete buyer registration');
         }
+      } else {
+        console.log('⚠️ [AUTH] No role selected, cannot lookup profile');
       }
 
       // If still no profile found, user needs to complete registration

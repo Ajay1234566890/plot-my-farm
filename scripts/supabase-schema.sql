@@ -119,9 +119,12 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE TABLE IF NOT EXISTS wishlist (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   buyer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  offer_id UUID NOT NULL REFERENCES offers(id) ON DELETE CASCADE,
+  offer_id UUID REFERENCES offers(id) ON DELETE CASCADE,
+  crop_id INTEGER, -- For mock/temporary crop data
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(buyer_id, offer_id)
+  UNIQUE(buyer_id, offer_id),
+  UNIQUE(buyer_id, crop_id),
+  CHECK (offer_id IS NOT NULL OR crop_id IS NOT NULL) -- At least one must be set
 );
 
 -- Reviews table

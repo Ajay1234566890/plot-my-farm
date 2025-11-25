@@ -1,38 +1,27 @@
+import BuyerBottomNav from "@/app/components/BuyerBottomNav";
 import MapLibreView from "@/components/MapLibreView";
 import { RADIUS_PRESETS } from "@/utils/haversine";
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
     ArrowLeft,
-    Home,
     MessageCircle,
-    Mic,
     Phone,
     Search,
     SlidersHorizontal,
-    Sprout,
-    Star,
-    User
+    Star
 } from "lucide-react-native";
-import { cssInterop } from "nativewind";
 import React from "react";
 import {
     Alert,
     Dimensions,
     Image,
     Linking,
-    SafeAreaView,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
     View
 } from "react-native";
-
-// Enable className support for LinearGradient
-cssInterop(LinearGradient, {
-  className: "style",
-});
 
 const { width } = Dimensions.get("window");
 
@@ -100,32 +89,42 @@ export default function NearbyFarmers() {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      {/* Header with gradient */}
-      <LinearGradient
-        colors={["#1e40af", "#3b82f6"]}
-        className="px-4 pt-4 pb-4"
+    <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
+      {/* Curved Header Section */}
+      <View
+        className="px-6 pt-12 pb-8"
+        style={{
+          backgroundColor: '#B27E4C',
+          borderBottomLeftRadius: 40,
+          borderBottomRightRadius: 40,
+        }}
       >
-        <View className="flex-row items-center justify-between">
-          <TouchableOpacity className="p-2" onPress={() => router.back()}>
-            <ArrowLeft color="white" size={24} />
+        <View className="flex-row items-center mb-4">
+          <TouchableOpacity
+            className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text className="text-white text-lg font-semibold">Nearby Farmers</Text>
-          <TouchableOpacity className="p-2">
-            <SlidersHorizontal color="white" size={24} />
-          </TouchableOpacity>
+          <Text className="text-xl font-bold text-white">Nearby Farmers</Text>
         </View>
+        <Text className="text-white/80 mb-4">
+          Find farmers near you
+        </Text>
 
         {/* Search Bar */}
-        <View className="mt-4 flex-row items-center bg-white rounded-full px-4 py-3 shadow-sm">
-          <Search size={20} color="#64748b" />
+        <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
+          <Search size={20} color="#4B5563" />
           <TextInput
-            className="flex-1 ml-2 text-gray-800"
-            placeholder="Search for farmers"
-            placeholderTextColor="#64748b"
+            placeholder="Search farmers, locations..."
+            className="flex-1 ml-3 text-base text-gray-800"
+            placeholderTextColor="#9CA3AF"
           />
+          <TouchableOpacity className="p-1">
+            <SlidersHorizontal size={20} color="#4B5563" />
+          </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
 
       {/* Real MapLibre Map */}
       <View className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg" style={{ height: 250 }}>
@@ -189,62 +188,8 @@ export default function NearbyFarmers() {
         <View className="h-20" />
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-        <View className="flex-row items-center justify-between px-3 pb-6 pt-2">
-          {/* Home Tab */}
-          <TouchableOpacity 
-            className="items-center justify-center"
-            accessibilityLabel="Home tab"
-            accessibilityRole="tab"
-          >
-            <Home size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Home</Text>
-          </TouchableOpacity>
-
-          {/* My Farms Tab */}
-          <TouchableOpacity 
-            className="items-center justify-center"
-            accessibilityLabel="My Farms tab"
-            accessibilityRole="tab"
-          >
-            <Sprout size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Crops</Text>
-          </TouchableOpacity>
-
-          {/* Mic Button */}
-          <TouchableOpacity 
-            className="items-center justify-center -mt-5 bg-blue-500 rounded-full w-14 h-14 shadow-lg"
-            accessibilityLabel="Voice command"
-            accessibilityRole="button"
-          >
-            <Mic size={28} color="white" strokeWidth={2} />
-          </TouchableOpacity>
-
-          {/* Messages Tab */}
-          <TouchableOpacity 
-            className="items-center justify-center"
-            accessibilityLabel="Messages tab"
-            accessibilityRole="tab"
-          >
-            <MessageCircle size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Orders</Text>
-          </TouchableOpacity>
-
-          {/* Profile Tab */}
-          <TouchableOpacity 
-            className="items-center justify-center"
-            accessibilityLabel="Profile tab"
-            accessibilityRole="tab"
-          >
-            <User size={24} color="#6b7280" strokeWidth={2} />
-            <Text className="text-xs text-gray-500 mt-1">Profile</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Safe Area Spacing for iOS */}
-        <View className="h-[12px] bg-white" />
-      </View>
-    </SafeAreaView>
+      {/* Buyer Bottom Navigation */}
+      <BuyerBottomNav activeTab="home" />
+    </View>
   );
 }
