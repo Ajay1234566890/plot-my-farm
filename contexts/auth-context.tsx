@@ -268,10 +268,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Create unique auth identifier
       const authIdentifier = `${userData.phone}@plotmyfarm.app`;
+      const tableName = userData.role === 'farmer' ? 'farmers' : 'buyers';
 
+      console.log('🔍 [REGISTER] Checking if profile already exists in table:', tableName);
+
+      // FIRST: Check if profile already exists in the role-specific table
+      const { data: existingProfile, error: checkError } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('phone', userData.phone)
+        .maybeSingle();
+
+      if (existingProfile) {
+        console.log('✅ [REGISTER] Profile already exists! Logging in instead...');
+
+        // Profile exists, just sign in and set user
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: authIdentifier,
+          password: `temp_${userData.phone}_123456`,
+        });
+
+        if (signInError) {
+          console.error('❌ [REGISTER] Sign in failed:', signInError.message);
+          throw new Error('Profile exists but login failed. Please try logging in instead.');
+        }
+
+        // Create user object from existing profile
+        const existingUser: User = {
+          id: existingProfile.id,
+          name: existingProfile.full_name || '',
+          phone: existingProfile.phone,
+          role: userData.role,
+          profileImage: existingProfile.profile_image_url,
+          farmName: existingProfile.farm_name,
+          farmSize: existingProfile.farm_size,
+          companyName: existingProfile.company_name,
+          businessType: existingProfile.business_type,
+          location: existingProfile.location,
+        };
+
+        setUser(existingUser);
+        await AsyncStorage.setItem('user', JSON.stringify(existingUser));
+
+        console.log('✅ [REGISTER] Logged in with existing profile');
+        return;
+      }
+
+      console.log('🔄 [REGISTER] No existing profile found, creating new user...');
       console.log('🔄 [REGISTER] Creating Supabase auth user...');
 
       // Create Supabase auth user - handle errors gracefully
+      let supabaseUser = null;
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: authIdentifier,
         password: `temp_${userData.phone}_123456`, // Temporary password
@@ -279,24 +326,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (authError) {
         console.error('❌ [REGISTER] Supabase auth error:', authError.message);
-        // Check if user already exists
-        if (authError.message.includes('already registered')) {
-          console.log('⚠️ [REGISTER] User already exists in auth, attempting to get existing user...');
+        // Check if user already exists in auth
+        if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
+          console.log('⚠️ [REGISTER] User already exists in auth, signing in to get user ID...');
           // Try to sign in to get the user
-          const { data: signInData } = await supabase.auth.signInWithPassword({
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email: authIdentifier,
             password: `temp_${userData.phone}_123456`,
           });
+
+          if (signInError) {
+            console.error('❌ [REGISTER] Sign in also failed:', signInError.message);
+            throw new Error('User exists in auth but sign in failed. Please try logging in instead.');
+          }
+
           if (signInData.user) {
-            console.log('✅ [REGISTER] Retrieved existing auth user');
-            authData.user = signInData.user;
+            console.log('✅ [REGISTER] Retrieved existing auth user:', signInData.user.id);
+            supabaseUser = signInData.user;
+          } else {
+            throw new Error('Failed to retrieve existing user');
           }
         } else {
           throw new Error(`Registration failed: ${authError.message}`);
         }
+      } else {
+        supabaseUser = authData.user;
       }
 
-      const supabaseUser = authData.user;
       if (!supabaseUser) {
         throw new Error('No user returned from registration');
       }
@@ -304,8 +360,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('✅ [REGISTER] Supabase auth user created/retrieved:', supabaseUser.id);
 
       // Create user profile in appropriate table based on role
-      const tableName = userData.role === 'farmer' ? 'farmers' : 'buyers';
-
       console.log('🔄 [REGISTER] Creating profile in table:', tableName);
 
       let userProfile: any = {
@@ -343,7 +397,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('❌ [REGISTER] Profile data:', userProfile);
         console.error('❌ [REGISTER] Error details:', createError.details);
         console.error('❌ [REGISTER] Error hint:', createError.hint);
-        // Throw error instead of continuing - we need the data in Supabase
+        console.error('❌ [REGISTER] Error code:', createError.code);
+
+        // Check if it's a duplicate key error
+        if (createError.code === '23505' || createError.message.includes('duplicate') || createError.message.includes('already exists')) {
+          console.log('⚠️ [REGISTER] Profile already exists (duplicate key), fetching existing profile...');
+
+          // Fetch the existing profile
+          const { data: fetchedProfile, error: fetchError } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('phone', userData.phone)
+            .single();
+
+          if (fetchedProfile) {
+            console.log('✅ [REGISTER] Using existing profile');
+            // Use the existing profile
+            const existingUser: User = {
+              id: fetchedProfile.id,
+              name: fetchedProfile.full_name || '',
+              phone: fetchedProfile.phone,
+              role: userData.role,
+              profileImage: fetchedProfile.profile_image_url,
+              farmName: fetchedProfile.farm_name,
+              farmSize: fetchedProfile.farm_size,
+              companyName: fetchedProfile.company_name,
+              businessType: fetchedProfile.business_type,
+              location: fetchedProfile.location,
+            };
+
+            setUser(existingUser);
+            await AsyncStorage.setItem('user', JSON.stringify(existingUser));
+            console.log('✅ [REGISTER] Registration completed with existing profile');
+            return;
+          }
+        }
+
+        // Throw error if we couldn't handle it
         throw new Error(`Failed to save profile to database: ${createError.message}`);
       }
 
@@ -363,8 +453,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         location: userData.location,
       };
 
+      console.log('📝 [REGISTER] Setting user in state:', newUser);
       setUser(newUser);
+
+      console.log('💾 [REGISTER] Saving user to AsyncStorage...');
       await AsyncStorage.setItem('user', JSON.stringify(newUser));
+
+      // Verify it was saved
+      const savedUser = await AsyncStorage.getItem('user');
+      console.log('✅ [REGISTER] User saved to AsyncStorage, verification:', savedUser ? 'SUCCESS' : 'FAILED');
 
       console.log('✅ Registration successful for user:', newUser.phone);
     } catch (error) {

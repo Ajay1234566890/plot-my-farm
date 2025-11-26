@@ -15,29 +15,36 @@ export default function Screen() {
         isSignedIn,
         hasUser: !!user,
         userRole: user?.role,
+        userId: user?.id,
+        userName: user?.name,
       });
 
-      if (isSignedIn && user) {
-        // Navigate to role-specific home screen
-        console.log('✅ [INDEX] User is signed in');
-        if (user.role === 'farmer') {
-          console.log('🚜 [INDEX] User is a farmer, navigating to farmer-home');
-          router.replace('/farmer-home');
-        } else if (user.role === 'buyer') {
-          console.log('🛒 [INDEX] User is a buyer, navigating to buyer-home');
-          router.replace('/buyer-home');
+      // Add a small delay to ensure state is fully updated
+      const navigationTimeout = setTimeout(() => {
+        if (isSignedIn && user && user.role) {
+          // Navigate to role-specific home screen
+          console.log('✅ [INDEX] User is signed in with role:', user.role);
+          if (user.role === 'farmer') {
+            console.log('🚜 [INDEX] User is a farmer, navigating to farmer-home');
+            router.replace('/farmer-home');
+          } else if (user.role === 'buyer') {
+            console.log('🛒 [INDEX] User is a buyer, navigating to buyer-home');
+            router.replace('/buyer-home');
+          } else {
+            // Fallback to select-role if role not recognized
+            console.log('⚠️ [INDEX] User role not recognized, navigating to select-role');
+            router.replace('/select-role');
+          }
+        } else if (!hasSeenSplash) {
+          console.log('👋 [INDEX] First time user, navigating to splash');
+          router.replace('/splash');
         } else {
-          // Fallback to select-role if role not set
-          console.log('⚠️ [INDEX] User role not set, navigating to select-role');
+          console.log('🔓 [INDEX] Returning user not signed in, navigating to select-role');
           router.replace('/select-role');
         }
-      } else if (!hasSeenSplash) {
-        console.log('👋 [INDEX] First time user, navigating to splash');
-        router.replace('/splash');
-      } else {
-        console.log('🔓 [INDEX] Returning user not signed in, navigating to select-role');
-        router.replace('/select-role');
-      }
+      }, 100); // Small delay to ensure state is updated
+
+      return () => clearTimeout(navigationTimeout);
     }
   }, [isLoading, isSignedIn, hasSeenSplash, user, router]);
 

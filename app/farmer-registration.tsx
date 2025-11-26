@@ -7,7 +7,7 @@ import {
 } from '@/utils/validation';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Camera, ChevronLeft } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
@@ -142,6 +142,7 @@ export default function FarmerRegistration() {
   const handleCompleteRegistration = async () => {
     setIsLoading(true);
     try {
+      console.log('🔄 [FARMER-REG] Starting registration...');
       await register({
         name: fullName,
         email,
@@ -152,11 +153,24 @@ export default function FarmerRegistration() {
         profileImage,
       });
 
-      Alert.alert(t('common.success'), t('success.registrationSuccess'));
-      router.replace('/farmer-home');
+      console.log('✅ [FARMER-REG] Registration completed successfully');
+
+      // Wait a bit for state to update
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      console.log('🔄 [FARMER-REG] Navigating to farmer-home...');
+      Alert.alert(t('common.success'), t('success.registrationSuccess'), [
+        {
+          text: 'OK',
+          onPress: () => {
+            console.log('🔄 [FARMER-REG] User pressed OK, navigating now...');
+            router.replace('/farmer-home');
+          }
+        }
+      ]);
     } catch (error) {
+      console.error('❌ [FARMER-REG] Registration error:', error);
       Alert.alert(t('common.error'), t('errors.registrationFailed'));
-      console.error('Registration error:', error);
     } finally {
       setIsLoading(false);
     }
