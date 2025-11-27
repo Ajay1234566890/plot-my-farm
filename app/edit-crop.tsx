@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Calendar, ChevronDown, Mic, Upload } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function EditCrop() {
   const router = useRouter();

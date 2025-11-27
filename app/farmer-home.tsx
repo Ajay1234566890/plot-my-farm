@@ -57,6 +57,16 @@ function FarmerHomeContent() {
   // Scroll animation for glass card fade effect
   const scrollY = useRef(new Animated.Value(0)).current;
 
+  // Log component mount for debugging
+  useEffect(() => {
+    console.log('🏠 [FARMER-HOME] Component mounted');
+    console.log('🏠 [FARMER-HOME] User:', {
+      hasUser: !!user,
+      userRole: user?.role,
+      userName: user?.name
+    });
+  }, []);
+
   // Format date with i18n
   const getFormattedDate = () => {
     const date = new Date();

@@ -143,6 +143,16 @@ export default function FarmerRegistration() {
     setIsLoading(true);
     try {
       console.log('🔄 [FARMER-REG] Starting registration...');
+      console.log('🔄 [FARMER-REG] Registration data:', {
+        name: fullName,
+        email,
+        phone: mobileNumber,
+        role: 'farmer',
+        farmName,
+        farmSize: parseFloat(farmSize),
+        hasProfileImage: !!profileImage
+      });
+
       await register({
         name: fullName,
         email,
@@ -155,22 +165,24 @@ export default function FarmerRegistration() {
 
       console.log('✅ [FARMER-REG] Registration completed successfully');
 
-      // Wait a bit for state to update
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait longer for state to fully propagate
+      console.log('⏳ [FARMER-REG] Waiting for auth state to update...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       console.log('🔄 [FARMER-REG] Navigating to farmer-home...');
-      Alert.alert(t('common.success'), t('success.registrationSuccess'), [
-        {
-          text: 'OK',
-          onPress: () => {
-            console.log('🔄 [FARMER-REG] User pressed OK, navigating now...');
-            router.replace('/farmer-home');
-          }
-        }
-      ]);
+
+      // Navigate immediately without alert to avoid timing issues
+      router.replace('/farmer-home');
+
+      // Show success message after navigation
+      setTimeout(() => {
+        Alert.alert(t('common.success'), t('success.registrationSuccess'));
+      }, 500);
+
     } catch (error) {
       console.error('❌ [FARMER-REG] Registration error:', error);
-      Alert.alert(t('common.error'), t('errors.registrationFailed'));
+      const errorMessage = error instanceof Error ? error.message : t('errors.registrationFailed');
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setIsLoading(false);
     }

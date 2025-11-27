@@ -3,19 +3,19 @@
  * Test the MapLibre + OpenStreetMap integration
  */
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { ArrowLeft, Map, Users, UserCheck } from 'lucide-react-native';
 import MapLibreView from '@/components/MapLibreView';
 import { NearbyUser } from '@/services/map-service';
 import { RADIUS_PRESETS } from '@/utils/haversine';
+import { useRouter } from 'expo-router';
+import { ArrowLeft, Map, UserCheck, Users } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function MapTestScreen() {
   const router = useRouter();
   const [showFarmers, setShowFarmers] = useState(true);
   const [showBuyers, setShowBuyers] = useState(true);
-  const [selectedRadius, setSelectedRadius] = useState(RADIUS_PRESETS.DEFAULT);
+  const [selectedRadius, setSelectedRadius] = useState<number>(RADIUS_PRESETS.DEFAULT);
   const [selectedUser, setSelectedUser] = useState<NearbyUser | null>(null);
 
   const handleUserPress = (user: NearbyUser) => {

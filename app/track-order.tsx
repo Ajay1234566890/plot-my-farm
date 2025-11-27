@@ -114,7 +114,7 @@ export default function TrackOrder() {
 
       {/* Bottom Navigation - Absolute Positioning */}
       <View className="absolute bottom-0 left-0 right-0">
-        <BuyerBottomNav activeTab="orders" />
+        <BuyerBottomNav activeTab="profile" />
       </View>
     </View>
   );

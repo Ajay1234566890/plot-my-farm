@@ -88,6 +88,9 @@ function RootLayoutNav() {
 
       {/* Buyer Screens */}
       <Stack.Screen name="buyer-home" options={{ headerShown: false }} />
+      <Stack.Screen name="buyer-profile" options={{ headerShown: false }} />
+      <Stack.Screen name="buyer-settings" options={{ headerShown: false }} />
+      <Stack.Screen name="buyer-crop-details" options={{ headerShown: false }} />
 
       {/* Farm Management */}
       <Stack.Screen name="my-farms" options={{ headerShown: false }} />
@@ -123,6 +126,8 @@ function RootLayoutNav() {
       {/* Communication */}
       <Stack.Screen name="messages" options={{ headerShown: false }} />
       <Stack.Screen name="chat-screen" options={{ headerShown: false }} />
+      <Stack.Screen name="buyer-messages" options={{ headerShown: false }} />
+      <Stack.Screen name="buyer-chat-screen" options={{ headerShown: false }} />
       <Stack.Screen name="voice-ai" options={{ headerShown: false }} />
       <Stack.Screen name="buyer-voice-ai" options={{ headerShown: false }} />
 
@@ -138,9 +143,22 @@ function RootLayoutNav() {
       <Stack.Screen name="buyer-offers" options={{ headerShown: false }} />
       <Stack.Screen name="add-offer" options={{ headerShown: false }} />
       <Stack.Screen name="wishlist" options={{ headerShown: false }} />
+      <Stack.Screen name="about" options={{ headerShown: false }} />
+      <Stack.Screen name="terms" options={{ headerShown: false }} />
+      <Stack.Screen name="saved-farmers" options={{ headerShown: false }} />
+      <Stack.Screen name="saved-buyers" options={{ headerShown: false }} />
+      <Stack.Screen name="farmers-ideas" options={{ headerShown: false }} />
+      <Stack.Screen name="featured-crops" options={{ headerShown: false }} />
+      <Stack.Screen name="create-request" options={{ headerShown: false }} />
+      <Stack.Screen name="request-responses" options={{ headerShown: false }} />
 
       {/* Map Integration */}
       <Stack.Screen name="map-test" options={{ headerShown: false }} />
+
+      {/* Debug/Test Screens */}
+      <Stack.Screen name="debug-location" options={{ headerShown: false }} />
+      <Stack.Screen name="test-database" options={{ headerShown: false }} />
+      <Stack.Screen name="test-weather" options={{ headerShown: false }} />
     </Stack>
   );
 }

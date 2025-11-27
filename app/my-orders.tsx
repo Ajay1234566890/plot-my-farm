@@ -2,8 +2,8 @@ import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'expo-router';
 import {
-  ChevronLeft,
-  Search
+    ChevronLeft,
+    Search
 } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -142,7 +142,7 @@ export default function MyOrders() {
       {/* Bottom Navigation */}
       {/* Bottom Navigation - Absolute Positioning */}
       <View className="absolute bottom-0 left-0 right-0">
-        <BuyerBottomNav activeTab="orders" />
+        <BuyerBottomNav activeTab="profile" />
       </View>
     </View>
   );

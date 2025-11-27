@@ -169,58 +169,144 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('⚠️ [AUTH] No Supabase user returned, continuing with mock auth');
       }
 
-      // Check if user profile exists ONLY in the selected role's table
-      // This allows same phone number to have both farmer and buyer profiles
+      // Check if user profile exists in farmers or buyers table
       let userProfile = null;
       let userRole: UserRole = null;
 
-      console.log('🔍 [AUTH] Looking for user profile with phone:', phone);
-      console.log('🔍 [AUTH] Selected role for lookup:', selectedRole);
+      // Only check database if we have a valid Supabase user
+      if (supabaseUser) {
+        console.log('🔍 [AUTH] Looking for user profile with Supabase ID:', supabaseUser.id);
+        console.log('🔍 [AUTH] Selected role for lookup:', selectedRole);
 
-      // IMPORTANT: Only check the selected role's table - NO FALLBACK to other role
-      // This ensures users are logged in based on their selected role
-      if (selectedRole === 'farmer') {
-        console.log('🔍 [AUTH] Checking ONLY farmers table for phone:', phone);
+        // Prioritize lookup based on selectedRole
+        if (selectedRole === 'farmer') {
+          // Check farmers table first
+          const { data: farmerProfile, error: farmerError } = await supabase
+            .from('farmers')
+            .select('*')
+            .eq('id', supabaseUser.id)
+            .single();
 
-        // Check farmers table by phone
-        const { data: farmerProfile, error: farmerError } = await supabase
-          .from('farmers')
-          .select('*')
-          .eq('phone', phone)
-          .single();
+          console.log('🔍 [AUTH] Farmer lookup result:', { farmerProfile, farmerError });
 
-        console.log('🔍 [AUTH] Farmer lookup result:', { farmerProfile, farmerError });
+          if (farmerProfile) {
+            userProfile = farmerProfile;
+            userRole = 'farmer';
+            console.log('✅ [AUTH] Existing farmer profile found:', farmerProfile);
+          } else {
+            // Check buyers table as fallback
+            const { data: buyerProfile, error: buyerError } = await supabase
+              .from('buyers')
+              .select('*')
+              .eq('id', supabaseUser.id)
+              .single();
 
-        if (farmerProfile) {
-          userProfile = farmerProfile;
-          userRole = 'farmer';
-          console.log('✅ [AUTH] Existing farmer profile found for phone:', phone);
-        } else {
-          console.log('⚠️ [AUTH] No farmer profile found for phone:', phone);
-          console.log('ℹ️ [AUTH] User will need to complete farmer registration');
+            console.log('🔍 [AUTH] Buyer lookup result (fallback):', { buyerProfile, buyerError });
+
+            if (buyerProfile) {
+              userProfile = buyerProfile;
+              userRole = 'buyer';
+              console.log('✅ [AUTH] Existing buyer profile found (fallback):', buyerProfile);
+            }
+          }
+        } else if (selectedRole === 'buyer') {
+          // Check buyers table first
+          const { data: buyerProfile, error: buyerError } = await supabase
+            .from('buyers')
+            .select('*')
+            .eq('id', supabaseUser.id)
+            .single();
+
+          console.log('🔍 [AUTH] Buyer lookup result:', { buyerProfile, buyerError });
+
+          if (buyerProfile) {
+            userProfile = buyerProfile;
+            userRole = 'buyer';
+            console.log('✅ [AUTH] Existing buyer profile found:', buyerProfile);
+          } else {
+            // Check farmers table as fallback
+            const { data: farmerProfile, error: farmerError } = await supabase
+              .from('farmers')
+              .select('*')
+              .eq('id', supabaseUser.id)
+              .single();
+
+            console.log('🔍 [AUTH] Farmer lookup result (fallback):', { farmerProfile, farmerError });
+
+            if (farmerProfile) {
+              userProfile = farmerProfile;
+              userRole = 'farmer';
+              console.log('✅ [AUTH] Existing farmer profile found (fallback):', farmerProfile);
+            }
+          }
         }
-      } else if (selectedRole === 'buyer') {
-        console.log('🔍 [AUTH] Checking ONLY buyers table for phone:', phone);
 
-        // Check buyers table by phone
-        const { data: buyerProfile, error: buyerError } = await supabase
-          .from('buyers')
-          .select('*')
-          .eq('phone', phone)
-          .single();
+        // If no profile found by ID, try lookup by phone number with same priority
+        if (!userProfile) {
+          console.log('⚠️ [AUTH] No profile found by ID, trying phone lookup...');
 
-        console.log('🔍 [AUTH] Buyer lookup result:', { buyerProfile, buyerError });
+          if (selectedRole === 'farmer') {
+            // Try farmers table by phone first
+            const { data: farmerByPhone, error: farmerPhoneError } = await supabase
+              .from('farmers')
+              .select('*')
+              .eq('phone', phone)
+              .single();
 
-        if (buyerProfile) {
-          userProfile = buyerProfile;
-          userRole = 'buyer';
-          console.log('✅ [AUTH] Existing buyer profile found for phone:', phone);
-        } else {
-          console.log('⚠️ [AUTH] No buyer profile found for phone:', phone);
-          console.log('ℹ️ [AUTH] User will need to complete buyer registration');
+            console.log('🔍 [AUTH] Farmer phone lookup result:', { farmerByPhone, farmerPhoneError });
+
+            if (farmerByPhone) {
+              userProfile = farmerByPhone;
+              userRole = 'farmer';
+              console.log('✅ [AUTH] Found farmer profile by phone:', farmerByPhone);
+            } else {
+              // Try buyers table by phone as fallback
+              const { data: buyerByPhone, error: buyerPhoneError } = await supabase
+                .from('buyers')
+                .select('*')
+                .eq('phone', phone)
+                .single();
+
+              console.log('🔍 [AUTH] Buyer phone lookup result (fallback):', { buyerByPhone, buyerPhoneError });
+
+              if (buyerByPhone) {
+                userProfile = buyerByPhone;
+                userRole = 'buyer';
+                console.log('✅ [AUTH] Found buyer profile by phone (fallback):', buyerByPhone);
+              }
+            }
+          } else if (selectedRole === 'buyer') {
+            // Try buyers table by phone first
+            const { data: buyerByPhone, error: buyerPhoneError } = await supabase
+              .from('buyers')
+              .select('*')
+              .eq('phone', phone)
+              .single();
+
+            console.log('🔍 [AUTH] Buyer phone lookup result:', { buyerByPhone, buyerPhoneError });
+
+            if (buyerByPhone) {
+              userProfile = buyerByPhone;
+              userRole = 'buyer';
+              console.log('✅ [AUTH] Found buyer profile by phone:', buyerByPhone);
+            } else {
+              // Try farmers table by phone as fallback
+              const { data: farmerByPhone, error: farmerPhoneError } = await supabase
+                .from('farmers')
+                .select('*')
+                .eq('phone', phone)
+                .single();
+
+              console.log('🔍 [AUTH] Farmer phone lookup result (fallback):', { farmerByPhone, farmerPhoneError });
+
+              if (farmerByPhone) {
+                userProfile = farmerByPhone;
+                userRole = 'farmer';
+                console.log('✅ [AUTH] Found farmer profile by phone (fallback):', farmerByPhone);
+              }
+            }
+          }
         }
-      } else {
-        console.log('⚠️ [AUTH] No role selected, cannot lookup profile');
       }
 
       // If still no profile found, user needs to complete registration
@@ -268,57 +354,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Create unique auth identifier
       const authIdentifier = `${userData.phone}@plotmyfarm.app`;
-      const tableName = userData.role === 'farmer' ? 'farmers' : 'buyers';
 
-      console.log('🔍 [REGISTER] Checking if profile already exists in table:', tableName);
-
-      // FIRST: Check if profile already exists in the role-specific table
-      const { data: existingProfile, error: checkError } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('phone', userData.phone)
-        .maybeSingle();
-
-      if (existingProfile) {
-        console.log('✅ [REGISTER] Profile already exists! Logging in instead...');
-
-        // Profile exists, just sign in and set user
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: authIdentifier,
-          password: `temp_${userData.phone}_123456`,
-        });
-
-        if (signInError) {
-          console.error('❌ [REGISTER] Sign in failed:', signInError.message);
-          throw new Error('Profile exists but login failed. Please try logging in instead.');
-        }
-
-        // Create user object from existing profile
-        const existingUser: User = {
-          id: existingProfile.id,
-          name: existingProfile.full_name || '',
-          phone: existingProfile.phone,
-          role: userData.role,
-          profileImage: existingProfile.profile_image_url,
-          farmName: existingProfile.farm_name,
-          farmSize: existingProfile.farm_size,
-          companyName: existingProfile.company_name,
-          businessType: existingProfile.business_type,
-          location: existingProfile.location,
-        };
-
-        setUser(existingUser);
-        await AsyncStorage.setItem('user', JSON.stringify(existingUser));
-
-        console.log('✅ [REGISTER] Logged in with existing profile');
-        return;
-      }
-
-      console.log('🔄 [REGISTER] No existing profile found, creating new user...');
       console.log('🔄 [REGISTER] Creating Supabase auth user...');
 
       // Create Supabase auth user - handle errors gracefully
-      let supabaseUser = null;
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: authIdentifier,
         password: `temp_${userData.phone}_123456`, // Temporary password
@@ -326,33 +365,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (authError) {
         console.error('❌ [REGISTER] Supabase auth error:', authError.message);
-        // Check if user already exists in auth
-        if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
-          console.log('⚠️ [REGISTER] User already exists in auth, signing in to get user ID...');
+        // Check if user already exists
+        if (authError.message.includes('already registered')) {
+          console.log('⚠️ [REGISTER] User already exists in auth, attempting to get existing user...');
           // Try to sign in to get the user
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          const { data: signInData } = await supabase.auth.signInWithPassword({
             email: authIdentifier,
             password: `temp_${userData.phone}_123456`,
           });
-
-          if (signInError) {
-            console.error('❌ [REGISTER] Sign in also failed:', signInError.message);
-            throw new Error('User exists in auth but sign in failed. Please try logging in instead.');
-          }
-
           if (signInData.user) {
-            console.log('✅ [REGISTER] Retrieved existing auth user:', signInData.user.id);
-            supabaseUser = signInData.user;
-          } else {
-            throw new Error('Failed to retrieve existing user');
+            console.log('✅ [REGISTER] Retrieved existing auth user');
+            authData.user = signInData.user;
           }
         } else {
           throw new Error(`Registration failed: ${authError.message}`);
         }
-      } else {
-        supabaseUser = authData.user;
       }
 
+      const supabaseUser = authData.user;
       if (!supabaseUser) {
         throw new Error('No user returned from registration');
       }
@@ -360,6 +390,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('✅ [REGISTER] Supabase auth user created/retrieved:', supabaseUser.id);
 
       // Create user profile in appropriate table based on role
+      const tableName = userData.role === 'farmer' ? 'farmers' : 'buyers';
+
       console.log('🔄 [REGISTER] Creating profile in table:', tableName);
 
       let userProfile: any = {
@@ -397,43 +429,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('❌ [REGISTER] Profile data:', userProfile);
         console.error('❌ [REGISTER] Error details:', createError.details);
         console.error('❌ [REGISTER] Error hint:', createError.hint);
-        console.error('❌ [REGISTER] Error code:', createError.code);
-
-        // Check if it's a duplicate key error
-        if (createError.code === '23505' || createError.message.includes('duplicate') || createError.message.includes('already exists')) {
-          console.log('⚠️ [REGISTER] Profile already exists (duplicate key), fetching existing profile...');
-
-          // Fetch the existing profile
-          const { data: fetchedProfile, error: fetchError } = await supabase
-            .from(tableName)
-            .select('*')
-            .eq('phone', userData.phone)
-            .single();
-
-          if (fetchedProfile) {
-            console.log('✅ [REGISTER] Using existing profile');
-            // Use the existing profile
-            const existingUser: User = {
-              id: fetchedProfile.id,
-              name: fetchedProfile.full_name || '',
-              phone: fetchedProfile.phone,
-              role: userData.role,
-              profileImage: fetchedProfile.profile_image_url,
-              farmName: fetchedProfile.farm_name,
-              farmSize: fetchedProfile.farm_size,
-              companyName: fetchedProfile.company_name,
-              businessType: fetchedProfile.business_type,
-              location: fetchedProfile.location,
-            };
-
-            setUser(existingUser);
-            await AsyncStorage.setItem('user', JSON.stringify(existingUser));
-            console.log('✅ [REGISTER] Registration completed with existing profile');
-            return;
-          }
-        }
-
-        // Throw error if we couldn't handle it
+        // Throw error instead of continuing - we need the data in Supabase
         throw new Error(`Failed to save profile to database: ${createError.message}`);
       }
 
@@ -453,15 +449,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         location: userData.location,
       };
 
-      console.log('📝 [REGISTER] Setting user in state:', newUser);
       setUser(newUser);
-
-      console.log('💾 [REGISTER] Saving user to AsyncStorage...');
       await AsyncStorage.setItem('user', JSON.stringify(newUser));
-
-      // Verify it was saved
-      const savedUser = await AsyncStorage.getItem('user');
-      console.log('✅ [REGISTER] User saved to AsyncStorage, verification:', savedUser ? 'SUCCESS' : 'FAILED');
 
       console.log('✅ Registration successful for user:', newUser.phone);
     } catch (error) {

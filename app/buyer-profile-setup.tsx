@@ -179,6 +179,8 @@ export default function BuyerProfileSetup() {
         phone,
         role: 'buyer',
         location: `${address}, ${city}, ${state} ${pincode}`,
+        businessName,
+        buyerType
       });
 
       await register({
@@ -187,15 +189,30 @@ export default function BuyerProfileSetup() {
         phone,
         role: 'buyer',
         location: `${address}, ${city}, ${state} ${pincode}`,
+        companyName: businessName,
+        businessType: buyerType
       });
 
       console.log('✅ [BUYER-SETUP] Buyer registration successful!');
+
+      // Wait longer for state to fully propagate
+      console.log('⏳ [BUYER-SETUP] Waiting for auth state to update...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       console.log('🔄 [BUYER-SETUP] Navigating to /buyer-home...');
-      Alert.alert(t('common.success'), t('success.profileSetupComplete'));
+
+      // Navigate immediately without alert to avoid timing issues
       router.replace('/buyer-home');
+
+      // Show success message after navigation
+      setTimeout(() => {
+        Alert.alert(t('common.success'), t('success.profileSetupComplete'));
+      }, 500);
+
     } catch (error) {
       console.error('❌ [BUYER-SETUP] Setup error:', error);
-      Alert.alert(t('common.error'), t('errors.setupFailed'));
+      const errorMessage = error instanceof Error ? error.message : t('errors.setupFailed');
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setIsLoading(false);
     }

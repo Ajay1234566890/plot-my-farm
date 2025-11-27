@@ -36,7 +36,7 @@ export default function CreateRequest() {
 
     // Set screen context
     screenContextService.setContext({
-      screenName: 'create-request',
+      screenName: 'buyer-offers' as any,
       screenTitle: 'Create Purchase Request',
       hasForm: true,
       formFields: ['cropType', 'quantityNeeded', 'maxPrice', 'deliveryDate'],

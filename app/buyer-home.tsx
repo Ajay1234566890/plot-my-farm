@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
@@ -19,21 +19,20 @@ import MapLibreView from "@/components/MapLibreView";
 import { useAuth } from '@/contexts/auth-context';
 import { Farmer, farmerService } from '@/services/farmer-service';
 import { MarketPrice, marketPricesService } from '@/services/market-prices-service';
-import { wishlistService } from '@/services/wishlist-service';
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
-  Bell,
-  DollarSign,
-  Heart,
-  MapPin,
-  Package,
-  Search,
-  ShoppingCart,
-  TrendingUp
+    Bell,
+    DollarSign,
+    Heart,
+    MapPin,
+    Package,
+    Search,
+    ShoppingCart,
+    TrendingUp
 } from 'lucide-react-native';
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
+const screenWidth = Dimensions.get("window").width;
 
 export default function BuyerHome() {
   const { t } = useTranslation();
@@ -61,16 +60,24 @@ function BuyerHomeContent() {
   const [loadingPrices, setLoadingPrices] = useState(true);
   const [nearbyFarmers, setNearbyFarmers] = useState<Farmer[]>([]);
   const [loadingFarmers, setLoadingFarmers] = useState(true);
-  const [wishlistCropIds, setWishlistCropIds] = useState<number[]>([]);
 
   // Scroll animation for glass card fade effect (matching Farmer Dashboard)
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Log component mount for debugging
+  useEffect(() => {
+    console.log('🏠 [BUYER-HOME] Component mounted');
+    console.log('🏠 [BUYER-HOME] User:', {
+      hasUser: !!user,
+      userRole: user?.role,
+      userName: user?.name
+    });
+  }, []);
 
   // Fetch real market prices on mount
   useEffect(() => {
     loadMarketPrices();
     loadNearbyFarmers();
-    loadWishlist();
   }, []);
 
   const loadMarketPrices = async () => {
@@ -94,40 +101,6 @@ function BuyerHomeContent() {
       console.error('Error loading nearby farmers:', error);
     } finally {
       setLoadingFarmers(false);
-    }
-  };
-
-  const loadWishlist = async () => {
-    if (!user?.id) return;
-    try {
-      const cropIds = await wishlistService.getWishlist(user.id);
-      setWishlistCropIds(cropIds);
-    } catch (error) {
-      console.error('Error loading wishlist:', error);
-    }
-  };
-
-  const handleToggleWishlist = async (cropId: number, e?: any) => {
-    if (e) {
-      e.stopPropagation();
-    }
-
-    if (!user?.id) {
-      console.log('User not logged in');
-      return;
-    }
-
-    try {
-      const result = await wishlistService.toggleWishlist(user.id, cropId);
-      if (result.success) {
-        if (result.isInWishlist) {
-          setWishlistCropIds([...wishlistCropIds, cropId]);
-        } else {
-          setWishlistCropIds(wishlistCropIds.filter(id => id !== cropId));
-        }
-      }
-    } catch (error) {
-      console.error('Error toggling wishlist:', error);
     }
   };
 
@@ -216,16 +189,10 @@ function BuyerHomeContent() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
-      {/* Compact Header Section - Absolutely positioned to allow content to scroll behind */}
-      <View
-        className="absolute top-0 left-0 right-0"
-        style={{
-          zIndex: 20,
-          paddingBottom: 100
-        }}
-      >
+      {/* Compact Header Section */}
+      <View className="relative">
         <View
-          className="px-5 pt-10 pb-20"
+          className="px-5 pt-10 pb-6"
           style={{
             backgroundColor: '#B27E4C', // Buyer primary color (brown/copper)
             borderBottomLeftRadius: 30,
@@ -266,73 +233,82 @@ function BuyerHomeContent() {
             </TouchableOpacity>
           </View>
 
-          {/* Search Bar - Matching reference design */}
-          <View className="mt-2 mb-4">
+          {/* Search Bar - Matching Farmer Home layout with Buyer colors */}
+          <View className="mt-2">
             <View
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.25)', // Semi-transparent white
-                borderRadius: 25,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
+                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Buyer translucent white
+                borderRadius: 16,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
                 flexDirection: 'row',
                 alignItems: 'center',
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.3)',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 4,
               }}
             >
-              <Search size={20} color="rgba(255, 255, 255, 0.9)" />
+              <Search size={18} color="#FFFFFF" />
               <TextInput
                 placeholder={t('buyerHome.searchForCrops')}
-                placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                placeholderTextColor="rgba(255, 255, 255, 0.9)"
                 style={{
                   flex: 1,
-                  marginLeft: 12,
-                  fontSize: 15,
+                  marginLeft: 8,
+                  fontSize: 14,
                   color: 'white',
                   backgroundColor: 'transparent'
                 }}
               />
               <TouchableOpacity style={{ padding: 4 }}>
-                <MapPin size={18} color="rgba(255, 255, 255, 0.9)" />
+                <MapPin size={16} color="rgba(255, 255, 255, 0.8)" />
               </TouchableOpacity>
             </View>
           </View>
         </View>
+      </View>
 
-        {/* Map Card - Floating/Overlapping Effect with Fade Animation */}
-        <Animated.View
-          className="absolute px-5"
-          style={{
-            top: 195, // Position to overlap the brown section with spacing from search bar
-            left: 0,
-            right: 0,
-            zIndex: 10,
-            opacity: scrollY.interpolate({
-              inputRange: [0, 150],
-              outputRange: [1, 0],
-              extrapolate: 'clamp',
-            }),
-            transform: [{
-              translateY: scrollY.interpolate({
+      <Animated.ScrollView
+        className="flex-1 pb-24"
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        contentContainerStyle={{
+          paddingTop: 20,
+          paddingBottom: 100, // Fixed padding for bottom navigation
+        }}
+      >
+        {/* Map Card - Glass Card with Fade Effect (Matching Farmer Dashboard) */}
+        <View className="px-5 mb-6">
+          <Animated.View
+            className="rounded-3xl overflow-hidden"
+            style={{
+              height: 280,
+              backgroundColor: 'rgba(255, 255, 255, 0.85)', // Glass effect
+              shadowColor: '#B27E4C',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.3,
+              shadowRadius: 15,
+              elevation: 10,
+              opacity: scrollY.interpolate({
                 inputRange: [0, 150],
-                outputRange: [0, -30],
+                outputRange: [1, 0],
                 extrapolate: 'clamp',
               }),
-            }],
-          }}
-        >
-          <View
-            className="bg-white rounded-3xl overflow-hidden"
-            style={{
-              height: 260,
-              shadowColor: '#B27E4C',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.15,
-              shadowRadius: 20,
-              elevation: 12,
+              transform: [{
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 150],
+                  outputRange: [0, -30],
+                  extrapolate: 'clamp',
+                }),
+              }],
             }}
           >
-            {/* Map Component */}
             <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
               <MapLibreView
                 showFarmers={true}
@@ -394,23 +370,9 @@ function BuyerHomeContent() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </Animated.View>
-      </View>
+          </Animated.View>
+        </View>
 
-      <Animated.ScrollView
-        className="flex-1 pb-24"
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={16}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        contentContainerStyle={{
-          paddingTop: 475, // Map card top position (195) + map card height (260) + spacing (20) = 475
-          paddingBottom: 100, // Fixed padding for bottom navigation
-        }}
-      >
         {/* Featured Crops Section - Redesigned with buyer color scheme */}
         <View className="mb-6">
           <View className="px-6 flex-row justify-between items-center mb-4">
@@ -420,7 +382,6 @@ function BuyerHomeContent() {
             <TouchableOpacity
               className="px-4 py-2 rounded-full"
               style={{ backgroundColor: '#B27E4C' }}
-              onPress={() => router.push('/featured-crops')}
             >
               <Text className="text-sm font-semibold text-white">
                 {t('common.viewAll')}
@@ -437,7 +398,7 @@ function BuyerHomeContent() {
                 key={crop.id}
                 className="mr-4 bg-white rounded-3xl p-4 shadow-lg"
                 style={{
-                  width: SCREEN_WIDTH * 0.45,
+                  width: screenWidth * 0.45,
                   shadowColor: '#B27E4C',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.1,
@@ -446,25 +407,14 @@ function BuyerHomeContent() {
                   borderWidth: 1,
                   borderColor: '#B27E4C20'
                 }}
-                onPress={() => router.push({
-                  pathname: "/buyer-crop-details",
-                  params: { cropId: crop.id.toString(), from: 'buyer-home' }
-                })}
               >
                 <View className="relative">
                   <Image
                     source={{ uri: crop.image }}
                     className="w-full h-32 rounded-2xl mb-3"
                   />
-                  <TouchableOpacity
-                    className="absolute top-2 right-2 bg-white rounded-full p-2 shadow"
-                    onPress={(e) => handleToggleWishlist(crop.id, e)}
-                  >
-                    <Heart
-                      size={16}
-                      color="#B27E4C"
-                      fill={wishlistCropIds.includes(crop.id) ? "#B27E4C" : "white"}
-                    />
+                  <TouchableOpacity className="absolute top-2 right-2 bg-white rounded-full p-2 shadow">
+                    <Heart size={16} color="#B27E4C" fill="white" />
                   </TouchableOpacity>
                 </View>
                 <Text className="text-gray-800 font-bold text-base mb-1">{crop.name}</Text>
@@ -552,7 +502,7 @@ function BuyerHomeContent() {
                   onPress={() => router.push("/buyer-market-prices")}
                   className="mr-4 bg-white rounded-3xl p-5 items-center shadow-lg"
                   style={{
-                    width: SCREEN_WIDTH * 0.32,
+                    width: screenWidth * 0.32,
                     shadowColor: '#B27E4C',
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 0.1,
@@ -653,10 +603,6 @@ function BuyerHomeContent() {
                     borderWidth: 1,
                     borderColor: '#B27E4C10'
                   }}
-                  onPress={() => router.push({
-                    pathname: "/buyer-crop-details",
-                    params: { cropId: crop.id.toString(), from: 'buyer-home' }
-                  })}
                 >
                   <Image
                     source={{ uri: crop.image }}
@@ -669,15 +615,8 @@ function BuyerHomeContent() {
                       {crop.price}
                     </Text>
                   </View>
-                  <TouchableOpacity
-                    className="p-2"
-                    onPress={(e) => handleToggleWishlist(crop.id, e)}
-                  >
-                    <Heart
-                      size={20}
-                      color="#B27E4C"
-                      fill={wishlistCropIds.includes(crop.id) ? "#B27E4C" : "white"}
-                    />
+                  <TouchableOpacity className="p-2">
+                    <Heart size={20} color="#B27E4C" fill="white" />
                   </TouchableOpacity>
                 </TouchableOpacity>
               ))}
@@ -700,10 +639,6 @@ function BuyerHomeContent() {
                       borderWidth: 1,
                       borderColor: '#B27E4C10'
                     }}
-                    onPress={() => router.push({
-                      pathname: "/farmer-details",
-                      params: { farmerId: farmer.id.toString() }
-                    })}
                   >
                     <Image
                       source={{ uri: farmer.image }}
@@ -713,16 +648,7 @@ function BuyerHomeContent() {
                       <Text className="text-gray-800 font-bold text-base">{farmer.name}</Text>
                       <Text className="text-gray-500 text-sm">{farmer.distance} {t('buyerHome.away')}</Text>
                     </View>
-                    <TouchableOpacity
-                      className="p-2"
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        router.push({
-                          pathname: "/nearby-farmers",
-                          params: { selectedFarmerId: farmer.id.toString() }
-                        });
-                      }}
-                    >
+                    <TouchableOpacity className="p-2">
                       <MapPin size={20} color="#B27E4C" />
                     </TouchableOpacity>
                   </TouchableOpacity>

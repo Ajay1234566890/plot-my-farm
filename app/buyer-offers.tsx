@@ -1,7 +1,7 @@
 import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Bell, MessageCircle, Plus, Search, User } from 'lucide-react-native';
+import { ArrowLeft, Bell, MessageCircle, Phone, Plus, Search, User } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
