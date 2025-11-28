@@ -3,16 +3,16 @@ import { Language, useAuth } from '@/contexts/auth-context';
 import { SUPPORTED_LANGUAGES } from '@/i18n/config';
 import { useRouter } from 'expo-router';
 import { ChevronDown, Mic, ShoppingCart, Sprout, X } from 'lucide-react-native';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 export default function SelectRole() {
@@ -93,17 +93,15 @@ export default function SelectRole() {
                 key={role.id}
                 onPress={() => setSelectedRole(role.id)}
                 disabled={isLoading}
-                className={`p-6 rounded-2xl border-2 transition-all ${
-                  isSelected
+                className={`p-6 rounded-2xl border-2 transition-all ${isSelected
                     ? 'border-green-600 bg-green-50'
                     : 'border-gray-200 bg-white'
-                }`}
+                  }`}
               >
                 <View className="flex-row items-start">
                   <View
-                    className={`w-14 h-14 rounded-full items-center justify-center mr-4 ${
-                      isSelected ? 'bg-green-600' : 'bg-gray-100'
-                    }`}
+                    className={`w-14 h-14 rounded-full items-center justify-center mr-4 ${isSelected ? 'bg-green-600' : 'bg-gray-100'
+                      }`}
                   >
                     <Icon
                       size={28}
@@ -112,9 +110,8 @@ export default function SelectRole() {
                   </View>
                   <View className="flex-1">
                     <Text
-                      className={`text-lg font-bold mb-1 ${
-                        isSelected ? 'text-green-600' : 'text-gray-900'
-                      }`}
+                      className={`text-lg font-bold mb-1 ${isSelected ? 'text-green-600' : 'text-gray-900'
+                        }`}
                     >
                       {role.title}
                     </Text>
@@ -160,16 +157,14 @@ export default function SelectRole() {
                     setIsLanguageOpen(false);
                   }}
                   disabled={isLoading}
-                  className={`p-4 border-b border-gray-100 ${
-                    selectedLanguage === language.code ? 'bg-green-50' : 'bg-white'
-                  }`}
+                  className={`p-4 border-b border-gray-100 ${selectedLanguage === language.code ? 'bg-green-50' : 'bg-white'
+                    }`}
                 >
                   <Text
-                    className={`text-base font-medium ${
-                      selectedLanguage === language.code
+                    className={`text-base font-medium ${selectedLanguage === language.code
                         ? 'text-green-600'
                         : 'text-gray-900'
-                    }`}
+                      }`}
                   >
                     {language.nativeName}
                   </Text>
@@ -183,9 +178,8 @@ export default function SelectRole() {
         <TouchableOpacity
           onPress={handleContinue}
           disabled={!selectedRole || isLoading}
-          className={`p-4 rounded-xl flex-row items-center justify-center ${
-            selectedRole && !isLoading ? 'bg-green-600' : 'bg-gray-300'
-          }`}
+          className={`p-4 rounded-xl flex-row items-center justify-center ${selectedRole && !isLoading ? 'bg-green-600' : 'bg-gray-300'
+            }`}
         >
           {isLoading ? (
             <ActivityIndicator color="#ffffff" />
@@ -208,11 +202,14 @@ export default function SelectRole() {
         </TouchableOpacity>
       </View>
 
-      {/* Voice Agent FAB - Centered at bottom */}
-      <View className="absolute bottom-6 left-0 right-0 items-center">
+      {/* Voice Agent FAB - Centered horizontally, 12dp above bottom */}
+      <View
+        className="absolute left-0 right-0 items-center"
+        style={{ bottom: 12 }}
+      >
         <TouchableOpacity
           onPress={() => setIsVoiceAgentOpen(true)}
-          className="w-16 h-16 bg-green-600 rounded-full items-center justify-center shadow-lg"
+          className="w-16 h-16 bg-green-600 rounded-full items-center justify-center"
           style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },

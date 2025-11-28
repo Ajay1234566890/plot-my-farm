@@ -20,11 +20,10 @@ import {
   User,
   X
 } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  Animated,
   Dimensions,
   Image,
   Modal,
@@ -59,8 +58,7 @@ function FarmerHomeContent() {
   const [searchText, setSearchText] = useState('');
   const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
 
-  // Scroll animation for glass card fade effect
-  const scrollY = useRef(new Animated.Value(0)).current;
+
 
   // Log component mount for debugging
   useEffect(() => {
@@ -150,16 +148,17 @@ function FarmerHomeContent() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
-      {/* Compact Header Section - Reduced height for more screen space */}
-      <View
-        className="absolute top-0 left-0 right-0"
-        style={{
-          zIndex: 20,
-          paddingBottom: 60
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          paddingBottom: 100, // Padding for bottom navigation
         }}
       >
+        {/* Header Section */}
         <View
-          className="px-5 pt-6 pb-12"
+          className="px-5 pt-6 pb-6"
           style={{
             backgroundColor: '#7C8B3A', // Olive/army green matching reference image
             borderBottomLeftRadius: 30,
@@ -215,7 +214,7 @@ function FarmerHomeContent() {
           </View>
 
           {/* Search Bar - Matching reference design with functional mic */}
-          <View className="mt-2 mb-4">
+          <View className="mt-2">
             <View
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.25)', // Semi-transparent white
@@ -255,28 +254,8 @@ function FarmerHomeContent() {
           </View>
         </View>
 
-        {/* Map Card - Floating/Overlapping Effect with Fade Animation - Fixed positioning */}
-        <Animated.View
-          className="absolute px-5"
-          style={{
-            top: 155, // Reduced to match smaller header
-            left: 0,
-            right: 0,
-            zIndex: 10,
-            opacity: scrollY.interpolate({
-              inputRange: [0, 120],
-              outputRange: [1, 0],
-              extrapolate: 'clamp',
-            }),
-            transform: [{
-              translateY: scrollY.interpolate({
-                inputRange: [0, 120],
-                outputRange: [0, -25],
-                extrapolate: 'clamp',
-              }),
-            }],
-          }}
-        >
+        {/* Map Card - Now scrollable with proper spacing */}
+        <View className="px-4 mt-4">
           <View
             className="bg-white rounded-3xl overflow-hidden"
             style={{
@@ -350,22 +329,7 @@ function FarmerHomeContent() {
               </TouchableOpacity>
             </View>
           </View>
-        </Animated.View>
-      </View>
-
-      <Animated.ScrollView
-        className="flex-1 pb-24"
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={16}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        contentContainerStyle={{
-          paddingTop: 415, // Map card top position (155) + map card height (260) = 415
-          paddingBottom: 100, // Fixed padding for bottom navigation
-        }}
-      >
+        </View>
 
         {/* Market Prices - Redesigned with olive green accent */}
         <View className="mb-6" style={{ marginTop: 0 }}>
@@ -588,7 +552,7 @@ function FarmerHomeContent() {
             </View>
           </TouchableOpacity>
         </View>
-      </Animated.ScrollView>
+      </ScrollView>
 
       {/* Bottom Navigation - Absolute Positioning */}
       <View className="absolute bottom-0 left-0 right-0">
