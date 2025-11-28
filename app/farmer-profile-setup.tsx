@@ -1,10 +1,12 @@
 import { useAuth } from '@/contexts/auth-context';
+import { supabase } from '@/utils/supabase';
+import Geolocation from '@react-native-community/geolocation';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { Camera, ChevronDown, ChevronLeft, MapPin, Mic } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function FarmerProfileSetup() {
 const { t } = useTranslation();
@@ -13,6 +15,11 @@ const { user } = useAuth();
 const [cropType, setCropType] = useState('');
 const [isCropTypeOpen, setIsCropTypeOpen] = useState(false);
 const [profileImage, setProfileImage] = useState(user?.profileImage || '');
+const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+const [locationAddress, setLocationAddress] = useState('');
+const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+const [soilTest, setSoilTest] = useState('');
+const [isSoilTestOpen, setIsSoilTestOpen] = useState(false);
 const [formData, setFormData] = useState({
   name: user?.name || '',
   address: '',
@@ -30,6 +37,69 @@ const cropTypes = [
 'Vegetables',
 'Fruits',
 ];
+
+const soilTestTypes = [
+'Sandy Soil',
+'Clay Soil',
+'Loamy Soil',
+'Silt Soil',
+'Peaty Soil',
+'Chalky Soil',
+];
+
+// Auto-fetch location on mount
+useEffect(() => {
+  fetchLocation();
+}, []);
+
+// Fetch current location
+const fetchLocation = async () => {
+  try {
+    setIsFetchingLocation(true);
+    console.log('📍 [PROFILE-SETUP] Fetching location...');
+
+    if (Platform.OS === 'web') {
+      // Web geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            console.log('✅ [PROFILE-SETUP] Location fetched:', { latitude, longitude });
+            setLocation({ latitude, longitude });
+            setLocationAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+            setIsFetchingLocation(false);
+          },
+          (error) => {
+            console.error('❌ [PROFILE-SETUP] Location error:', error);
+            setLocationAddress('Location unavailable');
+            setIsFetchingLocation(false);
+          }
+        );
+      }
+    } else {
+      // Mobile geolocation
+      Geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log('✅ [PROFILE-SETUP] Location fetched:', { latitude, longitude });
+          setLocation({ latitude, longitude });
+          setLocationAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          setIsFetchingLocation(false);
+        },
+        (error) => {
+          console.error('❌ [PROFILE-SETUP] Location error:', error);
+          setLocationAddress('Location unavailable');
+          setIsFetchingLocation(false);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+      );
+    }
+  } catch (error) {
+    console.error('❌ [PROFILE-SETUP] Location exception:', error);
+    setLocationAddress('Location unavailable');
+    setIsFetchingLocation(false);
+  }
+};
 
 // Image picker function
 const handleImagePick = async () => {
@@ -58,9 +128,55 @@ const handleImagePick = async () => {
 };
 
 // Handle save
-const handleSave = () => {
-  // TODO: Implement save to database
-  Alert.alert(t('common.success'), 'Profile saved successfully!');
+const handleSave = async () => {
+  try {
+    if (!user?.id) {
+      Alert.alert(t('common.error'), 'User not authenticated');
+      return;
+    }
+
+    console.log('💾 [PROFILE-SETUP] Saving profile...');
+
+    // Prepare update data
+    const updateData: any = {
+      full_name: formData.name,
+      land_size: formData.landSize,
+      state: formData.state,
+      city: formData.city,
+      pincode: formData.pincode,
+      crop_type: cropType,
+      soil_test: soilTest,
+    };
+
+    // Add location if available
+    if (location) {
+      updateData.latitude = location.latitude;
+      updateData.longitude = location.longitude;
+      updateData.address = locationAddress;
+    }
+
+    console.log('📝 [PROFILE-SETUP] Update data:', updateData);
+
+    // Update farmer profile in Supabase
+    const { data, error } = await supabase
+      .from('farmers')
+      .update(updateData)
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ [PROFILE-SETUP] Save error:', error);
+      Alert.alert(t('common.error'), error.message);
+      return;
+    }
+
+    console.log('✅ [PROFILE-SETUP] Profile saved:', data);
+    Alert.alert(t('common.success'), 'Profile saved successfully!');
+  } catch (error) {
+    console.error('❌ [PROFILE-SETUP] Save exception:', error);
+    Alert.alert(t('common.error'), 'Failed to save profile');
+  }
 };
 
 // Handle continue
@@ -153,13 +269,22 @@ elevation: 8,
 />
 </View>
 
-{/* Address Input */}
+{/* Address Input - Auto-fetched GPS */}
 <View>
 <Text className="text-sm font-medium text-gray-700 mb-1">{t('profile.address')}</Text>
-<TouchableOpacity className="p-4 rounded-xl border border-gray-200 flex-row items-center justify-between">
+<TouchableOpacity
+  className="p-4 rounded-xl border border-gray-200 flex-row items-center justify-between"
+  onPress={fetchLocation}
+>
 <View className="flex-row items-center flex-1">
 <MapPin size={20} color="#374151" />
-<Text className="text-gray-400 ml-2">{t('profile.autoFetchedGPS')}</Text>
+{isFetchingLocation ? (
+  <ActivityIndicator size="small" color="#7C8B3A" style={{ marginLeft: 8 }} />
+) : (
+  <Text className={`ml-2 ${locationAddress ? 'text-gray-900' : 'text-gray-400'}`}>
+    {locationAddress || t('profile.autoFetchedGPS')}
+  </Text>
+)}
 </View>
 </TouchableOpacity>
 </View>
@@ -168,38 +293,38 @@ elevation: 8,
 <View>
 <Text className="text-sm font-medium text-gray-700 mb-1">{t('profile.soilTest')}</Text>
 <TouchableOpacity
-onPress={() => setIsCropTypeOpen(!isCropTypeOpen)}
+onPress={() => setIsSoilTestOpen(!isSoilTestOpen)}
 className="p-4 rounded-xl border border-gray-200 flex-row items-center justify-between"
 >
-<Text className="text-gray-900">
-{cropType || t('profile.selectSoilTest')}
+<Text className={soilTest ? 'text-gray-900' : 'text-gray-400'}>
+{soilTest || t('profile.selectSoilTest')}
 </Text>
-<ChevronDown 
-size={20} 
+<ChevronDown
+size={20}
 color="#374151"
-className={`transform ${isCropTypeOpen ? 'rotate-180' : 'rotate-0'}`}
+className={`transform ${isSoilTestOpen ? 'rotate-180' : 'rotate-0'}`}
 />
 </TouchableOpacity>
 
-{isCropTypeOpen && (
+{isSoilTestOpen && (
 <View className="mt-2 border border-gray-200 rounded-xl overflow-hidden">
-{cropTypes.map((crop) => (
+{soilTestTypes.map((soil) => (
 <TouchableOpacity
-key={crop}
+key={soil}
 onPress={() => {
-setCropType(crop);
-setIsCropTypeOpen(false);
+setSoilTest(soil);
+setIsSoilTestOpen(false);
 }}
 className={`p-4 ${
-cropType === crop ? 'bg-green-50' : 'bg-white'
+soilTest === soil ? 'bg-green-50' : 'bg-white'
 }`}
 >
 <Text
 className={`text-base ${
-cropType === crop ? 'text-green-600' : 'text-gray-900'
+soilTest === soil ? 'text-green-600' : 'text-gray-900'
 }`}
 >
-{crop}
+{soil}
 </Text>
 </TouchableOpacity>
 ))}

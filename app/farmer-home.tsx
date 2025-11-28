@@ -2,34 +2,37 @@ import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import { HomePageErrorBoundary } from "@/components/HomePageErrorBoundary";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import MapLibreView from "@/components/MapLibreView";
+import VoiceAgentChat from "@/components/VoiceAgentChat";
 import { useAuth } from "@/contexts/auth-context";
 import { MarketPrice, marketPricesService } from '@/services/market-prices-service';
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from "expo-router";
 import {
-    Bell,
-    CloudSun,
-    MapPin,
-    MessageCircle,
-    Mic,
-    Plus,
-    Search,
-    Tag,
-    TrendingUp,
-    User
+  Bell,
+  CloudSun,
+  MapPin,
+  MessageCircle,
+  Mic,
+  Plus,
+  Search,
+  Tag,
+  TrendingUp,
+  User,
+  X
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Animated,
-    Dimensions,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
@@ -53,6 +56,8 @@ function FarmerHomeContent() {
   const { user } = useAuth();
   const [marketPrices, setMarketPrices] = useState<MarketPrice[]>([]);
   const [loadingPrices, setLoadingPrices] = useState(true);
+  const [searchText, setSearchText] = useState('');
+  const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
 
   // Scroll animation for glass card fade effect
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -93,6 +98,12 @@ function FarmerHomeContent() {
     } finally {
       setLoadingPrices(false);
     }
+  };
+
+  // Handle voice agent - Opens AI voice assistant
+  const handleVoiceAgent = () => {
+    console.log('🎤 [FARMER-HOME] Opening Voice Agent...');
+    setIsVoiceAgentOpen(true);
   };
 
   // Mock data for recommended buyers (restored from original)
@@ -139,16 +150,16 @@ function FarmerHomeContent() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
-      {/* Compact Header Section - Absolutely positioned to allow content to scroll behind */}
+      {/* Compact Header Section - Reduced height for more screen space */}
       <View
         className="absolute top-0 left-0 right-0"
         style={{
           zIndex: 20,
-          paddingBottom: 100
+          paddingBottom: 60
         }}
       >
         <View
-          className="px-5 pt-10 pb-20"
+          className="px-5 pt-6 pb-12"
           style={{
             backgroundColor: '#7C8B3A', // Olive/army green matching reference image
             borderBottomLeftRadius: 30,
@@ -203,7 +214,7 @@ function FarmerHomeContent() {
             </TouchableOpacity>
           </View>
 
-          {/* Search Bar - Matching reference design */}
+          {/* Search Bar - Matching reference design with functional mic */}
           <View className="mt-2 mb-4">
             <View
               style={{
@@ -221,6 +232,8 @@ function FarmerHomeContent() {
               <TextInput
                 placeholder="Search here..."
                 placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                value={searchText}
+                onChangeText={setSearchText}
                 style={{
                   flex: 1,
                   marginLeft: 12,
@@ -229,30 +242,36 @@ function FarmerHomeContent() {
                   backgroundColor: 'transparent'
                 }}
               />
-              <TouchableOpacity style={{ padding: 4 }}>
-                <Mic size={18} color="rgba(255, 255, 255, 0.9)" />
+              <TouchableOpacity
+                style={{ padding: 4 }}
+                onPress={handleVoiceAgent}
+              >
+                <Mic
+                  size={18}
+                  color="rgba(255, 255, 255, 0.9)"
+                />
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        {/* Map Card - Floating/Overlapping Effect with Fade Animation */}
+        {/* Map Card - Floating/Overlapping Effect with Fade Animation - Fixed positioning */}
         <Animated.View
           className="absolute px-5"
           style={{
-            top: 195, // Position to overlap the green section with spacing from search bar
+            top: 155, // Reduced to match smaller header
             left: 0,
             right: 0,
             zIndex: 10,
             opacity: scrollY.interpolate({
-              inputRange: [0, 150],
+              inputRange: [0, 120],
               outputRange: [1, 0],
               extrapolate: 'clamp',
             }),
             transform: [{
               translateY: scrollY.interpolate({
-                inputRange: [0, 150],
-                outputRange: [0, -30],
+                inputRange: [0, 120],
+                outputRange: [0, -25],
                 extrapolate: 'clamp',
               }),
             }],
@@ -343,7 +362,7 @@ function FarmerHomeContent() {
           { useNativeDriver: true }
         )}
         contentContainerStyle={{
-          paddingTop: 475, // Map card top position (195) + map card height (260) + spacing (20) = 475
+          paddingTop: 415, // Map card top position (155) + map card height (260) = 415
           paddingBottom: 100, // Fixed padding for bottom navigation
         }}
       >
@@ -575,6 +594,47 @@ function FarmerHomeContent() {
       <View className="absolute bottom-0 left-0 right-0">
         <FarmerBottomNav activeTab="home" />
       </View>
+
+      {/* Voice Agent Modal */}
+      <Modal
+        visible={isVoiceAgentOpen}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setIsVoiceAgentOpen(false)}
+      >
+        <View className="flex-1 bg-white">
+          {/* Header */}
+          <View className="px-6 pt-12 pb-4 border-b border-gray-200 flex-row items-center justify-between">
+            <Text className="text-2xl font-bold text-gray-900">
+              {t('voiceAgent.title', { defaultValue: 'Voice Assistant' })}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setIsVoiceAgentOpen(false)}
+              className="w-10 h-10 items-center justify-center"
+            >
+              <X size={24} color="#374151" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Voice Agent Chat Component */}
+          {user && (
+            <VoiceAgentChat
+              userId={user.id}
+              userRole="farmer"
+              language={user.language || 'en'}
+              onClose={() => setIsVoiceAgentOpen(false)}
+              onAction={(action) => {
+                console.log('Voice Agent Action:', action);
+                if (action.route) {
+                  setIsVoiceAgentOpen(false);
+                  router.push(action.route as any);
+                }
+              }}
+              screenName="farmer-home"
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }

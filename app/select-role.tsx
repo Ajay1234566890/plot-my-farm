@@ -208,20 +208,22 @@ export default function SelectRole() {
         </TouchableOpacity>
       </View>
 
-      {/* Voice Agent FAB */}
-      <TouchableOpacity
-        onPress={() => setIsVoiceAgentOpen(true)}
-        className="absolute bottom-6 right-6 w-16 h-16 bg-green-600 rounded-full items-center justify-center shadow-lg"
-        style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 8,
-        }}
-      >
-        <Mic size={28} color="#ffffff" />
-      </TouchableOpacity>
+      {/* Voice Agent FAB - Centered at bottom */}
+      <View className="absolute bottom-6 left-0 right-0 items-center">
+        <TouchableOpacity
+          onPress={() => setIsVoiceAgentOpen(true)}
+          className="w-16 h-16 bg-green-600 rounded-full items-center justify-center shadow-lg"
+          style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 8,
+          }}
+        >
+          <Mic size={28} color="#ffffff" />
+        </TouchableOpacity>
+      </View>
 
       {/* Voice Agent Modal */}
       <Modal

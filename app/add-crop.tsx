@@ -41,6 +41,7 @@ export default function AddCrop() {
   const [price, setPrice] = useState("");
   const [harvestDate, setHarvestDate] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
   // Register screen context and form fields for voice automation
   useEffect(() => {
@@ -101,6 +102,57 @@ export default function AddCrop() {
     }
   };
 
+  // Handle voice input for crop name
+  const handleVoiceInput = async () => {
+    try {
+      setIsListening(true);
+      console.log('🎤 [ADD-CROP] Starting voice input...');
+
+      const transcript = await speechToTextService.startRecording({
+        language: 'en',
+        continuous: false,
+      });
+
+      if (transcript) {
+        console.log('✅ [ADD-CROP] Voice transcript:', transcript);
+        setCropName(transcript);
+      }
+    } catch (error) {
+      console.error('❌ [ADD-CROP] Voice input error:', error);
+      Alert.alert(t('common.error'), t('errors.voiceInputFailed'));
+    } finally {
+      setIsListening(false);
+    }
+  };
+
+  // Convert date from DD/MM/YYYY to YYYY-MM-DD for PostgreSQL
+  const convertDateToISO = (dateString: string): string => {
+    if (!dateString) return '';
+
+    // Check if already in ISO format (YYYY-MM-DD)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+
+    // Convert from DD/MM/YYYY to YYYY-MM-DD
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+      const [day, month, year] = dateString.split('/');
+      return `${year}-${month}-${day}`;
+    }
+
+    // If it's a Date object or timestamp, convert to ISO
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    } catch (e) {
+      console.error('Date conversion error:', e);
+    }
+
+    return dateString;
+  };
+
   const handleSaveCrop = async () => {
     // Validation
     if (!cropName || !quantity || !selectedUnit || !price) {
@@ -141,7 +193,10 @@ export default function AddCrop() {
 
       console.log('✅ [ADD-CROP] Farmer verified:', farmerCheck);
 
-      // Create crop data
+      // Create crop data with converted date
+      const convertedDate = harvestDate ? convertDateToISO(harvestDate) : undefined;
+      console.log('📅 [ADD-CROP] Date conversion:', { original: harvestDate, converted: convertedDate });
+
       const cropData = {
         farmer_id: user.id,
         name: cropName,
@@ -150,7 +205,7 @@ export default function AddCrop() {
         unit: selectedUnit,
         price_per_unit: parseFloat(price),
         image_uri: cropImage || undefined,
-        expected_harvest_date: harvestDate || undefined,
+        expected_harvest_date: convertedDate,
       };
 
       console.log('🌾 [ADD-CROP] Crop data:', cropData);
@@ -241,8 +296,15 @@ export default function AddCrop() {
                 className="flex-1 py-3.5 text-base text-gray-800"
                 placeholderTextColor="#9CA3AF"
               />
-              <TouchableOpacity className="p-2">
-                <Mic size={20} color="#6B7280" />
+              <TouchableOpacity
+                className="p-2"
+                onPress={handleVoiceInput}
+                disabled={isListening}
+              >
+                <Mic
+                  size={20}
+                  color={isListening ? "#FCD34D" : "#6B7280"}
+                />
               </TouchableOpacity>
             </View>
           </View>

@@ -1,4 +1,5 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
+import { useAuth } from "@/contexts/auth-context";
 import { useOffers } from "@/contexts/offers-context";
 import { formAutomationService } from "@/services/form-automation-service";
 import { screenContextService } from "@/services/screen-context-service";
@@ -24,6 +25,7 @@ const cropImageMap: { [key: string]: string } = {
 export default function AddOffer() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const params = useLocalSearchParams();
   const { addOffer, updateOffer } = useOffers();
 
@@ -48,6 +50,7 @@ export default function AddOffer() {
   const [availabilityDates, setAvailabilityDates] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [showCropTypes, setShowCropTypes] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Register screen context and form fields for voice automation
   useEffect(() => {
@@ -85,7 +88,7 @@ export default function AddOffer() {
     }
   }, [isEditMode, params]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validation
     if (!cropType || !quantity || !pricePerUnit) {
       Alert.alert(
@@ -96,45 +99,110 @@ export default function AddOffer() {
       return;
     }
 
-    // Get the English crop name for image mapping
-    const cropTypeEnglish = cropType.split(' ').pop() || cropType;
-    const image = cropImageMap[cropTypeEnglish] || cropImageMap['Tomatoes'];
+    if (!user?.id) {
+      Alert.alert(t('common.error'), 'User not logged in');
+      return;
+    }
 
-    // Create/Update the offer
-    const offerData = {
-      title: `${t('crops.fresh')} ${cropType}`,
-      cropType: cropType,
-      price: `₹${pricePerUnit}/kg`,
-      quantity: `${quantity} kg`,
-      image: image,
-    };
+    setIsSaving(true);
 
-    if (isEditMode && offerId) {
-      // Update existing offer
-      updateOffer(offerId, offerData);
-      Alert.alert(
-        t('common.success'),
-        'Offer updated successfully!',
-        [
-          {
-            text: t('common.ok'),
-            onPress: () => router.push("/farmer-offers"),
-          },
-        ]
-      );
-    } else {
-      // Create new offer
-      addOffer(offerData);
-      Alert.alert(
-        t('common.success'),
-        t('addOffer.offerCreatedSuccess'),
-        [
-          {
-            text: t('common.ok'),
-            onPress: () => router.push("/farmer-offers"),
-          },
-        ]
-      );
+    try {
+      // Get the English crop name for image mapping
+      const cropTypeEnglish = cropType.split(' ').pop() || cropType;
+      const image = cropImageMap[cropTypeEnglish] || cropImageMap['Tomatoes'];
+
+      // Prepare offer data for Supabase
+      const offerDbData = {
+        farmer_id: user.id,
+        title: `${t('crops.fresh')} ${cropType}`,
+        crop_type: cropType,
+        price: parseFloat(pricePerUnit),
+        quantity: parseFloat(quantity),
+        unit: 'kg',
+        min_order_quantity: minOrderQuantity ? parseFloat(minOrderQuantity) : null,
+        image_url: image,
+        status: 'active' as const,
+      };
+
+      if (isEditMode && offerId) {
+        // Update existing offer in Supabase
+        console.log('📝 [ADD-OFFER] Updating offer:', offerId);
+        const { data, error } = await supabase
+          .from('farmer_offers')
+          .update(offerDbData)
+          .eq('id', offerId)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('❌ [ADD-OFFER] Update failed:', error);
+          Alert.alert(t('common.error'), `Failed to update offer: ${error.message}`);
+          return;
+        }
+
+        console.log('✅ [ADD-OFFER] Offer updated:', data);
+
+        // Also update context for UI
+        updateOffer(offerId, {
+          title: offerDbData.title,
+          cropType: offerDbData.crop_type,
+          price: `₹${pricePerUnit}/kg`,
+          quantity: `${quantity} kg`,
+          image: image,
+        });
+
+        Alert.alert(
+          t('common.success'),
+          'Offer updated successfully!',
+          [
+            {
+              text: t('common.ok'),
+              onPress: () => router.push("/farmer-offers"),
+            },
+          ]
+        );
+      } else {
+        // Create new offer in Supabase
+        console.log('➕ [ADD-OFFER] Creating new offer');
+        const { data, error } = await supabase
+          .from('farmer_offers')
+          .insert([offerDbData])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('❌ [ADD-OFFER] Create failed:', error);
+          Alert.alert(t('common.error'), `Failed to create offer: ${error.message}`);
+          return;
+        }
+
+        console.log('✅ [ADD-OFFER] Offer created:', data);
+
+        // Also add to context for UI
+        addOffer({
+          title: offerDbData.title,
+          cropType: offerDbData.crop_type,
+          price: `₹${pricePerUnit}/kg`,
+          quantity: `${quantity} kg`,
+          image: image,
+        });
+
+        Alert.alert(
+          t('common.success'),
+          t('addOffer.offerCreatedSuccess'),
+          [
+            {
+              text: t('common.ok'),
+              onPress: () => router.push("/farmer-offers"),
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('❌ [ADD-OFFER] Exception:', error);
+      Alert.alert(t('common.error'), 'An error occurred while saving the offer.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -262,11 +330,17 @@ export default function AddOffer() {
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSubmit}
-          className="bg-emerald-600 rounded-lg py-4 mb-8"
+          disabled={isSaving}
+          className="rounded-lg py-4 mb-8"
+          style={{ backgroundColor: isSaving ? '#9CA3AF' : '#059669' }}
         >
-          <Text className="text-white text-center font-semibold text-lg">
-            {t('addOffer.postOffer')}
-          </Text>
+          {isSaving ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white text-center font-semibold text-lg">
+              {isEditMode ? t('common.update') : t('addOffer.postOffer')}
+            </Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
 

@@ -1,5 +1,6 @@
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
 import MapLibreView from "@/components/MapLibreView";
+import { speechToTextService } from "@/services/speech-to-text-service";
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
@@ -9,17 +10,17 @@ import {
     Mic,
     Phone,
     Search,
-    SlidersHorizontal,
     Star,
+    Video
 } from "lucide-react-native";
-import React from "react";
+import React, { useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
     Alert,
+    Animated,
     Dimensions,
     Image,
     Linking,
-    ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
@@ -31,8 +32,14 @@ const { width } = Dimensions.get("window");
 export default function NearbyBuyers() {
   const { t } = useTranslation();
   const router = useRouter();
+  const [searchText, setSearchText] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
 
-  // Handler functions for Call and Message
+  // Scroll animation for map fade-out
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Handler functions for Call, Message, and Video
   const handleCall = (buyerName: string, phone?: string) => {
     const phoneNumber = phone || '+1234567890'; // Mock phone number
     Alert.alert(
@@ -57,6 +64,51 @@ export default function NearbyBuyers() {
         userType: 'buyer'
       }
     });
+  };
+
+  const handleVideo = (buyerName: string, buyerId: number) => {
+    Alert.alert(
+      t('common.videoCall'),
+      `Starting video call with ${buyerName}`,
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.start'),
+          onPress: () => {
+            // TODO: Implement video call functionality
+            console.log('Video call with buyer:', buyerId);
+          }
+        }
+      ]
+    );
+  };
+
+  // Handle voice search
+  const handleVoiceSearch = async () => {
+    try {
+      setIsListening(true);
+      console.log('🎤 [NEARBY-BUYERS] Starting voice search...');
+
+      const transcript = await speechToTextService.startRecording({
+        language: 'en',
+        continuous: false,
+      });
+
+      if (transcript) {
+        console.log('✅ [NEARBY-BUYERS] Voice transcript:', transcript);
+        setSearchText(transcript);
+      }
+    } catch (error) {
+      console.error('❌ [NEARBY-BUYERS] Voice search error:', error);
+      Alert.alert(t('common.error'), t('errors.voiceInputFailed'));
+    } finally {
+      setIsListening(false);
+    }
+  };
+
+  // Handle sort toggle
+  const handleSort = () => {
+    setSortBy(prev => prev === 'distance' ? 'rating' : 'distance');
   };
 
   // Mock data for nearby buyers with enhanced details
@@ -96,18 +148,32 @@ export default function NearbyBuyers() {
     },
   ];
 
+  // Map fade animation
+  const mapOpacity = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
+  const mapTranslateY = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [0, -25],
+    extrapolate: 'clamp',
+  });
+
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
-      {/* Curved Header Section */}
+      {/* Reduced Header Section */}
       <View
-        className="px-6 pt-12 pb-8"
+        className="px-6 pt-8 pb-12"
         style={{
-          backgroundColor: '#B27E4C', // Brown/copper matching buyer design
+          backgroundColor: '#7C8B3A', // Olive/army green matching farmer theme
           borderBottomLeftRadius: 40,
           borderBottomRightRadius: 40,
+          paddingBottom: 60,
         }}
       >
-        <View className="flex-row items-center mb-4">
+        <View className="flex-row items-center mb-3">
           <TouchableOpacity
             className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
             onPress={() => router.back()}
@@ -116,54 +182,82 @@ export default function NearbyBuyers() {
           </TouchableOpacity>
           <Text className="text-xl font-bold text-white">{t('buyer.nearbyBuyers')}</Text>
         </View>
-        <Text className="text-white/80 mb-4">
-          {t('buyer.findBuyersForCrops')}
-        </Text>
 
-        {/* Enhanced Search Bar */}
+        {/* Search Bar - Removed filter icon, kept only mic */}
         <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
           <Search size={20} color="#4B5563" />
           <TextInput
             placeholder={t('buyer.searchBuyersLocations')}
             className="flex-1 ml-3 text-base text-gray-800"
             placeholderTextColor="#9CA3AF"
+            value={searchText}
+            onChangeText={setSearchText}
           />
-          <View className="flex-row">
-            <TouchableOpacity className="p-1 mr-2">
-              <Mic size={20} color="#4B5563" />
-            </TouchableOpacity>
-            <TouchableOpacity className="p-1">
-              <SlidersHorizontal size={20} color="#4B5563" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            className="p-1"
+            onPress={handleVoiceSearch}
+            disabled={isListening}
+          >
+            <Mic
+              size={20}
+              color={isListening ? "#FCD34D" : "#4B5563"}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Real MapLibre Map */}
-      <View className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg" style={{ height: 250 }}>
+      {/* Animated Map Card with Glass Effect */}
+      <Animated.View
+        className="absolute mx-4 rounded-3xl overflow-hidden"
+        style={{
+          top: 140,
+          left: 0,
+          right: 0,
+          height: 200,
+          opacity: mapOpacity,
+          transform: [{ translateY: mapTranslateY }],
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.3,
+          shadowRadius: 15,
+          elevation: 10,
+        }}
+      >
         <MapLibreView
           showFarmers={false}
           showBuyers={true}
           radiusInMeters={RADIUS_PRESETS.DEFAULT}
           onUserPress={(buyer) => {
             console.log('Selected buyer:', buyer.full_name);
-            // Can navigate to buyer details here
           }}
         />
-      </View>
+      </Animated.View>
 
-      {/* Buyers List with Enhanced Design */}
-      <View className="flex-1 px-4 mt-6">
+      {/* Scrollable Buyers List */}
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+        contentContainerStyle={{ paddingTop: 360, paddingBottom: 100, paddingHorizontal: 16 }}
+      >
+        {/* Sort Header */}
         <View className="flex-row items-center justify-between mb-4">
           <Text className="text-lg font-bold text-gray-900">{t('buyer.nearbyBuyersCount', { count: buyers.length })}</Text>
-          <TouchableOpacity className="flex-row items-center bg-gray-100 px-3 py-1 rounded-full">
+          <TouchableOpacity
+            className="flex-row items-center bg-gray-100 px-3 py-1 rounded-full"
+            onPress={handleSort}
+          >
             <Text className="text-sm font-medium text-gray-700 mr-1">
-              {t('buyer.sortByDistance')}
+              {sortBy === 'distance' ? t('buyer.sortByDistance') : t('buyer.sortByRating')}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} className="pb-4">
+        {/* Buyers Cards */}
           {buyers.map((buyer) => (
             <View
               key={buyer.id}
@@ -207,7 +301,7 @@ export default function NearbyBuyers() {
                     </Text>
                   </View>
                   
-                  <View className="flex-row items-center mt-1">
+                  <View className="flex-row items-center mt-1 flex-wrap">
                     <View className="flex-row items-center">
                       <Star size={14} color="#FBBF24" fill="#FBBF24" />
                       <Text className="text-sm font-semibold text-gray-900 ml-1">
@@ -217,37 +311,44 @@ export default function NearbyBuyers() {
                     <Text className="text-sm text-gray-500 ml-2">
                       ({t('buyer.reviewsCount', { count: buyer.reviews })})
                     </Text>
-                    <View className="w-1 h-1 rounded-full bg-gray-300 mx-2" />
-                    <Text className="text-xs text-gray-500">
+                  </View>
+
+                  <View className="flex-row items-center mt-1">
+                    <Text className="text-xs text-gray-500" numberOfLines={1}>
                       {t('buyer.active')} {buyer.lastActive}
                     </Text>
                   </View>
                 </View>
               </View>
 
-              {/* Action Buttons */}
-              <View className="flex-row mt-4 gap-3">
+              {/* Action Buttons - Call, Message, Video */}
+              <View className="flex-row mt-4 gap-2">
                 <TouchableOpacity
-                  className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3.5 shadow-sm"
+                  className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3 shadow-sm"
                   onPress={() => handleCall(buyer.name)}
                 >
-                  <Phone size={18} color="#FFFFFF" />
-                  <Text className="text-white font-semibold ml-2">{t('common.call')}</Text>
+                  <Phone size={16} color="#FFFFFF" />
+                  <Text className="text-white font-semibold ml-1.5 text-sm">{t('common.call')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="flex-1 flex-row items-center justify-center bg-emerald-50 rounded-xl py-3.5 shadow-sm"
+                  className="flex-1 flex-row items-center justify-center bg-blue-600 rounded-xl py-3 shadow-sm"
                   onPress={() => handleMessage(buyer.name, buyer.id)}
                 >
-                  <MessageSquare size={18} color="#059669" />
-                  <Text className="text-emerald-700 font-semibold ml-2">
+                  <MessageSquare size={16} color="#FFFFFF" />
+                  <Text className="text-white font-semibold ml-1.5 text-sm">
                     {t('common.message')}
                   </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-row items-center justify-center bg-purple-600 rounded-xl py-3 px-3 shadow-sm"
+                  onPress={() => handleVideo(buyer.name, buyer.id)}
+                >
+                  <Video size={16} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
             </View>
           ))}
-        </ScrollView>
-      </View>
+      </Animated.ScrollView>
 
       {/* Bottom Navigation */}
       <BuyerBottomNav activeTab="home" />
