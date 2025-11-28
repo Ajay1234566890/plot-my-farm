@@ -8,57 +8,119 @@ const API_KEY = process.env.EXPO_PUBLIC_MARKET_API_KEY || '';
 const API_BASE_URL = 'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070';
 
 // Crop name mapping for images - Using local accurate images from assets folder
+// Comprehensive mapping with multiple variations and aliases for better API data matching
 const CROP_IMAGE_MAP: Record<string, any> = {
-  // Vegetables - Local accurate images
+  // Vegetables - Local accurate images with variations
   'tomato': require('@/assets/images/market/tomato.jpg'),
+  'tomatoes': require('@/assets/images/market/tomato.jpg'),
+  'tamatar': require('@/assets/images/market/tomato.jpg'),
+  
   'onion': require('@/assets/images/market/onion.jpg'),
+  'onions': require('@/assets/images/market/onion.jpg'),
+  'pyaz': require('@/assets/images/market/onion.jpg'),
+  'kanda': require('@/assets/images/market/onion.jpg'),
+  
   'cauliflower': require('@/assets/images/market/cauliflower.jpg'),
+  'phool gobhi': require('@/assets/images/market/cauliflower.jpg'),
+  'gobi': require('@/assets/images/market/cauliflower.jpg'),
+  
   'brinjal': require('@/assets/images/market/brinjal.jpg'),
   'eggplant': require('@/assets/images/market/brinjal.jpg'),
+  'baingan': require('@/assets/images/market/brinjal.jpg'),
+  'aubergine': require('@/assets/images/market/brinjal.jpg'),
+  
   'chilli': require('@/assets/images/market/dry_chillies.jpg'),
+  'chillies': require('@/assets/images/market/dry_chillies.jpg'),
   'dry chilli': require('@/assets/images/market/dry_chillies.jpg'),
   'dry chillies': require('@/assets/images/market/dry_chillies.jpg'),
+  'mirchi': require('@/assets/images/market/dry_chillies.jpg'),
+  'red chilli': require('@/assets/images/market/dry_chillies.jpg'),
+  'green chilli': require('@/assets/images/market/dry_chillies.jpg'),
+  
   'cucumber': require('@/assets/images/market/cucumber.jpg'),
+  'cucumbers': require('@/assets/images/market/cucumber.jpg'),
+  'kheera': require('@/assets/images/market/cucumber.jpg'),
+  'kakdi': require('@/assets/images/market/cucumber.jpg'),
+  
   'bitter gourd': require('@/assets/images/market/little_gourd_kundru.jpg'),
+  'karela': require('@/assets/images/market/little_gourd_kundru.jpg'),
+  
   'bottle gourd': require('@/assets/images/market/bottle_gourd.jpg'),
+  'lauki': require('@/assets/images/market/bottle_gourd.jpg'),
+  'ghiya': require('@/assets/images/market/bottle_gourd.jpg'),
+  'doodhi': require('@/assets/images/market/bottle_gourd.jpg'),
+  
   'ridge gourd': require('@/assets/images/market/ridge_gourd.jpg'),
+  'turai': require('@/assets/images/market/ridge_gourd.jpg'),
+  'tori': require('@/assets/images/market/ridge_gourd.jpg'),
+  
   'lady finger': require('@/assets/images/market/ladies_finger.jpg'),
   'ladies finger': require('@/assets/images/market/ladies_finger.jpg'),
   'okra': require('@/assets/images/market/ladies_finger.jpg'),
+  'bhindi': require('@/assets/images/market/ladies_finger.jpg'),
+  
   'radish': require('@/assets/images/market/radish.jpg'),
+  'mooli': require('@/assets/images/market/radish.jpg'),
+  'muli': require('@/assets/images/market/radish.jpg'),
+  
   'beetroot': require('@/assets/images/market/beetroot.jpg'),
   'beet': require('@/assets/images/market/beetroot.jpg'),
+  'chukandar': require('@/assets/images/market/beetroot.jpg'),
+  
   'ginger': require('@/assets/images/market/ginger.jpg'),
+  'adrak': require('@/assets/images/market/ginger.jpg'),
+  'adrakh': require('@/assets/images/market/ginger.jpg'),
+  
   'elephant yam': require('@/assets/images/market/elephant_yam.jpg'),
   'yam': require('@/assets/images/market/elephant_yam.jpg'),
+  'suran': require('@/assets/images/market/elephant_yam.jpg'),
+  'jimikand': require('@/assets/images/market/elephant_yam.jpg'),
+  
   'little gourd': require('@/assets/images/market/little_gourd_kundru.jpg'),
   'kundru': require('@/assets/images/market/little_gourd_kundru.jpg'),
+  'kundri': require('@/assets/images/market/little_gourd_kundru.jpg'),
+  'ivy gourd': require('@/assets/images/market/little_gourd_kundru.jpg'),
 
-  // Pulses & Legumes - Local accurate images
+  // Pulses & Legumes - Local accurate images with variations
   'gram': require('@/assets/images/market/bengal_gram.jpg'),
   'chana': require('@/assets/images/market/bengal_gram.jpg'),
   'bengal gram': require('@/assets/images/market/bengal_gram.jpg'),
   'chickpea': require('@/assets/images/market/bengal_gram.jpg'),
+  'chickpeas': require('@/assets/images/market/bengal_gram.jpg'),
   'kabuli chana': require('@/assets/images/market/bengal_gram.jpg'),
+  'desi chana': require('@/assets/images/market/bengal_gram.jpg'),
+  'garbanzo': require('@/assets/images/market/bengal_gram.jpg'),
 
-  // Fruits - Local accurate images
+  // Fruits - Local accurate images with variations
   'pomegranate': require('@/assets/images/market/pomogranate.jpg'),
+  'pomegranates': require('@/assets/images/market/pomogranate.jpg'),
   'anar': require('@/assets/images/market/pomogranate.jpg'),
+  'anaar': require('@/assets/images/market/pomogranate.jpg'),
 
-  // Cash Crops - Local accurate images
+  // Cash Crops - Local accurate images with variations
   'cotton': require('@/assets/images/market/cotton.jpg'),
   'kapas': require('@/assets/images/market/cotton.jpg'),
+  'kappas': require('@/assets/images/market/cotton.jpg'),
+  
   'coconut': require('@/assets/images/market/coconut.jpg'),
+  'coconuts': require('@/assets/images/market/coconut.jpg'),
   'nariyal': require('@/assets/images/market/coconut.jpg'),
+  'copra': require('@/assets/images/market/coconut.jpg'),
+  
   'tender coconut': require('@/assets/images/market/tender_coconut.jpg'),
+  'green coconut': require('@/assets/images/market/tender_coconut.jpg'),
+  
   'betelnut': require('@/assets/images/market/betelnut.jpg'),
   'betel nut': require('@/assets/images/market/betelnut.jpg'),
   'areca nut': require('@/assets/images/market/betelnut.jpg'),
   'supari': require('@/assets/images/market/betelnut.jpg'),
+  'supari (betelnut)': require('@/assets/images/market/betelnut.jpg'),
 
-  // Spices - Local accurate images
+  // Spices - Local accurate images with variations
   'turmeric': require('@/assets/images/market/turmeric.jpg'),
   'haldi': require('@/assets/images/market/turmeric.jpg'),
+  'haladi': require('@/assets/images/market/turmeric.jpg'),
+  'manjal': require('@/assets/images/market/turmeric.jpg'),
 
   // Default fallback - using tomato as default
   'default': require('@/assets/images/market/tomato.jpg')

@@ -3,27 +3,28 @@ import { useAuth } from "@/contexts/auth-context";
 import { cropService } from "@/services/crop-service";
 import { formAutomationService } from "@/services/form-automation-service";
 import { screenContextService } from "@/services/screen-context-service";
+import { speechToTextService } from "@/services/speech-to-text-service";
 import { supabase } from "@/utils/supabase";
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from "expo-router";
 import {
-    ArrowLeft,
-    Calendar,
-    ChevronDown,
-    Mic,
-    Upload
+  ArrowLeft,
+  Calendar,
+  ChevronDown,
+  Mic,
+  Upload
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 // Mock data for units
@@ -105,22 +106,27 @@ export default function AddCrop() {
   // Handle voice input for crop name
   const handleVoiceInput = async () => {
     try {
-      setIsListening(true);
-      console.log('🎤 [ADD-CROP] Starting voice input...');
-
-      const transcript = await speechToTextService.startRecording({
-        language: 'en',
-        continuous: false,
-      });
-
-      if (transcript) {
-        console.log('✅ [ADD-CROP] Voice transcript:', transcript);
-        setCropName(transcript);
+      if (isListening) {
+        // Stop and transcribe
+        console.log('🛑 [ADD-CROP] Stopping recording...');
+        const uri = await speechToTextService.stopRecording();
+        if (uri) {
+          const transcript = await speechToTextService.transcribeAudio(uri);
+          if (transcript) {
+            console.log('✅ [ADD-CROP] Voice transcript:', transcript);
+            setCropName(transcript);
+          }
+        }
+        setIsListening(false);
+      } else {
+        // Start recording
+        setIsListening(true);
+        console.log('🎤 [ADD-CROP] Starting voice input...');
+        await speechToTextService.startRecording();
       }
     } catch (error) {
       console.error('❌ [ADD-CROP] Voice input error:', error);
       Alert.alert(t('common.error'), t('errors.voiceInputFailed'));
-    } finally {
       setIsListening(false);
     }
   };
@@ -281,160 +287,159 @@ export default function AddCrop() {
             elevation: 8,
           }}
         >
-        {/* Form Fields */}
-        <View className="space-y-6">
-          {/* Crop Name Field */}
-          <View>
-            <Text className="text-sm font-medium text-gray-700 mb-2">
-              {t('crops.cropName')}
-            </Text>
-            <View className="flex-row items-center bg-white rounded-xl border border-gray-200 px-4">
-              <TextInput
-                placeholder={t('crops.cropNamePlaceholder')}
-                value={cropName}
-                onChangeText={setCropName}
-                className="flex-1 py-3.5 text-base text-gray-800"
-                placeholderTextColor="#9CA3AF"
-              />
-              <TouchableOpacity
-                className="p-2"
-                onPress={handleVoiceInput}
-                disabled={isListening}
-              >
-                <Mic
-                  size={20}
-                  color={isListening ? "#FCD34D" : "#6B7280"}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Quantity and Unit Fields */}
-          <View className="flex-row gap-3">
-            <View className="flex-1">
+          {/* Form Fields */}
+          <View className="space-y-6">
+            {/* Crop Name Field */}
+            <View>
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                {t('crops.quantity')}
+                {t('crops.cropName')}
               </Text>
-              <View className="bg-white rounded-xl border border-gray-200 px-4">
+              <View className="flex-row items-center bg-white rounded-xl border border-gray-200 px-4">
                 <TextInput
-                  placeholder={t('crops.quantityPlaceholder')}
-                  value={quantity}
-                  onChangeText={setQuantity}
+                  placeholder={t('crops.cropNamePlaceholder')}
+                  value={cropName}
+                  onChangeText={setCropName}
+                  className="flex-1 py-3.5 text-base text-gray-800"
+                  placeholderTextColor="#9CA3AF"
+                />
+                <TouchableOpacity
+                  className="p-2"
+                  onPress={handleVoiceInput}
+                >
+                  <Mic
+                    size={20}
+                    color={isListening ? "#FCD34D" : "#6B7280"}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Quantity and Unit Fields */}
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                <Text className="text-sm font-medium text-gray-700 mb-2">
+                  {t('crops.quantity')}
+                </Text>
+                <View className="bg-white rounded-xl border border-gray-200 px-4">
+                  <TextInput
+                    placeholder={t('crops.quantityPlaceholder')}
+                    value={quantity}
+                    onChangeText={setQuantity}
+                    keyboardType="numeric"
+                    className="py-3.5 text-base text-gray-800"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+              </View>
+
+              <View className="flex-1">
+                <Text className="text-sm font-medium text-gray-700 mb-2">{t('crops.unit')}</Text>
+                <TouchableOpacity
+                  className="bg-white rounded-xl border border-gray-200 px-4 py-3.5 flex-row items-center justify-between"
+                  onPress={() => setShowUnitDropdown(!showUnitDropdown)}
+                >
+                  <Text className={selectedUnit ? "text-gray-800" : "text-gray-400"}>
+                    {selectedUnit || t('crops.selectUnit')}
+                  </Text>
+                  <ChevronDown size={20} color="#6B7280" />
+                </TouchableOpacity>
+
+                {/* Unit Dropdown */}
+                {showUnitDropdown && (
+                  <View className="absolute top-[76px] left-0 right-0 bg-white rounded-xl border border-gray-200 shadow-xl z-10">
+                    {units.map((unit, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        className="px-4 py-3 border-b border-gray-100 last:border-b-0"
+                        onPress={() => {
+                          setSelectedUnit(unit);
+                          setShowUnitDropdown(false);
+                        }}
+                      >
+                        <Text className="text-gray-800">{unit}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Price Field */}
+            <View>
+              <Text className="text-sm font-medium text-gray-700 mb-2">
+                {t('crops.pricePerUnit')}
+              </Text>
+              <View className="flex-row items-center bg-white rounded-xl border border-gray-200 px-4">
+                <Text className="text-gray-400 mr-2">₹</Text>
+                <TextInput
+                  placeholder={t('crops.pricePlaceholder')}
+                  value={price}
+                  onChangeText={setPrice}
                   keyboardType="numeric"
-                  className="py-3.5 text-base text-gray-800"
+                  className="flex-1 py-3.5 text-base text-gray-800"
                   placeholderTextColor="#9CA3AF"
                 />
               </View>
             </View>
 
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-gray-700 mb-2">{t('crops.unit')}</Text>
-              <TouchableOpacity
-                className="bg-white rounded-xl border border-gray-200 px-4 py-3.5 flex-row items-center justify-between"
-                onPress={() => setShowUnitDropdown(!showUnitDropdown)}
-              >
-                <Text className={selectedUnit ? "text-gray-800" : "text-gray-400"}>
-                  {selectedUnit || t('crops.selectUnit')}
-                </Text>
-                <ChevronDown size={20} color="#6B7280" />
+            {/* Harvest Date Field */}
+            <View>
+              <Text className="text-sm font-medium text-gray-700 mb-2">
+                {t('crops.harvestDate')}
+              </Text>
+              <TouchableOpacity className="flex-row items-center bg-white rounded-xl border border-gray-200 px-4 py-3.5">
+                <Calendar size={20} color="#6B7280" />
+                <Text className="ml-3 text-gray-400">{t('crops.selectDate')}</Text>
               </TouchableOpacity>
-
-              {/* Unit Dropdown */}
-              {showUnitDropdown && (
-                <View className="absolute top-[76px] left-0 right-0 bg-white rounded-xl border border-gray-200 shadow-xl z-10">
-                  {units.map((unit, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      className="px-4 py-3 border-b border-gray-100 last:border-b-0"
-                      onPress={() => {
-                        setSelectedUnit(unit);
-                        setShowUnitDropdown(false);
-                      }}
-                    >
-                      <Text className="text-gray-800">{unit}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
             </View>
-          </View>
 
-          {/* Price Field */}
-          <View>
-            <Text className="text-sm font-medium text-gray-700 mb-2">
-              {t('crops.pricePerUnit')}
-            </Text>
-            <View className="flex-row items-center bg-white rounded-xl border border-gray-200 px-4">
-              <Text className="text-gray-400 mr-2">₹</Text>
-              <TextInput
-                placeholder={t('crops.pricePlaceholder')}
-                value={price}
-                onChangeText={setPrice}
-                keyboardType="numeric"
-                className="flex-1 py-3.5 text-base text-gray-800"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-          </View>
-
-          {/* Harvest Date Field */}
-          <View>
-            <Text className="text-sm font-medium text-gray-700 mb-2">
-              {t('crops.harvestDate')}
-            </Text>
-            <TouchableOpacity className="flex-row items-center bg-white rounded-xl border border-gray-200 px-4 py-3.5">
-              <Calendar size={20} color="#6B7280" />
-              <Text className="ml-3 text-gray-400">{t('crops.selectDate')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Crop Image Upload */}
-          <View>
-            <Text className="text-sm font-medium text-gray-700 mb-2">
-              {t('crops.cropImage')}
-            </Text>
-            <TouchableOpacity
-              onPress={handleImagePick}
-              className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-6 items-center"
-            >
-              {cropImage ? (
-                <Image
-                  source={{ uri: cropImage }}
-                  className="w-full h-48 rounded-lg"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="items-center">
-                  <View className="w-16 h-16 rounded-full bg-emerald-50 items-center justify-center mb-4">
-                    <Upload size={24} color="#059669" />
+            {/* Crop Image Upload */}
+            <View>
+              <Text className="text-sm font-medium text-gray-700 mb-2">
+                {t('crops.cropImage')}
+              </Text>
+              <TouchableOpacity
+                onPress={handleImagePick}
+                className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-6 items-center"
+              >
+                {cropImage ? (
+                  <Image
+                    source={{ uri: cropImage }}
+                    className="w-full h-48 rounded-lg"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="items-center">
+                    <View className="w-16 h-16 rounded-full bg-emerald-50 items-center justify-center mb-4">
+                      <Upload size={24} color="#059669" />
+                    </View>
+                    <Text className="text-sm font-medium text-gray-800">
+                      {t('crops.tapToUploadImage')}
+                    </Text>
+                    <Text className="text-xs text-gray-500 mt-1">
+                      {t('crops.highQualityImagesAttract')}
+                    </Text>
                   </View>
-                  <Text className="text-sm font-medium text-gray-800">
-                    {t('crops.tapToUploadImage')}
-                  </Text>
-                  <Text className="text-xs text-gray-500 mt-1">
-                    {t('crops.highQualityImagesAttract')}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        {/* Save Button */}
-        <TouchableOpacity
-          onPress={handleSaveCrop}
-          disabled={isSaving}
-          className="rounded-xl py-4 mt-8"
-          style={{ backgroundColor: isSaving ? '#9CA3AF' : '#7C8B3A' }}
-        >
-          {isSaving ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-white text-center font-bold text-lg">
-              {t('crops.saveCrop')}
-            </Text>
-          )}
-        </TouchableOpacity>
+          {/* Save Button */}
+          <TouchableOpacity
+            onPress={handleSaveCrop}
+            disabled={isSaving}
+            className="rounded-xl py-4 mt-8"
+            style={{ backgroundColor: isSaving ? '#9CA3AF' : '#7C8B3A' }}
+          >
+            {isSaving ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white text-center font-bold text-lg">
+                {t('crops.saveCrop')}
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
       </ScrollView>
 

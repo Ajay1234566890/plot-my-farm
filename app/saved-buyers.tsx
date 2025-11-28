@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Heart, MapPin, MessageSquare, Phone, Star } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { Alert, Image, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import FarmerBottomNav from './components/FarmerBottomNav';
 
 export default function SavedBuyers() {
@@ -50,32 +50,23 @@ export default function SavedBuyers() {
     console.log('Removing buyer from saved:', buyerId);
   };
 
-  const handleMessage = (buyerId: number, buyerName: string) => {
+  const handleMessage = (buyerId: number, buyerName: string, buyerAvatar: string) => {
     console.log('📨 [SAVED-BUYERS] Opening chat with buyer:', buyerId);
     router.push({
       pathname: '/chat-screen',
       params: {
         userId: buyerId,
         userName: buyerName,
-        userType: 'buyer'
+        userAvatar: buyerAvatar,
+        userRole: 'Buyer'
       }
     });
   };
 
   const handleCall = (buyerId: number, buyerName: string) => {
     console.log('📞 [SAVED-BUYERS] Calling buyer:', buyerId);
-    const phoneNumber = '+1234567890'; // Mock phone number
-    Alert.alert(
-      'Call',
-      `Calling ${buyerName}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Call',
-          onPress: () => Linking.openURL(`tel:${phoneNumber}`)
-        }
-      ]
-    );
+    const phoneNumber = '+1234567890'; // Mock phone number - in real app would come from buyer data
+    Linking.openURL(`tel:${phoneNumber}`);
   };
 
   return (
@@ -90,7 +81,7 @@ export default function SavedBuyers() {
         }}
       >
         <View className="flex-row items-center mb-4">
-          <TouchableOpacity 
+          <TouchableOpacity
             className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
             onPress={() => router.back()}
           >
@@ -140,7 +131,7 @@ export default function SavedBuyers() {
                       <Heart size={20} color="#7C8B3A" fill="#7C8B3A" />
                     </TouchableOpacity>
                   </View>
-                  
+
                   <View className="flex-row items-center mt-1">
                     <MapPin size={14} color="#6B7280" />
                     <Text className="text-gray-600 ml-1">{buyer.location}</Text>
@@ -173,7 +164,7 @@ export default function SavedBuyers() {
                     </Text>
                     <View className="flex-row space-x-2">
                       <TouchableOpacity
-                        onPress={() => handleMessage(buyer.id, buyer.name)}
+                        onPress={() => handleMessage(buyer.id, buyer.name, buyer.avatar)}
                         className="flex-row items-center px-4 py-2 rounded-full"
                         style={{ backgroundColor: '#7C8B3A' }}
                       >

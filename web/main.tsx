@@ -1,7 +1,7 @@
-import React from 'react';
+/// <reference types="vite/client" />
+import { ExpoRoot } from 'expo-router';
 import { createRoot } from 'react-dom/client';
 import { AppRegistry } from 'react-native';
-import { ExpoRoot } from 'expo-router';
 
 // Import global CSS
 import '../global.css';
@@ -11,7 +11,7 @@ import './polyfills/web-polyfills';
 
 // Register the main component
 function App() {
-  const ctx = require.context('../app', true, /\.(js|jsx|ts|tsx)$/);
+  const ctx = (require as any).context('../app', true, /\.(js|jsx|ts|tsx)$/);
   return <ExpoRoot context={ctx} />;
 }
 
