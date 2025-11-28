@@ -1,17 +1,17 @@
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'expo-router';
 import {
-    Bell,
-    ChevronLeft,
-    ChevronRight,
-    FileText,
-    Globe,
-    Heart,
-    Info,
-    LogOut,
-    Users
+  Bell,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Globe,
+  Heart,
+  Info,
+  LogOut,
+  Users
 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Image, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import BuyerBottomNav from './components/BuyerBottomNav';
@@ -32,7 +32,7 @@ export default function BuyerProfile() {
       t('profile.logout'),
       t('profile.logoutConfirmation'),
       [
-        { text: t('common.cancel'), onPress: () => {}, style: "cancel" },
+        { text: t('common.cancel'), onPress: () => { }, style: "cancel" },
         {
           text: t('profile.logout'),
           onPress: async () => {
@@ -112,12 +112,20 @@ export default function BuyerProfile() {
         >
           <Text className="text-lg font-semibold mb-4">{t('profile.accountSettings')}</Text>
 
-          <TouchableOpacity className="flex-row items-center justify-between py-4 border-b border-gray-100">
+          <TouchableOpacity
+            className="flex-row items-center justify-between py-4 border-b border-gray-100"
+            onPress={() => router.push('/notifications')}
+          >
             <View className="flex-row items-center">
               <Bell size={20} color="#B27E4C" />
               <Text className="ml-3 text-base">{t('profile.notifications')}</Text>
             </View>
-            <TouchableOpacity onPress={() => setNotificationsExpanded(!notificationsExpanded)}>
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                setNotificationsExpanded(!notificationsExpanded);
+              }}
+            >
               <ChevronRight size={20} color="#4B5563" />
             </TouchableOpacity>
           </TouchableOpacity>
@@ -128,7 +136,7 @@ export default function BuyerProfile() {
                 <Text className="text-sm text-gray-600">{t('profile.messageAlerts')}</Text>
                 <Switch
                   value={notificationSettings.messageAlerts}
-                  onValueChange={(value) => setNotificationSettings({...notificationSettings, messageAlerts: value})}
+                  onValueChange={(value) => setNotificationSettings({ ...notificationSettings, messageAlerts: value })}
                   trackColor={{ false: '#E5E7EB', true: '#B27E4C' }}
                   thumbColor={notificationSettings.messageAlerts ? '#FFFFFF' : '#F3F4F6'}
                 />
@@ -137,7 +145,7 @@ export default function BuyerProfile() {
                 <Text className="text-sm text-gray-600">{t('profile.offerAlerts')}</Text>
                 <Switch
                   value={notificationSettings.offerAlerts}
-                  onValueChange={(value) => setNotificationSettings({...notificationSettings, offerAlerts: value})}
+                  onValueChange={(value) => setNotificationSettings({ ...notificationSettings, offerAlerts: value })}
                   trackColor={{ false: '#E5E7EB', true: '#B27E4C' }}
                   thumbColor={notificationSettings.offerAlerts ? '#FFFFFF' : '#F3F4F6'}
                 />
@@ -146,7 +154,7 @@ export default function BuyerProfile() {
                 <Text className="text-sm text-gray-600">{t('profile.orderUpdates')}</Text>
                 <Switch
                   value={notificationSettings.orderUpdates}
-                  onValueChange={(value) => setNotificationSettings({...notificationSettings, orderUpdates: value})}
+                  onValueChange={(value) => setNotificationSettings({ ...notificationSettings, orderUpdates: value })}
                   trackColor={{ false: '#E5E7EB', true: '#B27E4C' }}
                   thumbColor={notificationSettings.orderUpdates ? '#FFFFFF' : '#F3F4F6'}
                 />

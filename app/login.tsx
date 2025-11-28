@@ -2,16 +2,16 @@ import { useAuth } from '@/contexts/auth-context';
 import { validateOTP, validatePhone } from '@/utils/validation';
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function Login() {
@@ -186,8 +186,8 @@ export default function Login() {
       setOtp('');
       setError('');
     } else {
-      // If on phone input screen, go back to role selection
-      router.replace('/select-role');
+      // If on phone input screen, go back to previous screen (preserves navigation stack)
+      router.back();
     }
   };
 
@@ -246,11 +246,10 @@ export default function Login() {
             <TouchableOpacity
               onPress={handleSendOTP}
               disabled={mobileNumber.length !== 10 || isLoading}
-              className={`p-4 rounded-xl flex-row items-center justify-center ${
-                mobileNumber.length === 10 && !isLoading
+              className={`p-4 rounded-xl flex-row items-center justify-center ${mobileNumber.length === 10 && !isLoading
                   ? 'bg-green-600'
                   : 'bg-gray-300'
-              }`}
+                }`}
             >
               {isLoading ? (
                 <ActivityIndicator color="#ffffff" />
@@ -297,9 +296,8 @@ export default function Login() {
             <TouchableOpacity
               onPress={handleVerifyOTP}
               disabled={otp.length !== 6 || isLoading}
-              className={`p-4 rounded-xl flex-row items-center justify-center ${
-                otp.length === 6 && !isLoading ? 'bg-green-600' : 'bg-gray-300'
-              }`}
+              className={`p-4 rounded-xl flex-row items-center justify-center ${otp.length === 6 && !isLoading ? 'bg-green-600' : 'bg-gray-300'
+                }`}
             >
               {isLoading ? (
                 <ActivityIndicator color="#ffffff" />

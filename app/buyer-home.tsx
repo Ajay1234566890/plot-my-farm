@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Animated,
-    Dimensions,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
@@ -22,14 +22,14 @@ import { MarketPrice, marketPricesService } from '@/services/market-prices-servi
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
-    Bell,
-    DollarSign,
-    Heart,
-    MapPin,
-    Package,
-    Search,
-    ShoppingCart,
-    TrendingUp
+  Bell,
+  DollarSign,
+  Heart,
+  MapPin,
+  Package,
+  Search,
+  ShoppingCart,
+  TrendingUp
 } from 'lucide-react-native';
 
 const screenWidth = Dimensions.get("window").width;
@@ -204,7 +204,10 @@ function BuyerHomeContent() {
             <View className="flex-1">
               {/* Buyer Avatar + Personalized Greeting */}
               <View className="flex-row items-center mb-1">
-                <View className="w-10 h-10 rounded-full bg-white/20 overflow-hidden border-2 border-white/30 mr-2">
+                <TouchableOpacity
+                  onPress={() => router.push('/buyer-profile')}
+                  className="w-10 h-10 rounded-full bg-white/20 overflow-hidden border-2 border-white/30 mr-2"
+                >
                   <Image
                     source={{
                       uri: user?.profileImage || "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTF8fHVzZXJ8ZW58MHx8MHx8fDA%3D",
@@ -212,7 +215,7 @@ function BuyerHomeContent() {
                     className="w-full h-full"
                     resizeMode="cover"
                   />
-                </View>
+                </TouchableOpacity>
                 <View className="flex-1">
                   <Text className="text-white text-base font-bold">
                     {t('buyerHome.hello')}, {user?.name || t('buyerHome.buyer')}
@@ -545,42 +548,38 @@ function BuyerHomeContent() {
           <View className="flex-row mb-4 gap-2">
             <TouchableOpacity
               onPress={() => setActiveTab(Tab.NearbyCrops)}
-              className={`px-6 py-3 rounded-full ${
-                activeTab === Tab.NearbyCrops
+              className={`px-6 py-3 rounded-full ${activeTab === Tab.NearbyCrops
                   ? "shadow-lg"
                   : ""
-              }`}
+                }`}
               style={{
                 backgroundColor: activeTab === Tab.NearbyCrops ? '#B27E4C' : '#B27E4C20',
               }}
             >
               <Text
-                className={`font-semibold ${
-                  activeTab === Tab.NearbyCrops
+                className={`font-semibold ${activeTab === Tab.NearbyCrops
                     ? "text-white"
                     : "text-gray-700"
-                }`}
+                  }`}
               >
                 {t('buyerHome.nearbyCrops')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setActiveTab(Tab.NearbyFarmers)}
-              className={`px-6 py-3 rounded-full ${
-                activeTab === Tab.NearbyFarmers
+              className={`px-6 py-3 rounded-full ${activeTab === Tab.NearbyFarmers
                   ? "shadow-lg"
                   : ""
-              }`}
+                }`}
               style={{
                 backgroundColor: activeTab === Tab.NearbyFarmers ? '#B27E4C' : '#B27E4C20',
               }}
             >
               <Text
-                className={`font-semibold ${
-                  activeTab === Tab.NearbyFarmers
+                className={`font-semibold ${activeTab === Tab.NearbyFarmers
                     ? "text-white"
                     : "text-gray-700"
-                }`}
+                  }`}
               >
                 {t('buyerHome.nearbyFarmers')}
               </Text>

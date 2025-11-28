@@ -1,15 +1,18 @@
+import { useAuth } from '@/contexts/auth-context';
 import { locationService } from '@/services/location-service';
 import { MarketPrice, marketPricesService } from '@/services/market-prices-service';
 import { useRouter } from "expo-router";
 import { ArrowLeft, MapPin, RefreshCw, Search, TrendingDown, TrendingUp } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import BuyerBottomNav from './components/BuyerBottomNav';
 import FarmerBottomNav from './components/FarmerBottomNav';
 
 export default function MarketRealPrices() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [marketPrices, setMarketPrices] = useState<MarketPrice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -210,7 +213,11 @@ export default function MarketRealPrices() {
         </ScrollView>
       )}
 
-      <FarmerBottomNav activeTab="home" />
+      {user?.role === 'buyer' ? (
+        <BuyerBottomNav activeTab="home" />
+      ) : (
+        <FarmerBottomNav activeTab="home" />
+      )}
     </View>
   );
 }

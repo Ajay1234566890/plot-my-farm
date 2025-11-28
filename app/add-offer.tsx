@@ -3,11 +3,11 @@ import { useAuth } from "@/contexts/auth-context";
 import { useOffers } from "@/contexts/offers-context";
 import { formAutomationService } from "@/services/form-automation-service";
 import { screenContextService } from "@/services/screen-context-service";
+import { supabase } from "@/utils/supabase";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 // Crop type to image mapping with high-quality images
 const cropImageMap: { [key: string]: string } = {
@@ -27,7 +27,7 @@ export default function AddOffer() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const params = useLocalSearchParams();
-  const { addOffer, updateOffer } = useOffers();
+  const { offers, addOffer, updateOffer } = useOffers();
 
   // Check if we're in edit mode
   const isEditMode = params.editMode === 'true';
@@ -81,12 +81,23 @@ export default function AddOffer() {
 
   // Load existing data if in edit mode
   useEffect(() => {
-    if (isEditMode && params.cropType) {
-      setCropType(params.cropType as string);
-      setQuantity((params.quantity as string)?.replace(' kg', '') || '');
-      setPricePerUnit((params.price as string)?.replace('₹', '').replace('/kg', '') || '');
+    if (isEditMode && offerId) {
+      // Find the offer in the context
+      const existingOffer = offers.find(o => o.id === offerId);
+
+      if (existingOffer) {
+        console.log('📝 [ADD-OFFER] Loading existing offer for edit:', existingOffer);
+        setCropType(existingOffer.cropType);
+        setQuantity(existingOffer.quantity.replace(' kg', ''));
+        setPricePerUnit(existingOffer.price.replace('₹', '').replace('/kg', ''));
+      } else if (params.cropType) {
+        // Fallback to params if offer not found in context
+        setCropType(params.cropType as string);
+        setQuantity((params.quantity as string)?.replace(' kg', '') || '');
+        setPricePerUnit((params.price as string)?.replace('₹', '').replace('/kg', '') || '');
+      }
     }
-  }, [isEditMode, params]);
+  }, [isEditMode, offerId, offers, params]);
 
   const handleSubmit = async () => {
     // Validation
@@ -273,6 +284,7 @@ export default function AddOffer() {
             placeholder={t('addOffer.quantityPlaceholder')}
             className="border border-gray-300 rounded-lg p-4 text-gray-900"
             placeholderTextColor="#9ca3af"
+            keyboardType="decimal-pad"
           />
         </View>
 
@@ -298,6 +310,7 @@ export default function AddOffer() {
             placeholder={t('addOffer.minOrderPlaceholder')}
             className="border border-gray-300 rounded-lg p-4 text-gray-900"
             placeholderTextColor="#9ca3af"
+            keyboardType="decimal-pad"
           />
         </View>
 
