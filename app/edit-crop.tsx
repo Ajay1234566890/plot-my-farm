@@ -1,5 +1,6 @@
 import FarmerBottomNav from '@/app/components/FarmerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
+import { speechToTextService } from '@/services/speech-to-text-service';
 import { supabase } from '@/utils/supabase';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -29,6 +30,8 @@ export default function EditCrop() {
     harvestDate: false
   });
 
+  const [recordingField, setRecordingField] = useState<string | null>(null);
+
   const units = ['kg', 'quintal', 'ton', 'bag', 'bunch'];
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
 
@@ -50,7 +53,7 @@ export default function EditCrop() {
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
-        setFormData({...formData, image: result.assets[0].uri});
+        setFormData({ ...formData, image: result.assets[0].uri });
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -63,12 +66,43 @@ export default function EditCrop() {
     // For now, just set today's date
     const today = new Date();
     const dateString = today.toISOString().split('T')[0];
-    setFormData({...formData, harvestDate: dateString});
+    setFormData({ ...formData, harvestDate: dateString });
   };
 
   // Voice input function
-  const handleVoiceInput = () => {
-    Alert.alert(t('common.info'), 'Voice input feature coming soon!');
+  const handleVoiceInput = async (field: string) => {
+    try {
+      if (recordingField === field) {
+        // Stop recording
+        console.log('🛑 Stopping voice recording for field:', field);
+        const uri = await speechToTextService.stopRecording();
+        setRecordingField(null);
+
+        if (uri) {
+          // Show loading indicator or toast? For now just wait
+          const text = await speechToTextService.transcribeAudio(uri, 'en'); // Default to English for now
+          if (text) {
+            console.log('✅ Transcribed text:', text);
+            // Clean up text if needed (e.g. remove trailing periods)
+            const cleanText = text.replace(/\.$/, '');
+            setFormData(prev => ({ ...prev, [field]: cleanText }));
+          }
+        }
+      } else {
+        // Start recording
+        if (recordingField) {
+          // Stop previous if any
+          await speechToTextService.stopRecording();
+        }
+        console.log('🎤 Starting voice recording for field:', field);
+        await speechToTextService.startRecording();
+        setRecordingField(field);
+      }
+    } catch (error) {
+      console.error('Voice input error:', error);
+      Alert.alert(t('common.error'), 'Voice input failed. Please try again.');
+      setRecordingField(null);
+    }
   };
 
   const handleSave = async () => {
@@ -86,6 +120,43 @@ export default function EditCrop() {
       return;
     }
 
+    // Validate and format date
+    let formattedDate = formData.harvestDate;
+    // Check if date is in DD/MM/YYYY format
+    const ddmmyyyyPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+    const match = formData.harvestDate.match(ddmmyyyyPattern);
+
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10);
+      const year = parseInt(match[3], 10);
+
+      // Basic validation
+      if (month < 1 || month > 12 || day < 1 || day > 31) {
+        Alert.alert(t('common.error'), 'Invalid date. Please check the day and month.');
+        return;
+      }
+
+      // Check for days in month (simple check)
+      const daysInMonth = new Date(year, month, 0).getDate();
+      if (day > daysInMonth) {
+        Alert.alert(t('common.error'), `Invalid date. ${month}/${year} only has ${daysInMonth} days.`);
+        return;
+      }
+
+      // Convert to YYYY-MM-DD
+      formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    } else {
+      // If not DD/MM/YYYY, check if it's already YYYY-MM-DD or valid ISO
+      const dateObj = new Date(formData.harvestDate);
+      if (isNaN(dateObj.getTime())) {
+        Alert.alert(t('common.error'), 'Invalid date format. Please use DD/MM/YYYY.');
+        return;
+      }
+      // Ensure it is YYYY-MM-DD
+      formattedDate = dateObj.toISOString().split('T')[0];
+    }
+
     setIsSaving(true);
 
     try {
@@ -100,7 +171,7 @@ export default function EditCrop() {
             quantity: parseFloat(formData.quantity),
             unit: formData.unit,
             price_per_unit: parseFloat(formData.price),
-            expected_harvest_date: formData.harvestDate,
+            expected_harvest_date: formattedDate,
             image_url: formData.image,
             status: 'growing',
             created_at: new Date().toISOString()
@@ -143,6 +214,7 @@ export default function EditCrop() {
       harvestDate: ''
     });
     // Navigation would go here in a real app
+    router.back();
   };
 
   return (
@@ -183,150 +255,171 @@ export default function EditCrop() {
             elevation: 8,
           }}
         >
-        {/* Upload Image */}
-        <Text className="text-base text-gray-700 mb-2">{t('crops.uploadImage')}</Text>
-        <TouchableOpacity
-          className="border-2 border-dashed border-gray-300 rounded-lg p-6 items-center justify-center mb-6"
-          onPress={handleImagePick}
-        >
-          {formData.image ? (
-            <Image
-              source={{ uri: formData.image }}
-              className="w-full h-48 rounded-lg mb-2"
-              resizeMode="cover"
-            />
-          ) : (
-            <>
-              <Upload size={24} className="text-gray-400 mb-2" />
-              <Text className="text-gray-500 text-center">{t('crops.clickToUpload')}</Text>
-              <Text className="text-gray-400 text-sm">{t('crops.imageFormats')}</Text>
-            </>
-          )}
-        </TouchableOpacity>
+          {/* Upload Image */}
+          <Text className="text-base text-gray-700 mb-2">{t('crops.uploadImage')}</Text>
+          <TouchableOpacity
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 items-center justify-center mb-6"
+            onPress={handleImagePick}
+          >
+            {formData.image ? (
+              <Image
+                source={{ uri: formData.image }}
+                className="w-full h-48 rounded-lg mb-2"
+                resizeMode="cover"
+              />
+            ) : (
+              <>
+                <Upload size={24} className="text-gray-400 mb-2" />
+                <Text className="text-gray-500 text-center">{t('crops.clickToUpload')}</Text>
+                <Text className="text-gray-400 text-sm">{t('crops.imageFormats')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
 
-        {/* Crop Name */}
-        <View className="mb-4">
-          <Text className="text-base text-gray-700 mb-2">{t('crops.cropName')}</Text>
-          <View className="relative">
-            <TextInput
-              className={`border rounded-lg p-3 pr-12 text-base text-gray-900 ${errors.cropName ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder={t('crops.cropNamePlaceholderEdit')}
-              placeholderTextColor="#9CA3AF"
-              value={formData.cropName}
-              onChangeText={(text) => setFormData({...formData, cropName: text})}
-            />
-            <TouchableOpacity className="absolute right-3 top-3" onPress={handleVoiceInput}>
-              <Mic size={24} className="text-gray-400" />
-            </TouchableOpacity>
-          </View>
-          {errors.cropName && <Text className="text-red-500 text-sm mt-1">{t('errors.cropNameRequired')}</Text>}
-        </View>
-
-        {/* Quantity and Unit */}
-        <View className="flex-row gap-4 mb-4">
-          <View className="flex-1">
-            <Text className="text-base text-gray-700 mb-2">{t('crops.quantity')}</Text>
+          {/* Crop Name */}
+          <View className="mb-4">
+            <Text className="text-base text-gray-700 mb-2">{t('crops.cropName')}</Text>
             <View className="relative">
               <TextInput
-                className={`border rounded-lg p-3 pr-12 text-base text-gray-900 ${errors.quantity ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder={t('crops.quantityPlaceholder')}
+                className={`border rounded-lg p-3 pr-12 text-base text-gray-900 ${errors.cropName ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder={t('crops.cropNamePlaceholderEdit')}
                 placeholderTextColor="#9CA3AF"
-                keyboardType="numeric"
-                value={formData.quantity}
-                onChangeText={(text) => setFormData({...formData, quantity: text})}
+                value={formData.cropName}
+                onChangeText={(text) => setFormData({ ...formData, cropName: text })}
               />
-              <TouchableOpacity className="absolute right-3 top-3">
-                <Mic size={24} className="text-gray-400" />
+              <TouchableOpacity
+                className="absolute right-3 top-3"
+                onPress={() => handleVoiceInput('cropName')}
+              >
+                <Mic
+                  size={24}
+                  color={recordingField === 'cropName' ? '#EF4444' : '#9CA3AF'}
+                  fill={recordingField === 'cropName' ? '#EF4444' : 'none'}
+                />
               </TouchableOpacity>
             </View>
-            {errors.quantity && <Text className="text-red-500 text-sm mt-1">{t('errors.quantityRequired')}</Text>}
+            {errors.cropName && <Text className="text-red-500 text-sm mt-1">{t('errors.cropNameRequired')}</Text>}
           </View>
 
-          <View className="w-32">
-            <Text className="text-base text-gray-700 mb-2">{t('crops.unit')}</Text>
-            <TouchableOpacity
-              className="border border-gray-300 rounded-lg p-3 flex-row items-center justify-between"
-              onPress={() => setShowUnitDropdown(!showUnitDropdown)}
-            >
-              <Text className="text-base text-gray-700">{formData.unit}</Text>
-              <ChevronDown size={20} className="text-gray-400" />
-            </TouchableOpacity>
-            {showUnitDropdown && (
-              <View className="absolute top-[74px] left-0 right-0 bg-white border border-gray-200 rounded-lg z-10 mt-1">
-                {units.map((unit) => (
-                  <TouchableOpacity
-                    key={unit}
-                    className="p-3 border-b border-gray-100"
-                    onPress={() => {
-                      setFormData({...formData, unit});
-                      setShowUnitDropdown(false);
-                    }}
-                  >
-                    <Text className="text-base text-gray-700">{unit}</Text>
-                  </TouchableOpacity>
-                ))}
+          {/* Quantity and Unit */}
+          <View className="flex-row gap-4 mb-4">
+            <View className="flex-1">
+              <Text className="text-base text-gray-700 mb-2">{t('crops.quantity')}</Text>
+              <View className="relative">
+                <TextInput
+                  className={`border rounded-lg p-3 pr-12 text-base text-gray-900 ${errors.quantity ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder={t('crops.quantityPlaceholder')}
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="numeric"
+                  value={formData.quantity}
+                  onChangeText={(text) => setFormData({ ...formData, quantity: text })}
+                />
+                <TouchableOpacity
+                  className="absolute right-3 top-3"
+                  onPress={() => handleVoiceInput('quantity')}
+                >
+                  <Mic
+                    size={24}
+                    color={recordingField === 'quantity' ? '#EF4444' : '#9CA3AF'}
+                    fill={recordingField === 'quantity' ? '#EF4444' : 'none'}
+                  />
+                </TouchableOpacity>
               </View>
-            )}
-          </View>
-        </View>
+              {errors.quantity && <Text className="text-red-500 text-sm mt-1">{t('errors.quantityRequired')}</Text>}
+            </View>
 
-        {/* Price */}
-        <View className="mb-4">
-          <Text className="text-base text-gray-700 mb-2">{t('crops.pricePerUnit')}</Text>
-          <View className="relative">
-            <TextInput
-              className={`border rounded-lg p-3 pr-12 text-base text-gray-900 ${errors.price ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder={t('crops.pricePlaceholderEdit')}
-              placeholderTextColor="#9CA3AF"
-              keyboardType="numeric"
-              value={formData.price}
-              onChangeText={(text) => setFormData({...formData, price: text})}
-            />
-            <TouchableOpacity className="absolute right-3 top-3" onPress={handleVoiceInput}>
-              <Mic size={24} className="text-gray-400" />
+            <View className="w-32">
+              <Text className="text-base text-gray-700 mb-2">{t('crops.unit')}</Text>
+              <TouchableOpacity
+                className="border border-gray-300 rounded-lg p-3 flex-row items-center justify-between"
+                onPress={() => setShowUnitDropdown(!showUnitDropdown)}
+              >
+                <Text className="text-base text-gray-700">{formData.unit}</Text>
+                <ChevronDown size={20} className="text-gray-400" />
+              </TouchableOpacity>
+              {showUnitDropdown && (
+                <View className="absolute top-[74px] left-0 right-0 bg-white border border-gray-200 rounded-lg z-10 mt-1">
+                  {units.map((unit) => (
+                    <TouchableOpacity
+                      key={unit}
+                      className="p-3 border-b border-gray-100"
+                      onPress={() => {
+                        setFormData({ ...formData, unit });
+                        setShowUnitDropdown(false);
+                      }}
+                    >
+                      <Text className="text-base text-gray-700">{unit}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Price */}
+          <View className="mb-4">
+            <Text className="text-base text-gray-700 mb-2">{t('crops.pricePerUnit')}</Text>
+            <View className="relative">
+              <TextInput
+                className={`border rounded-lg p-3 pr-12 text-base text-gray-900 ${errors.price ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder={t('crops.pricePlaceholderEdit')}
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+                value={formData.price}
+                onChangeText={(text) => setFormData({ ...formData, price: text })}
+              />
+              <TouchableOpacity
+                className="absolute right-3 top-3"
+                onPress={() => handleVoiceInput('price')}
+              >
+                <Mic
+                  size={24}
+                  color={recordingField === 'price' ? '#EF4444' : '#9CA3AF'}
+                  fill={recordingField === 'price' ? '#EF4444' : 'none'}
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.price && <Text className="text-red-500 text-sm mt-1">{t('errors.priceRequired')}</Text>}
+          </View>
+
+          {/* Harvest Date */}
+          <View className="mb-8">
+            <Text className="text-base text-gray-700 mb-2">{t('crops.harvestDate')}</Text>
+            <View className="relative">
+              <TextInput
+                className={`border rounded-lg p-3 pr-12 text-base text-gray-900 ${errors.harvestDate ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder={t('crops.dateFormat')}
+                placeholderTextColor="#9CA3AF"
+                value={formData.harvestDate}
+                onChangeText={(text) => setFormData({ ...formData, harvestDate: text })}
+              />
+              <TouchableOpacity className="absolute right-3 top-3" onPress={handleDatePick}>
+                <Calendar size={24} className="text-gray-400" />
+              </TouchableOpacity>
+            </View>
+            {errors.harvestDate && <Text className="text-red-500 text-sm mt-1">{t('errors.harvestDateRequired')}</Text>}
+          </View>
+
+          {/* Action Buttons */}
+          <View className="flex-row gap-4">
+            <TouchableOpacity
+              className="flex-1 p-3 border border-green-500 rounded-lg"
+              onPress={handleCancel}
+            >
+              <Text className="text-green-500 text-center text-base font-medium">{t('common.cancel')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-1 p-3 rounded-lg"
+              style={{ backgroundColor: isSaving ? '#9CA3AF' : '#7C8B3A' }}
+              onPress={handleSave}
+              disabled={isSaving}
+            >
+              <Text className="text-white text-center text-base font-medium">
+                {isSaving ? t('common.saving') || 'Saving...' : t('common.save')}
+              </Text>
             </TouchableOpacity>
           </View>
-          {errors.price && <Text className="text-red-500 text-sm mt-1">{t('errors.priceRequired')}</Text>}
-        </View>
-
-        {/* Harvest Date */}
-        <View className="mb-8">
-          <Text className="text-base text-gray-700 mb-2">{t('crops.harvestDate')}</Text>
-          <View className="relative">
-            <TextInput
-              className={`border rounded-lg p-3 pr-12 text-base text-gray-900 ${errors.harvestDate ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder={t('crops.dateFormat')}
-              placeholderTextColor="#9CA3AF"
-              value={formData.harvestDate}
-              onChangeText={(text) => setFormData({...formData, harvestDate: text})}
-            />
-            <TouchableOpacity className="absolute right-3 top-3" onPress={handleDatePick}>
-              <Calendar size={24} className="text-gray-400" />
-            </TouchableOpacity>
-          </View>
-          {errors.harvestDate && <Text className="text-red-500 text-sm mt-1">{t('errors.harvestDateRequired')}</Text>}
-        </View>
-
-        {/* Action Buttons */}
-        <View className="flex-row gap-4">
-          <TouchableOpacity
-            className="flex-1 p-3 border border-green-500 rounded-lg"
-            onPress={handleCancel}
-          >
-            <Text className="text-green-500 text-center text-base font-medium">{t('common.cancel')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="flex-1 p-3 rounded-lg"
-            style={{ backgroundColor: isSaving ? '#9CA3AF' : '#7C8B3A' }}
-            onPress={handleSave}
-            disabled={isSaving}
-          >
-            <Text className="text-white text-center text-base font-medium">
-              {isSaving ? t('common.saving') || 'Saving...' : t('common.save')}
-            </Text>
-          </TouchableOpacity>
-        </View>
         </View>
       </ScrollView>
 

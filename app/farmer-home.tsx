@@ -158,7 +158,7 @@ function FarmerHomeContent() {
       >
         {/* Header Section */}
         <View
-          className="px-5 pt-6 pb-6"
+          className="px-5 pt-2 pb-4"
           style={{
             backgroundColor: '#7C8B3A', // Olive/army green matching reference image
             borderBottomLeftRadius: 30,
@@ -257,7 +257,7 @@ function FarmerHomeContent() {
         {/* Map Card - Now scrollable with proper spacing */}
         <View className="px-4 mt-4">
           <View
-            className="bg-white rounded-3xl overflow-hidden"
+            className="bg-white/90 backdrop-blur-md border border-white/40 rounded-3xl overflow-hidden"
             style={{
               height: 260,
               shadowColor: '#000',

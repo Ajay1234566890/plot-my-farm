@@ -73,7 +73,7 @@ export default function SelectRole() {
 
   return (
     <ScrollView className="flex-1 bg-white">
-      <View className="px-6 pt-12 pb-6">
+      <View className="px-6 pt-12 pb-32">
         {/* Header */}
         <Text className="text-3xl font-bold text-gray-900 mb-2">
           {t('auth.selectRole')}
@@ -94,8 +94,8 @@ export default function SelectRole() {
                 onPress={() => setSelectedRole(role.id)}
                 disabled={isLoading}
                 className={`p-6 rounded-2xl border-2 transition-all ${isSelected
-                    ? 'border-green-600 bg-green-50'
-                    : 'border-gray-200 bg-white'
+                  ? 'border-green-600 bg-green-50'
+                  : 'border-gray-200 bg-white'
                   }`}
               >
                 <View className="flex-row items-start">
@@ -162,8 +162,8 @@ export default function SelectRole() {
                 >
                   <Text
                     className={`text-base font-medium ${selectedLanguage === language.code
-                        ? 'text-green-600'
-                        : 'text-gray-900'
+                      ? 'text-green-600'
+                      : 'text-gray-900'
                       }`}
                   >
                     {language.nativeName}

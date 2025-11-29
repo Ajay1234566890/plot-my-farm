@@ -1,30 +1,29 @@
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
 import MapLibreView from "@/components/MapLibreView";
-import { speechToTextService } from "@/services/speech-to-text-service";
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
-    ArrowLeft,
-    MapPin,
-    MessageSquare,
-    Mic,
-    Phone,
-    Search,
-    Star,
-    Video
+  ArrowLeft,
+  MapPin,
+  MessageSquare,
+  Mic,
+  Phone,
+  Search,
+  Star,
+  Video
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    Image,
-    Linking,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
+  Linking,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -33,7 +32,6 @@ export default function NearbyBuyers() {
   const { t } = useTranslation();
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
-  const [isListening, setIsListening] = useState(false);
   const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
 
   // Scroll animation for map fade-out
@@ -83,27 +81,9 @@ export default function NearbyBuyers() {
     );
   };
 
-  // Handle voice search
-  const handleVoiceSearch = async () => {
-    try {
-      setIsListening(true);
-      console.log('🎤 [NEARBY-BUYERS] Starting voice search...');
-
-      const transcript = await speechToTextService.startRecording({
-        language: 'en',
-        continuous: false,
-      });
-
-      if (transcript) {
-        console.log('✅ [NEARBY-BUYERS] Voice transcript:', transcript);
-        setSearchText(transcript);
-      }
-    } catch (error) {
-      console.error('❌ [NEARBY-BUYERS] Voice search error:', error);
-      Alert.alert(t('common.error'), t('errors.voiceInputFailed'));
-    } finally {
-      setIsListening(false);
-    }
+  // Handle voice search - Navigate to Voice AI screen
+  const handleVoiceSearch = () => {
+    router.push('/voice-ai');
   };
 
   // Handle sort toggle
@@ -148,29 +128,23 @@ export default function NearbyBuyers() {
     },
   ];
 
-  // Map fade animation
+  // Map fade animation - Only opacity changes
   const mapOpacity = scrollY.interpolate({
-    inputRange: [0, 120],
+    inputRange: [0, 200],
     outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
-
-  const mapTranslateY = scrollY.interpolate({
-    inputRange: [0, 120],
-    outputRange: [0, -25],
     extrapolate: 'clamp',
   });
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
-      {/* Reduced Header Section */}
+      {/* Header Section */}
       <View
-        className="px-6 pt-8 pb-12"
+        className="px-6 pt-8 pb-6"
         style={{
           backgroundColor: '#7C8B3A', // Olive/army green matching farmer theme
           borderBottomLeftRadius: 40,
           borderBottomRightRadius: 40,
-          paddingBottom: 60,
+          zIndex: 10,
         }}
       >
         <View className="flex-row items-center mb-3">
@@ -183,7 +157,7 @@ export default function NearbyBuyers() {
           <Text className="text-xl font-bold text-white">{t('buyer.nearbyBuyers')}</Text>
         </View>
 
-        {/* Search Bar - Removed filter icon, kept only mic */}
+        {/* Search Bar */}
         <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
           <Search size={20} color="#4B5563" />
           <TextInput
@@ -196,45 +170,16 @@ export default function NearbyBuyers() {
           <TouchableOpacity
             className="p-1"
             onPress={handleVoiceSearch}
-            disabled={isListening}
           >
             <Mic
               size={20}
-              color={isListening ? "#FCD34D" : "#4B5563"}
+              color="#4B5563"
             />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Animated Map Card with Glass Effect */}
-      <Animated.View
-        className="absolute mx-4 rounded-3xl overflow-hidden"
-        style={{
-          top: 140,
-          left: 0,
-          right: 0,
-          height: 200,
-          opacity: mapOpacity,
-          transform: [{ translateY: mapTranslateY }],
-          backgroundColor: 'rgba(255, 255, 255, 0.85)',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.3,
-          shadowRadius: 15,
-          elevation: 10,
-        }}
-      >
-        <MapLibreView
-          showFarmers={false}
-          showBuyers={true}
-          radiusInMeters={RADIUS_PRESETS.DEFAULT}
-          onUserPress={(buyer) => {
-            console.log('Selected buyer:', buyer.full_name);
-          }}
-        />
-      </Animated.View>
-
-      {/* Scrollable Buyers List */}
+      {/* Scrollable Content */}
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
@@ -242,22 +187,51 @@ export default function NearbyBuyers() {
           { useNativeDriver: true }
         )}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingTop: 360, paddingBottom: 100, paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* Sort Header */}
-        <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-lg font-bold text-gray-900">{t('buyer.nearbyBuyersCount', { count: buyers.length })}</Text>
-          <TouchableOpacity
-            className="flex-row items-center bg-gray-100 px-3 py-1 rounded-full"
-            onPress={handleSort}
-          >
-            <Text className="text-sm font-medium text-gray-700 mr-1">
-              {sortBy === 'distance' ? t('buyer.sortByDistance') : t('buyer.sortByRating')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Map Section - Inside ScrollView for natural flow */}
+        <Animated.View
+          style={{
+            marginTop: 16,
+            marginHorizontal: 16,
+            height: 200,
+            borderRadius: 16,
+            overflow: 'hidden',
+            opacity: mapOpacity,
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.3,
+            shadowRadius: 15,
+            elevation: 10,
+          }}
+        >
+          <MapLibreView
+            showFarmers={false}
+            showBuyers={true}
+            radiusInMeters={RADIUS_PRESETS.DEFAULT}
+            onUserPress={(buyer) => {
+              console.log('Selected buyer:', buyer.full_name);
+            }}
+          />
+        </Animated.View>
 
-        {/* Buyers Cards */}
+        {/* Buyers List Section */}
+        <View className="px-4 mt-3">
+          {/* Sort Header */}
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-lg font-bold text-gray-900">{t('buyer.nearbyBuyersCount', { count: buyers.length })}</Text>
+            <TouchableOpacity
+              className="flex-row items-center bg-gray-100 px-3 py-1 rounded-full"
+              onPress={handleSort}
+            >
+              <Text className="text-sm font-medium text-gray-700 mr-1">
+                {sortBy === 'distance' ? t('buyer.sortByDistance') : t('buyer.sortByRating')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Buyers Cards */}
           {buyers.map((buyer) => (
             <View
               key={buyer.id}
@@ -277,7 +251,7 @@ export default function NearbyBuyers() {
                     </View>
                   )}
                 </View>
-                
+
                 <View className="flex-1 ml-4">
                   <View className="flex-row items-center">
                     <Text className="text-lg font-bold text-gray-900">
@@ -289,7 +263,7 @@ export default function NearbyBuyers() {
                       </View>
                     )}
                   </View>
-                  
+
                   <View className="flex-row items-center mt-1">
                     <MapPin size={14} color="#6B7280" />
                     <Text className="text-sm text-gray-500 ml-1">
@@ -300,7 +274,7 @@ export default function NearbyBuyers() {
                       {buyer.distance}
                     </Text>
                   </View>
-                  
+
                   <View className="flex-row items-center mt-1 flex-wrap">
                     <View className="flex-row items-center">
                       <Star size={14} color="#FBBF24" fill="#FBBF24" />
@@ -348,6 +322,7 @@ export default function NearbyBuyers() {
               </View>
             </View>
           ))}
+        </View>
       </Animated.ScrollView>
 
       {/* Bottom Navigation */}

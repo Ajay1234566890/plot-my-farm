@@ -1,10 +1,9 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import { useAuth } from "@/contexts/auth-context";
 import { useOffers } from "@/contexts/offers-context";
-import { formAutomationService } from "@/services/form-automation-service";
-import { screenContextService } from "@/services/screen-context-service";
 import { supabase } from "@/utils/supabase";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -54,6 +53,8 @@ export default function AddOffer() {
 
   // Register screen context and form fields for voice automation
   useEffect(() => {
+    /*
+    // Temporarily disabled to prevent crashes
     console.log('📋 [ADD-OFFER] Registering screen context and form fields');
 
     // Set screen context
@@ -77,25 +78,31 @@ export default function AddOffer() {
       console.log('🧹 [ADD-OFFER] Cleaning up screen context and form fields');
       formAutomationService.unregisterScreen('add-offer');
     };
+    */
   }, [cropType, pricePerUnit, quantity, availabilityDates]);
 
   // Load existing data if in edit mode
   useEffect(() => {
-    if (isEditMode && offerId) {
-      // Find the offer in the context
-      const existingOffer = offers.find(o => o.id === offerId);
+    try {
+      if (isEditMode && offerId) {
+        // Find the offer in the context
+        const existingOffer = offers?.find(o => o.id === offerId);
 
-      if (existingOffer) {
-        console.log('📝 [ADD-OFFER] Loading existing offer for edit:', existingOffer);
-        setCropType(existingOffer.cropType);
-        setQuantity(existingOffer.quantity.replace(' kg', ''));
-        setPricePerUnit(existingOffer.price.replace('₹', '').replace('/kg', ''));
-      } else if (params.cropType) {
-        // Fallback to params if offer not found in context
-        setCropType(params.cropType as string);
-        setQuantity((params.quantity as string)?.replace(' kg', '') || '');
-        setPricePerUnit((params.price as string)?.replace('₹', '').replace('/kg', '') || '');
+        if (existingOffer) {
+          console.log('📝 [ADD-OFFER] Loading existing offer for edit:', existingOffer);
+          setCropType(existingOffer.cropType || '');
+          setQuantity(existingOffer.quantity?.replace(' kg', '') || '');
+          setPricePerUnit(existingOffer.price?.replace('₹', '').replace('/kg', '') || '');
+        } else if (params.cropType) {
+          // Fallback to params if offer not found in context
+          setCropType((params.cropType as string) || '');
+          setQuantity((params.quantity as string)?.replace(' kg', '') || '');
+          setPricePerUnit((params.price as string)?.replace('₹', '').replace('/kg', '') || '');
+        }
       }
+    } catch (error) {
+      console.error('❌ [ADD-OFFER] Error loading offer data:', error);
+      // Don't crash, just log the error
     }
   }, [isEditMode, offerId, offers, params]);
 
