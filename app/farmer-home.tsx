@@ -20,10 +20,11 @@ import {
   User,
   X
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Animated,
   Dimensions,
   Image,
   Modal,
@@ -58,7 +59,8 @@ function FarmerHomeContent() {
   const [searchText, setSearchText] = useState('');
   const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
 
-
+  // Scroll animation
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // Log component mount for debugging
   useEffect(() => {
@@ -144,21 +146,30 @@ function FarmerHomeContent() {
     },
   ];
 
-
+  // Map fade animation - only opacity changes
+  const mapOpacity = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
         contentContainerStyle={{
           paddingBottom: 100, // Padding for bottom navigation
         }}
       >
         {/* Header Section */}
         <View
-          className="px-5 pt-2 pb-4"
+          className="px-5 pt-12 pb-6"
           style={{
             backgroundColor: '#7C8B3A', // Olive/army green matching reference image
             borderBottomLeftRadius: 30,
@@ -192,7 +203,7 @@ function FarmerHomeContent() {
                   {t('farmerHome.hello')}, <Text className="font-extrabold">{user?.name || t('farmerHome.farmer')}</Text>
                 </Text>
                 <Text className="text-white/70 text-xs mt-0.5">
-                  {getFormattedDate()} ▼
+                  {getFormattedDate()}
                 </Text>
               </View>
             </View>
@@ -214,7 +225,7 @@ function FarmerHomeContent() {
           </View>
 
           {/* Search Bar - Matching reference design with functional mic */}
-          <View className="mt-2">
+          <View style={{ marginTop: 16 }}>
             <View
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.25)', // Semi-transparent white
@@ -254,86 +265,90 @@ function FarmerHomeContent() {
           </View>
         </View>
 
-        {/* Map Card - Now scrollable with proper spacing */}
-        <View className="px-4 mt-4">
+        {/* Map Card - Animated with fade-out on scroll */}
+        <Animated.View
+          style={{
+            marginTop: 16,
+            marginBottom: 16,
+            marginHorizontal: 16,
+            height: 230,
+            borderRadius: 20,
+            overflow: 'hidden',
+            opacity: mapOpacity,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.15,
+            shadowRadius: 20,
+            elevation: 12,
+          }}
+        >
+          {/* Map Component */}
+          <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
+            <MapLibreView
+              showFarmers={true}
+              showBuyers={true}
+              radiusInMeters={RADIUS_PRESETS.DEFAULT}
+              onUserPress={(user) => {
+                if (user.role === 'buyer') {
+                  router.push({
+                    pathname: "/nearby-buyers",
+                    params: { selectedBuyerId: user.id }
+                  });
+                } else {
+                  router.push({
+                    pathname: "/nearby-farmers",
+                    params: { selectedFarmerId: user.id }
+                  });
+                }
+              }}
+            />
+          </MapErrorBoundary>
+
+          {/* Floating Buttons on Map - Top */}
           <View
-            className="bg-white/90 backdrop-blur-md border border-white/40 rounded-3xl overflow-hidden"
-            style={{
-              height: 260,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.15,
-              shadowRadius: 20,
-              elevation: 12,
-            }}
+            className="absolute top-4 left-4 right-4 flex-row justify-between"
+            style={{ gap: 8 }}
           >
-            {/* Map Component */}
-            <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
-              <MapLibreView
-                showFarmers={true}
-                showBuyers={true}
-                radiusInMeters={RADIUS_PRESETS.DEFAULT}
-                onUserPress={(user) => {
-                  if (user.role === 'buyer') {
-                    router.push({
-                      pathname: "/nearby-buyers",
-                      params: { selectedBuyerId: user.id }
-                    });
-                  } else {
-                    router.push({
-                      pathname: "/nearby-farmers",
-                      params: { selectedFarmerId: user.id }
-                    });
-                  }
-                }}
-              />
-            </MapErrorBoundary>
-
-            {/* Floating Buttons on Map - Top */}
-            <View
-              className="absolute top-4 left-4 right-4 flex-row justify-between"
-              style={{ gap: 8 }}
+            <TouchableOpacity
+              onPress={() => router.push("/nearby-buyers")}
+              className="px-4 py-2 rounded-full flex-row items-center"
+              style={{
+                backgroundColor: 'rgba(124, 139, 58, 0.95)', // Semi-transparent olive green
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 5,
+              }}
             >
-              <TouchableOpacity
-                onPress={() => router.push("/nearby-buyers")}
-                className="px-4 py-2 rounded-full flex-row items-center"
-                style={{
-                  backgroundColor: 'rgba(124, 139, 58, 0.95)', // Semi-transparent olive green
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 4,
-                  elevation: 5,
-                }}
-              >
-                <Text className="text-xs font-semibold text-white">
-                  {t('farmerHome.nearbyBuyers')}
-                </Text>
-              </TouchableOpacity>
+              <Text className="text-xs font-semibold text-white">
+                {t('farmerHome.nearbyBuyers')}
+              </Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => router.push("/nearby-farmers")}
-                className="px-4 py-2 rounded-full flex-row items-center"
-                style={{
-                  backgroundColor: 'rgba(124, 139, 58, 0.95)', // Semi-transparent olive green
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 4,
-                  elevation: 5,
-                }}
-              >
-                <Text className="text-xs font-semibold text-white">
-                  {t('farmerHome.nearbyFarmers')}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => router.push("/nearby-farmers")}
+              className="px-4 py-2 rounded-full flex-row items-center"
+              style={{
+                backgroundColor: 'rgba(124, 139, 58, 0.95)', // Semi-transparent olive green
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 5,
+              }}
+            >
+              <Text className="text-xs font-semibold text-white">
+                {t('farmerHome.nearbyFarmers')}
+              </Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Market Prices - Redesigned with olive green accent */}
-        <View className="mb-6" style={{ marginTop: 0 }}>
-          <View className="px-6 flex-row justify-between items-center mb-4">
+        <View style={{ marginTop: 12, paddingHorizontal: 16, marginBottom: 24 }}>
+          <View className="flex-row justify-between items-center mb-4">
             <Text className="text-xl font-bold text-gray-800">
               {t('market.marketPrices')}
             </Text>
@@ -348,19 +363,18 @@ function FarmerHomeContent() {
             </TouchableOpacity>
           </View>
           {loadingPrices ? (
-            <View className="px-6 py-8 items-center">
+            <View className="py-8 items-center">
               <ActivityIndicator size="small" color="#7C8B3A" />
               <Text className="text-gray-500 text-sm mt-2">{t('common.loadingPrices')}</Text>
             </View>
           ) : marketPrices.length === 0 ? (
-            <View className="px-6 py-8 items-center">
+            <View className="py-8 items-center">
               <Text className="text-gray-500 text-sm">{t('market.noPricesAvailable')}</Text>
             </View>
           ) : (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              className="px-6"
             >
               {marketPrices.map((item, index) => (
                 <TouchableOpacity
@@ -406,10 +420,8 @@ function FarmerHomeContent() {
           )}
         </View>
 
-
-
         {/* Quick Actions - Redesigned with sophisticated olive green theme */}
-        <View className="px-6 mb-6">
+        <View style={{ marginTop: 12, paddingHorizontal: 16, marginBottom: 24 }}>
           <Text className="text-xl font-bold text-gray-800 mb-5">{t('farmerHome.quickActions')}</Text>
           <View className="flex-row justify-between">
             {quickActions.map((action, index) => (
@@ -455,7 +467,7 @@ function FarmerHomeContent() {
         {/* Add Crops - Restored from original */}
         <TouchableOpacity
           onPress={() => router.push("/edit-crop")}
-          className="mx-6 mb-6"
+          style={{ marginTop: 12, paddingHorizontal: 16, marginBottom: 24 }}
         >
           <View
             className="flex-row items-center rounded-2xl p-4"
@@ -484,7 +496,7 @@ function FarmerHomeContent() {
         </TouchableOpacity>
 
         {/* Recommended Buyers - Restored from original */}
-        <View className="px-6 mb-6">
+        <View style={{ marginTop: 12, paddingHorizontal: 16, marginBottom: 24 }}>
           <Text className="text-lg font-bold text-gray-800 mb-3">
             {t('farmerHome.recommendedBuyers')}
           </Text>
@@ -523,7 +535,7 @@ function FarmerHomeContent() {
         </View>
 
         {/* My Fields Section - Styled like reference image */}
-        <View className="px-6" style={{ marginBottom: 20 }}>
+        <View style={{ marginTop: 12, paddingHorizontal: 16, marginBottom: 20 }}>
           <Text className="text-gray-800 text-lg font-bold mb-4">{t('farmerHome.myFields')}</Text>
           <TouchableOpacity
             onPress={() => router.push("/my-farms")}
@@ -552,7 +564,7 @@ function FarmerHomeContent() {
             </View>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Bottom Navigation - Absolute Positioning */}
       <View className="absolute bottom-0 left-0 right-0">

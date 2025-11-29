@@ -9,6 +9,114 @@ import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity
 import BuyerBottomNav from './components/BuyerBottomNav';
 import FarmerBottomNav from './components/FarmerBottomNav';
 
+// Crop image mapping function with fuzzy matching
+const getCropImage = (commodityName: string) => {
+  // Normalize the commodity name
+  const normalized = commodityName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '') // Remove spaces, symbols, etc.
+    .trim();
+
+  // Mapping object with normalized keys
+  const cropImageMap: { [key: string]: any } = {
+    // Exact matches
+    'tomato': require('@/assets/images/market/tomato.jpg'),
+    'tomatoes': require('@/assets/images/market/tomato.jpg'),
+    'tomatolocal': require('@/assets/images/market/tomato.jpg'),
+    'tomatohybrid': require('@/assets/images/market/tomato.jpg'),
+
+    'onion': require('@/assets/images/market/onion.jpg'),
+    'onions': require('@/assets/images/market/onion.jpg'),
+    'onionlocal': require('@/assets/images/market/onion.jpg'),
+    'onionred': require('@/assets/images/market/onion.jpg'),
+
+    'beetroot': require('@/assets/images/market/beetroot.jpg'),
+    'beet': require('@/assets/images/market/beetroot.jpg'),
+
+    'bengalgram': require('@/assets/images/market/bengal_gram.jpg'),
+    'gram': require('@/assets/images/market/bengal_gram.jpg'),
+    'chana': require('@/assets/images/market/bengal_gram.jpg'),
+
+    'betelnut': require('@/assets/images/market/betelnut.jpg'),
+    'arecanut': require('@/assets/images/market/betelnut.jpg'),
+    'supari': require('@/assets/images/market/betelnut.jpg'),
+
+    'bottlegourd': require('@/assets/images/market/bottle_gourd.jpg'),
+    'lauki': require('@/assets/images/market/bottle_gourd.jpg'),
+    'doodhi': require('@/assets/images/market/bottle_gourd.jpg'),
+
+    'brinjal': require('@/assets/images/market/brinjal.jpg'),
+    'eggplant': require('@/assets/images/market/brinjal.jpg'),
+    'baingan': require('@/assets/images/market/brinjal.jpg'),
+    'aubergine': require('@/assets/images/market/brinjal.jpg'),
+
+    'cauliflower': require('@/assets/images/market/cauliflower.jpg'),
+    'gobi': require('@/assets/images/market/cauliflower.jpg'),
+
+    'coconut': require('@/assets/images/market/coconut.jpg'),
+    'nariyal': require('@/assets/images/market/coconut.jpg'),
+
+    'tendercoconut': require('@/assets/images/market/tender_coconut.jpg'),
+    'youngcoconut': require('@/assets/images/market/tender_coconut.jpg'),
+
+    'cotton': require('@/assets/images/market/cotton.jpg'),
+    'kapas': require('@/assets/images/market/cotton.jpg'),
+
+    'cucumber': require('@/assets/images/market/cucumber.jpg'),
+    'kheera': require('@/assets/images/market/cucumber.jpg'),
+
+    'drychillies': require('@/assets/images/market/dry_chillies.jpg'),
+    'drychilli': require('@/assets/images/market/dry_chillies.jpg'),
+    'redchilli': require('@/assets/images/market/dry_chillies.jpg'),
+    'chilli': require('@/assets/images/market/dry_chillies.jpg'),
+    'chili': require('@/assets/images/market/dry_chillies.jpg'),
+
+    'elephantyam': require('@/assets/images/market/elephant_yam.jpg'),
+    'suran': require('@/assets/images/market/elephant_yam.jpg'),
+    'yam': require('@/assets/images/market/elephant_yam.jpg'),
+
+    'ginger': require('@/assets/images/market/ginger.jpg'),
+    'adrak': require('@/assets/images/market/ginger.jpg'),
+
+    'ladiesfinger': require('@/assets/images/market/ladies_finger.jpg'),
+    'okra': require('@/assets/images/market/ladies_finger.jpg'),
+    'bhindi': require('@/assets/images/market/ladies_finger.jpg'),
+
+    'littlegourd': require('@/assets/images/market/little_gourd_kundru.jpg'),
+    'kundru': require('@/assets/images/market/little_gourd_kundru.jpg'),
+    'tindora': require('@/assets/images/market/little_gourd_kundru.jpg'),
+
+    'pomegranate': require('@/assets/images/market/pomogranate.jpg'),
+    'pomogranate': require('@/assets/images/market/pomogranate.jpg'),
+    'anar': require('@/assets/images/market/pomogranate.jpg'),
+
+    'radish': require('@/assets/images/market/radish.jpg'),
+    'mooli': require('@/assets/images/market/radish.jpg'),
+
+    'ridgegourd': require('@/assets/images/market/ridge_gourd.jpg'),
+    'turai': require('@/assets/images/market/ridge_gourd.jpg'),
+    'tori': require('@/assets/images/market/ridge_gourd.jpg'),
+
+    'turmeric': require('@/assets/images/market/turmeric.jpg'),
+    'haldi': require('@/assets/images/market/turmeric.jpg'),
+  };
+
+  // Try exact match first
+  if (cropImageMap[normalized]) {
+    return cropImageMap[normalized];
+  }
+
+  // Try substring matching for partial matches
+  for (const [key, image] of Object.entries(cropImageMap)) {
+    if (normalized.includes(key) || key.includes(normalized)) {
+      return image;
+    }
+  }
+
+  // Default fallback image
+  return require('@/assets/images/market/tomato.jpg');
+};
+
 export default function MarketRealPrices() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -39,7 +147,14 @@ export default function MarketRealPrices() {
 
       // Fetch prices with location
       const prices = await marketPricesService.getMarketPricesWithLocation(100);
-      setMarketPrices(prices);
+
+      // Map images to crops
+      const pricesWithImages = prices.map(price => ({
+        ...price,
+        image: getCropImage(price.commodity)
+      }));
+
+      setMarketPrices(pricesWithImages);
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Error loading market prices:', error);
@@ -162,7 +277,7 @@ export default function MarketRealPrices() {
               className="bg-white rounded-xl p-4 mb-4 shadow-sm flex-row items-center"
             >
               <Image
-                source={typeof crop.image === 'string' ? { uri: crop.image } : crop.image}
+                source={crop.image}
                 className="w-16 h-16 rounded-lg"
               />
               <View className="flex-1 ml-4">
