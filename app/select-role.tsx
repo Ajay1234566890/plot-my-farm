@@ -1,14 +1,13 @@
-import VoiceAgentChat from '@/components/VoiceAgentChat';
 import { Language, useAuth } from '@/contexts/auth-context';
+import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { SUPPORTED_LANGUAGES } from '@/i18n/config';
 import { useRouter } from 'expo-router';
-import { ChevronDown, Mic, ShoppingCart, Sprout, X } from 'lucide-react-native';
+import { ChevronDown, Mic, ShoppingCart, Sprout } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -23,7 +22,23 @@ export default function SelectRole() {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('en');
   const [isLoading, setIsLoading] = useState(false);
-  const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
+
+  // Voice input for role selection
+  const { isRecording, toggleRecording } = useVoiceInput({
+    onTranscript: (text) => {
+      const lowerText = text.toLowerCase();
+      if (lowerText.includes('farmer') || lowerText.includes('grower') || lowerText.includes('producer')) {
+        setSelectedRole('farmer');
+        Alert.alert(t('common.success'), 'Selected Farmer role via voice');
+      } else if (lowerText.includes('buyer') || lowerText.includes('purchaser') || lowerText.includes('trader')) {
+        setSelectedRole('buyer');
+        Alert.alert(t('common.success'), 'Selected Buyer role via voice');
+      } else {
+        Alert.alert('Voice Command', `Heard: "${text}". Please say "Farmer" or "Buyer".`);
+      }
+    },
+    language: selectedLanguage
+  });
 
   const roles = [
     {
@@ -208,8 +223,8 @@ export default function SelectRole() {
         style={{ bottom: 12 }}
       >
         <TouchableOpacity
-          onPress={() => setIsVoiceAgentOpen(true)}
-          className="w-16 h-16 bg-green-600 rounded-full items-center justify-center"
+          onPress={toggleRecording}
+          className={`w-16 h-16 rounded-full items-center justify-center ${isRecording ? 'bg-red-500' : 'bg-green-600'}`}
           style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
@@ -221,47 +236,6 @@ export default function SelectRole() {
           <Mic size={28} color="#ffffff" />
         </TouchableOpacity>
       </View>
-
-      {/* Voice Agent Modal */}
-      <Modal
-        visible={isVoiceAgentOpen}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setIsVoiceAgentOpen(false)}
-      >
-        <View className="flex-1 bg-white">
-          {/* Header */}
-          <View className="px-6 pt-12 pb-4 border-b border-gray-200 flex-row items-center justify-between">
-            <Text className="text-2xl font-bold text-gray-900">
-              {t('voiceAgent.title', { defaultValue: 'Voice Assistant' })}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setIsVoiceAgentOpen(false)}
-              className="w-10 h-10 items-center justify-center"
-            >
-              <X size={24} color="#374151" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Voice Agent Chat */}
-          <VoiceAgentChat
-            userId="guest"
-            userRole={selectedRole || 'farmer'}
-            language={selectedLanguage || 'en'}
-            onClose={() => setIsVoiceAgentOpen(false)}
-            onAction={(action) => {
-              if (action.type === 'navigate' && action.route) {
-                setIsVoiceAgentOpen(false);
-                router.push(action.route as any);
-              } else if (action.type === 'selectRole' && action.params?.role) {
-                setSelectedRole(action.params.role);
-              } else if (action.type === 'selectLanguage' && action.params?.language) {
-                setSelectedLanguage(action.params.language);
-              }
-            }}
-          />
-        </View>
-      </Modal>
     </ScrollView>
   );
 }

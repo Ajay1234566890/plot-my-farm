@@ -4,6 +4,7 @@ import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import MapLibreView from "@/components/MapLibreView";
 import VoiceAgentChat from "@/components/VoiceAgentChat";
 import { useAuth } from "@/contexts/auth-context";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { MarketPrice, marketPricesService } from '@/services/market-prices-service';
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from "expo-router";
@@ -61,6 +62,12 @@ function FarmerHomeContent() {
 
   // Scroll animation
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Voice input for search
+  const { isRecording, toggleRecording } = useVoiceInput({
+    onTranscript: (text) => setSearchText(text),
+    language: user?.language || 'en'
+  });
 
   // Log component mount for debugging
   useEffect(() => {
@@ -254,11 +261,12 @@ function FarmerHomeContent() {
               />
               <TouchableOpacity
                 style={{ padding: 4 }}
-                onPress={handleVoiceAgent}
+                onPress={toggleRecording}
               >
                 <Mic
                   size={18}
-                  color="rgba(255, 255, 255, 0.9)"
+                  color={isRecording ? '#EF4444' : "rgba(255, 255, 255, 0.9)"}
+                  fill={isRecording ? '#EF4444' : 'none'}
                 />
               </TouchableOpacity>
             </View>

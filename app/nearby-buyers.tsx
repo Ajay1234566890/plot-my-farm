@@ -1,5 +1,7 @@
-import BuyerBottomNav from "@/app/components/BuyerBottomNav";
+import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import MapLibreView from "@/components/MapLibreView";
+import { useAuth } from "@/contexts/auth-context";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
@@ -9,8 +11,7 @@ import {
   Mic,
   Phone,
   Search,
-  Star,
-  Video
+  Star
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
@@ -31,13 +32,20 @@ const { width } = Dimensions.get("window");
 export default function NearbyBuyers() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { user } = useAuth();
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
+
+  // Voice input for search
+  const { isRecording, toggleRecording } = useVoiceInput({
+    onTranscript: (text) => setSearchText(text),
+    language: user?.language || 'en'
+  });
 
   // Scroll animation for map fade-out
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  // Handler functions for Call, Message, and Video
+  // Handler functions for Call and Message
   const handleCall = (buyerName: string, phone?: string) => {
     const phoneNumber = phone || '+1234567890'; // Mock phone number
     Alert.alert(
@@ -62,28 +70,6 @@ export default function NearbyBuyers() {
         userType: 'buyer'
       }
     });
-  };
-
-  const handleVideo = (buyerName: string, buyerId: number) => {
-    Alert.alert(
-      t('common.videoCall'),
-      `Starting video call with ${buyerName}`,
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.start'),
-          onPress: () => {
-            // TODO: Implement video call functionality
-            console.log('Video call with buyer:', buyerId);
-          }
-        }
-      ]
-    );
-  };
-
-  // Handle voice search - Navigate to Voice AI screen
-  const handleVoiceSearch = () => {
-    router.push('/voice-ai');
   };
 
   // Handle sort toggle
@@ -169,11 +155,12 @@ export default function NearbyBuyers() {
           />
           <TouchableOpacity
             className="p-1"
-            onPress={handleVoiceSearch}
+            onPress={toggleRecording}
           >
             <Mic
               size={20}
-              color="#4B5563"
+              color={isRecording ? '#EF4444' : '#4B5563'}
+              fill={isRecording ? '#EF4444' : 'none'}
             />
           </TouchableOpacity>
         </View>
@@ -189,7 +176,7 @@ export default function NearbyBuyers() {
         scrollEventThrottle={16}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* Map Section - Inside ScrollView for natural flow */}
+        {/* Map Section - Glass Card Design */}
         <Animated.View
           style={{
             marginTop: 16,
@@ -198,11 +185,15 @@ export default function NearbyBuyers() {
             borderRadius: 16,
             overflow: 'hidden',
             opacity: mapOpacity,
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            backgroundColor: 'rgba(255, 255, 255, 0.7)', // Glass effect
+            // Note: backdropFilter is not supported in React Native directly, 
+            // but we simulate glass with transparency and blur if possible or just transparency
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.3,
-            shadowRadius: 15,
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.15,
+            shadowRadius: 20,
             elevation: 10,
           }}
         >
@@ -295,7 +286,7 @@ export default function NearbyBuyers() {
                 </View>
               </View>
 
-              {/* Action Buttons - Call, Message, Video */}
+              {/* Action Buttons - Call, Message (Video removed) */}
               <View className="flex-row mt-4 gap-2">
                 <TouchableOpacity
                   className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3 shadow-sm"
@@ -313,20 +304,16 @@ export default function NearbyBuyers() {
                     {t('common.message')}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  className="flex-row items-center justify-center bg-purple-600 rounded-xl py-3 px-3 shadow-sm"
-                  onPress={() => handleVideo(buyer.name, buyer.id)}
-                >
-                  <Video size={16} color="#FFFFFF" />
-                </TouchableOpacity>
               </View>
             </View>
           ))}
         </View>
       </Animated.ScrollView>
 
-      {/* Bottom Navigation */}
-      <BuyerBottomNav activeTab="home" />
+      {/* Bottom Navigation - Using FarmerBottomNav for Green/Black theme */}
+      <View className="absolute bottom-0 left-0 right-0">
+        <FarmerBottomNav activeTab="home" />
+      </View>
     </View>
   );
 }

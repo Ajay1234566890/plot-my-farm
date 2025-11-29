@@ -2,13 +2,14 @@ import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import { useAuth } from "@/contexts/auth-context";
 import { useOffers } from "@/contexts/offers-context";
 import { supabase } from "@/utils/supabase";
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, Upload } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-// Crop type to image mapping with high-quality images
+// Crop type to image mapping with high-quality images (fallback)
 const cropImageMap: { [key: string]: string } = {
   'Rice': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
   'Wheat': 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3',
@@ -50,36 +51,7 @@ export default function AddOffer() {
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [showCropTypes, setShowCropTypes] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  // Register screen context and form fields for voice automation
-  useEffect(() => {
-    /*
-    // Temporarily disabled to prevent crashes
-    console.log('📋 [ADD-OFFER] Registering screen context and form fields');
-
-    // Set screen context
-    screenContextService.setContext({
-      screenName: 'add-offer',
-      screenTitle: 'Add Offer',
-      hasForm: true,
-      formFields: ['cropName', 'offerPrice', 'quantity', 'validUntil'],
-      userRole: 'farmer',
-    });
-
-    // Register form fields with automation service
-    // Note: Form definition uses 'cropName' but state uses 'cropType'
-    formAutomationService.registerField('add-offer', 'cropName', setCropType, () => cropType);
-    formAutomationService.registerField('add-offer', 'offerPrice', setPricePerUnit, () => pricePerUnit);
-    formAutomationService.registerField('add-offer', 'quantity', setQuantity, () => quantity);
-    formAutomationService.registerField('add-offer', 'validUntil', setAvailabilityDates, () => availabilityDates);
-
-    // Cleanup on unmount
-    return () => {
-      console.log('🧹 [ADD-OFFER] Cleaning up screen context and form fields');
-      formAutomationService.unregisterScreen('add-offer');
-    };
-    */
-  }, [cropType, pricePerUnit, quantity, availabilityDates]);
+  const [cropImage, setCropImage] = useState("");
 
   // Load existing data if in edit mode
   useEffect(() => {
@@ -93,6 +65,10 @@ export default function AddOffer() {
           setCropType(existingOffer.cropType || '');
           setQuantity(existingOffer.quantity?.replace(' kg', '') || '');
           setPricePerUnit(existingOffer.price?.replace('₹', '').replace('/kg', '') || '');
+          // If image is available in existing offer, set it
+          if (existingOffer.image && typeof existingOffer.image === 'string') {
+            setCropImage(existingOffer.image);
+          }
         } else if (params.cropType) {
           // Fallback to params if offer not found in context
           setCropType((params.cropType as string) || '');
@@ -105,6 +81,32 @@ export default function AddOffer() {
       // Don't crash, just log the error
     }
   }, [isEditMode, offerId, offers, params]);
+
+  // Image picker function
+  const handleImagePick = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        Alert.alert(t('common.error'), t('errors.cameraPermissionRequired'));
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setCropImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert(t('common.error'), t('errors.imagePickFailed'));
+    }
+  };
 
   const handleSubmit = async () => {
     // Validation
@@ -125,9 +127,10 @@ export default function AddOffer() {
     setIsSaving(true);
 
     try {
-      // Get the English crop name for image mapping
+      // Get the English crop name for image mapping fallback
       const cropTypeEnglish = cropType.split(' ').pop() || cropType;
-      const image = cropImageMap[cropTypeEnglish] || cropImageMap['Tomatoes'];
+      // Use selected image or fallback to map
+      const image = cropImage || cropImageMap[cropTypeEnglish] || cropImageMap['Tomatoes'];
 
       // Prepare offer data for Supabase
       const offerDbData = {
@@ -252,12 +255,35 @@ export default function AddOffer() {
       </View>
 
       <ScrollView className="flex-1 px-4 pb-24" showsVerticalScrollIndicator={false}>
+
+        {/* Image Upload Section */}
+        <View className="mt-6">
+          <Text className="text-gray-600 mb-2">{t('crops.uploadImage')}</Text>
+          <TouchableOpacity
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 items-center justify-center bg-white"
+            onPress={handleImagePick}
+          >
+            {cropImage ? (
+              <Image
+                source={{ uri: cropImage }}
+                className="w-full h-48 rounded-lg mb-2"
+                resizeMode="cover"
+              />
+            ) : (
+              <>
+                <Upload size={24} className="text-gray-400 mb-2" color="#9CA3AF" />
+                <Text className="text-gray-500 text-center">{t('crops.clickToUpload')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
         {/* Crop Type */}
         <View className="mt-6">
           <Text className="text-gray-600 mb-2">{t('addOffer.cropType')}</Text>
           <TouchableOpacity
             onPress={() => setShowCropTypes(!showCropTypes)}
-            className="border border-gray-300 rounded-lg p-4"
+            className="border border-gray-300 rounded-lg p-4 bg-white"
           >
             <Text className={cropType ? "text-gray-900" : "text-gray-400"}>
               {cropType || t('addOffer.selectCropType')}
@@ -265,7 +291,7 @@ export default function AddOffer() {
           </TouchableOpacity>
 
           {showCropTypes && (
-            <View className="border border-gray-300 rounded-lg mt-2">
+            <View className="border border-gray-300 rounded-lg mt-2 bg-white">
               {cropTypes.map((type) => (
                 <TouchableOpacity
                   key={type}
@@ -289,7 +315,7 @@ export default function AddOffer() {
             value={quantity}
             onChangeText={setQuantity}
             placeholder={t('addOffer.quantityPlaceholder')}
-            className="border border-gray-300 rounded-lg p-4 text-gray-900"
+            className="border border-gray-300 rounded-lg p-4 text-gray-900 bg-white"
             placeholderTextColor="#9ca3af"
             keyboardType="decimal-pad"
           />
@@ -302,7 +328,7 @@ export default function AddOffer() {
             value={pricePerUnit}
             onChangeText={setPricePerUnit}
             placeholder={t('addOffer.pricePlaceholder')}
-            className="border border-gray-300 rounded-lg p-4 text-gray-900"
+            className="border border-gray-300 rounded-lg p-4 text-gray-900 bg-white"
             placeholderTextColor="#9ca3af"
             keyboardType="decimal-pad"
           />
@@ -315,7 +341,7 @@ export default function AddOffer() {
             value={minOrderQuantity}
             onChangeText={setMinOrderQuantity}
             placeholder={t('addOffer.minOrderPlaceholder')}
-            className="border border-gray-300 rounded-lg p-4 text-gray-900"
+            className="border border-gray-300 rounded-lg p-4 text-gray-900 bg-white"
             placeholderTextColor="#9ca3af"
             keyboardType="decimal-pad"
           />
@@ -328,7 +354,7 @@ export default function AddOffer() {
             value={availabilityDates}
             onChangeText={setAvailabilityDates}
             placeholder={t('addOffer.datesPlaceholder')}
-            className="border border-gray-300 rounded-lg p-4 text-gray-900"
+            className="border border-gray-300 rounded-lg p-4 text-gray-900 bg-white"
             placeholderTextColor="#9ca3af"
           />
         </View>
@@ -340,7 +366,7 @@ export default function AddOffer() {
             value={additionalNotes}
             onChangeText={setAdditionalNotes}
             placeholder={t('addOffer.notesPlaceholder')}
-            className="border border-gray-300 rounded-lg p-4 min-h-[120px] text-gray-900"
+            className="border border-gray-300 rounded-lg p-4 min-h-[120px] text-gray-900 bg-white"
             placeholderTextColor="#9ca3af"
             multiline
             textAlignVertical="top"

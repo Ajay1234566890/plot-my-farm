@@ -1,436 +1,331 @@
-# Implementation Guide for Remaining Screens
+# Comprehensive Implementation Guide: Voice Input & Critical Fixes
 
-## Quick Start
-
-This guide provides step-by-step instructions for implementing the remaining 42 screens in the application.
+## Overview
+This document outlines all requested changes and provides implementation guidance.
 
 ---
 
-## Architecture Overview
+## ✅ COMPLETED: Reusable Voice Input Hook
 
-### State Management Pattern
+**File Created:** `hooks/useVoiceInput.ts`
+
+This hook provides inline voice recognition without navigation. Usage:
+
 ```typescript
-// Use auth context for user data
-const { user, userRole } = useAuth();
+const { isRecording, toggleRecording } = useVoiceInput({
+  onTranscript: (text) => setSearchText(text),
+  language: 'en'
+});
 
-// Use local state for screen-specific data
-const [data, setData] = useState([]);
-const [isLoading, setIsLoading] = useState(false);
-const [error, setError] = useState('');
-```
-
-### Navigation Pattern
-```typescript
-// Use safe navigation
-const { safeNavigate, safeGoBack } = useSafeNavigation();
-
-// Navigate with parameters
-safeNavigate('/crop-details', { cropId: '123' });
-
-// Get parameters
-const { cropId } = useLocalSearchParams();
-```
-
-### Form Pattern
-```typescript
-// Validate form
-const validation = validateAddCropForm(cropType, quantity, price);
-if (!validation.isValid) {
-  setErrors(validation.errors);
-  return;
-}
-
-// Submit form
-try {
-  setIsLoading(true);
-  // API call
-  safeNavigate('/success-screen');
-} catch (error) {
-  setError('Failed to submit');
-} finally {
-  setIsLoading(false);
-}
+// In component:
+<TouchableOpacity onPress={toggleRecording}>
+  <Mic 
+    color={isRecording ? '#EF4444' : '#9CA3AF'}
+    fill={isRecording ? '#EF4444' : 'none'}
+  />
+</TouchableOpacity>
 ```
 
 ---
 
-## Phase 3: Farmer Features
+## 🔧 IMPLEMENTATION REQUIRED
 
-### 1. Farmer Home (`app/farmer-home.tsx`)
-**Purpose**: Main farmer dashboard
+### 1. Voice Input - Inline Recognition (No Navigation)
 
-**Components**:
-- Profile card with stats
-- Weather widget
-- Market prices carousel
-- Quick actions (Weather, Market, Add Offer, Nearby Buyers)
-- Recommended buyers list
-- Bottom navigation
+#### A. Select Role Page (`app/select-role.tsx`)
+**Current:** Opens voice agent modal
+**Required:** Inline voice Q&A
 
-**Implementation Steps**:
-1. Import BottomNavigation component
-2. Fetch user profile from auth context
-3. Create mock data for stats, weather, prices
-4. Implement quick action buttons with navigation
-5. Add bottom navigation with variant="farmer"
-
-**Data Structure**:
+**Implementation:**
 ```typescript
-interface FarmerStats {
-  listings: number;
-  orders: number;
-  successRate: number;
-  earnings: number;
-}
+import { useVoiceInput } from '@/hooks/useVoiceInput';
 
-interface Weather {
-  temp: number;
-  condition: string;
-  humidity: number;
-}
+// In component:
+const { isRecording, toggleRecording } = useVoiceInput({
+  onTranscript: async (text) => {
+    // Process voice command
+    if (text.toLowerCase().includes('farmer')) {
+      setSelectedRole('farmer');
+    } else if (text.toLowerCase().includes('buyer')) {
+      setSelectedRole('buyer');
+    }
+    // Add more voice commands as needed
+  }
+});
+
+// Replace modal trigger with inline voice
 ```
 
-### 2. My Farms (`app/my-farms.tsx`)
-**Purpose**: Display farmer's farms
+#### B. Farmer Home Dashboard (`app/farmer-home.tsx`)
+**Location:** Search bar microphone
+**Required:** Voice search without navigation
 
-**Components**:
-- Farm list with images
-- Farm details (location, size, crops)
-- Farm statistics
-- Add farm button
+**Implementation:**
+```typescript
+const { isRecording, toggleRecording } = useVoiceInput({
+  onTranscript: (text) => setSearchText(text)
+});
+```
 
-**Implementation Steps**:
-1. Fetch farms from API (mock data for now)
-2. Display farm list with FlatList
-3. Implement farm card component
-4. Add navigation to crop-details
-5. Add bottom navigation
+#### C. My Farms Page (`app/my-farms.tsx`)
+**Location:** Search bar microphone
+**Required:** Voice search
 
-### 3. Add Crop (`app/add-crop.tsx`)
-**Purpose**: Create new crop listing
+**Implementation:** Same as Farmer Home
 
-**Form Fields**:
-- Crop type (dropdown)
-- Quantity
-- Price per unit
-- Availability dates
-- Additional notes
+#### D. Nearby Buyers Page (`app/nearby-buyers.tsx`)
+**Location:** Search bar microphone  
+**Current:** Navigates to /voice-ai
+**Required:** Inline voice search
 
-**Implementation Steps**:
-1. Create form with TextInput fields
-2. Add validation using validateAddCropForm
-3. Implement date picker for availability
-4. Add submit button with loading state
-5. Navigate to success screen
-
-### 4. Farmer Offers (`app/farmer-offers.tsx`)
-**Purpose**: View all created offers
-
-**Components**:
-- Offer list
-- Offer status (Active, Expired, Sold)
-- Edit/Delete options
-
-**Implementation Steps**:
-1. Fetch offers from API
-2. Display offer list with status badges
-3. Implement offer card component
-4. Add edit/delete functionality
-5. Add bottom navigation
+**Implementation:** Same as Farmer Home
 
 ---
 
-## Phase 4: Buyer Features
+### 2. UI Fixes
 
-### 1. Buyer Home (`app/buyer-home.tsx`)
-**Purpose**: Main buyer dashboard
+#### A. Farmer Profile Setup (`app/farmer-profile-setup.tsx`)
+**Required:** Remove microphone icon from pincode field
 
-**Components**:
-- Welcome message
-- Search bar
-- Tabs: Nearby Crops, Nearby Farmers
-- Featured crops grid
-- Quick actions
-- Market prices
-- Bottom navigation
-
-**Implementation Steps**:
-1. Import BottomNavigation component
-2. Create tab navigation
-3. Fetch nearby crops/farmers
-4. Display featured crops grid
-5. Add quick action buttons
-6. Add bottom navigation with variant="buyer"
-
-### 2. Nearby Crops (`app/nearby-crops.tsx`)
-**Purpose**: Browse available crops
-
-**Components**:
-- Crop list with images
-- Farmer information
-- Price and availability
-- Add to cart button
-- Filter options
-
-**Implementation Steps**:
-1. Fetch crops from API
-2. Display crop list with FlatList
-3. Implement crop card component
-4. Add to cart functionality
-5. Add filter/search
-
-### 3. Cart (`app/cart.tsx`)
-**Purpose**: Shopping cart
-
-**Components**:
-- Cart items list
-- Quantity adjustment
-- Price calculation
-- Proceed to checkout button
-
-**Implementation Steps**:
-1. Get cart items from state/context
-2. Display items with quantity controls
-3. Calculate total price
-4. Implement remove item
-5. Add checkout button
-
-### 4. Checkout (`app/checkout.tsx`)
-**Purpose**: Purchase process
-
-**Form Fields**:
-- Delivery address
-- Payment method
-- Order summary
-
-**Implementation Steps**:
-1. Display order summary
-2. Create address form
-3. Add payment method selection
-4. Implement place order
-5. Navigate to confirmation
-
-### 5. Order Confirmation (`app/order-confirmation.tsx`)
-**Purpose**: Confirm successful order
-
-**Components**:
-- Order details
-- Confirmation number
-- Estimated delivery
-- Track order button
-
-**Implementation Steps**:
-1. Get order data from navigation params
-2. Display order details
-3. Generate confirmation number
-4. Add track order button
-5. Add back to home button
-
----
-
-## Phase 5: Supporting Features
-
-### 1. Messages (`app/messages.tsx`)
-**Purpose**: Message list
-
-**Components**:
-- Conversation list
-- Unread indicators
-- Last message preview
-
-**Implementation Steps**:
-1. Fetch conversations from API
-2. Display conversation list
-3. Show unread count
-4. Add new message button
-5. Navigate to chat screen
-
-### 2. Chat Screen (`app/chat-screen.tsx`)
-**Purpose**: Send/receive messages
-
-**Components**:
-- Message history
-- Message input
-- Send button
-- User information
-
-**Implementation Steps**:
-1. Get conversation ID from params
-2. Fetch message history
-3. Display messages
-4. Implement message input
-5. Add send functionality
-
-### 3. Profile (`app/profile.tsx`)
-**Purpose**: User profile
-
-**Components**:
-- Profile information
-- Avatar
-- Edit profile button
-- Settings link
-- Logout button
-
-**Implementation Steps**:
-1. Get user from auth context
-2. Display profile information
-3. Add edit button
-4. Add settings link
-5. Add logout functionality
-
-### 4. Settings (`app/settings.tsx`)
-**Purpose**: App settings
-
-**Options**:
-- Language settings
-- Notification preferences
-- Privacy settings
-- Logout
-
-**Implementation Steps**:
-1. Create settings list
-2. Implement language selection
-3. Add notification toggle
-4. Add logout button
-5. Add privacy link
-
----
-
-## Common Patterns
-
-### Loading State
+**Implementation:**
 ```typescript
-{isLoading ? (
-  <ActivityIndicator size="large" color="#16a34a" />
-) : (
-  // Content
-)}
-```
-
-### Error Handling
-```typescript
-{error ? (
-  <View className="bg-red-100 p-3 rounded-lg">
-    <Text className="text-red-700">{error}</Text>
-  </View>
-) : null}
-```
-
-### List Rendering
-```typescript
-<FlatList
-  data={items}
-  renderItem={({ item }) => <ItemCard item={item} />}
-  keyExtractor={(item) => item.id}
-  onEndReached={loadMore}
+// Find pincode TextInput
+// Remove the TouchableOpacity with Mic icon
+<TextInput
+  // ... existing props
+  // NO microphone icon
 />
 ```
 
-### Form Submission
+#### B. Nearby Buyers - Glass Card Map (`app/nearby-buyers.tsx`)
+**Required:** Glass card design for map view
+
+**Implementation:**
 ```typescript
-const handleSubmit = async () => {
-  setIsLoading(true);
-  try {
-    // Validate
-    // API call
-    // Navigate
-  } catch (error) {
-    setError(error.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
+<View
+  style={{
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backdropFilter: 'blur(10px)', // Note: May not work on all platforms
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+  }}
+>
+  <MapLibreView ... />
+</View>
+```
+
+#### C. Nearby Buyers - Bottom Navigation Colors
+**Required:** Green & black only (match farmer dashboard)
+
+**Implementation:**
+Check `components/BuyerBottomNav.tsx` and ensure colors match `FarmerBottomNav.tsx`:
+- Active: #7C8B3A (green)
+- Inactive: #000000 (black)
+
+#### D. Nearby Buyers - Remove Video Call Button
+**Required:** Remove purple video call icon
+
+**Implementation:**
+In `app/nearby-buyers.tsx`, find the action buttons section and remove:
+```typescript
+<TouchableOpacity
+  onPress={() => handleVideo(buyer.name, buyer.id)}
+>
+  <Video size={16} color="#FFFFFF" />
+</TouchableOpacity>
 ```
 
 ---
 
-## Testing Checklist
+### 3. Data Persistence Fixes
 
-### For Each Screen
-- [ ] Navigation works correctly
-- [ ] Loading states display
-- [ ] Error messages show
-- [ ] Form validation works
-- [ ] API calls succeed
-- [ ] Bottom navigation appears
-- [ ] Back button works
-- [ ] Data displays correctly
+#### A. Edit Crop - Save to My Farms
+**Issue:** Crops save but don't appear in My Farms
+**Root Cause:** Likely table name mismatch or missing refresh
 
-### Integration Tests
-- [ ] Complete user flow works
-- [ ] Data persists across navigation
-- [ ] Authentication required for protected screens
-- [ ] Deep linking works
+**Investigation Required:**
+1. Check table name in `app/edit-crop.tsx` (currently `farmer_crops`)
+2. Check table name in `app/my-farms.tsx`
+3. Ensure both use same table
+4. Add refresh after save
 
----
-
-## API Integration
-
-### Mock Data Pattern
+**Implementation:**
 ```typescript
-// Use mock data during development
-const mockCrops = [
-  { id: '1', name: 'Tomato', price: 50 },
-  { id: '2', name: 'Wheat', price: 30 },
-];
+// In edit-crop.tsx after successful save:
+router.back(); // This should trigger my-farms to refresh
 
-// Replace with API calls
-const fetchCrops = async () => {
-  try {
-    const response = await fetch('https://api.example.com/crops');
-    return response.json();
-  } catch (error) {
-    return mockCrops; // Fallback
-  }
-};
+// In my-farms.tsx, add useFocusEffect:
+import { useFocusEffect } from '@react-navigation/native';
+
+useFocusEffect(
+  useCallback(() => {
+    loadCrops();
+  }, [])
+);
 ```
 
-### Error Handling
+#### B. Add/Edit Offer - Save Functionality
+**Issue:** Failing to save offer details
+
+**Investigation Required:**
+1. Check console logs for errors
+2. Verify Supabase table structure
+3. Check RLS policies
+
+**Implementation:**
 ```typescript
+// Add comprehensive error logging
 try {
-  const data = await fetchData();
-  setData(data);
-} catch (error) {
-  if (error.response?.status === 401) {
-    // Redirect to login
-    router.replace('/login');
-  } else {
-    setError('Failed to load data');
+  const { data, error } = await supabase
+    .from('farmer_offers')
+    .upsert({...});
+    
+  if (error) {
+    console.error('Supabase error:', error);
+    Alert.alert('Error', error.message);
   }
+} catch (err) {
+  console.error('Catch error:', err);
 }
 ```
 
+#### C. Add/Edit Offer - Crop Image Picker
+**Required:** Add image picker for crop images
+
+**Implementation:**
+```typescript
+import * as ImagePicker from 'expo-image-picker';
+
+const [cropImage, setCropImage] = useState('');
+
+const handleImagePick = async () => {
+  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+  if (!permissionResult.granted) {
+    Alert.alert('Permission required', 'Please allow access to photos');
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    aspect: [4, 3],
+    quality: 0.8,
+  });
+
+  if (!result.canceled && result.assets[0]) {
+    setCropImage(result.assets[0].uri);
+  }
+};
+
+// In JSX:
+<TouchableOpacity onPress={handleImagePick}>
+  <Text>Add Crop Image</Text>
+</TouchableOpacity>
+```
+
 ---
 
-## Performance Tips
+### 4. Database Verification Checklist
 
-1. **Use FlatList** for long lists instead of ScrollView
-2. **Memoize components** that don't change often
-3. **Lazy load images** with Image component
-4. **Debounce search** inputs
-5. **Cache API responses** in AsyncStorage
+#### Tables to Verify:
+- [ ] `farmer_crops` - Check structure and RLS
+- [ ] `farmer_offers` - Check structure and RLS
+- [ ] `profiles` - Check user data storage
+
+#### RLS Policies to Check:
+```sql
+-- Enable RLS
+ALTER TABLE farmer_crops ENABLE ROW LEVEL SECURITY;
+ALTER TABLE farmer_offers ENABLE ROW LEVEL SECURITY;
+
+-- Allow users to read their own data
+CREATE POLICY "Users can view own crops"
+  ON farmer_crops FOR SELECT
+  USING (auth.uid() = farmer_id);
+
+-- Allow users to insert their own data
+CREATE POLICY "Users can insert own crops"
+  ON farmer_crops FOR INSERT
+  WITH CHECK (auth.uid() = farmer_id);
+
+-- Allow users to update their own data
+CREATE POLICY "Users can update own crops"
+  ON farmer_crops FOR UPDATE
+  USING (auth.uid() = farmer_id);
+```
 
 ---
 
-## Resources
+## 🎯 Priority Order
 
-- [Expo Router Docs](https://docs.expo.dev/router/introduction/)
-- [React Navigation Docs](https://reactnavigation.org/)
-- [NativeWind Docs](https://www.nativewind.dev/)
-- [Lucide Icons](https://lucide.dev/)
+### High Priority (Implement First):
+1. ✅ Voice Input Hook (DONE)
+2. Edit Crop → My Farms persistence
+3. Add/Edit Offer save functionality
+4. Nearby Buyers - Remove video call button
+
+### Medium Priority:
+5. Inline voice for Farmer Home search
+6. Inline voice for My Farms search
+7. Inline voice for Nearby Buyers search
+8. Remove pincode microphone
+
+### Low Priority:
+9. Glass card design for map
+10. Bottom navigation colors
+11. Select Role inline voice
 
 ---
 
-## Support
+## 📝 Testing Checklist
 
-For questions or issues:
-1. Check the NAVIGATION_ANALYSIS.md for architecture details
-2. Review NAVIGATION_CODE_EXAMPLES.md for code patterns
-3. Check existing screen implementations for reference
-4. Refer to the validation utilities for form handling
+After implementation:
+- [ ] Test voice input on all pages
+- [ ] Verify crops save and appear in My Farms
+- [ ] Verify offers save correctly
+- [ ] Test image picker in offers
+- [ ] Check all navigation flows
+- [ ] Verify database operations
+- [ ] Test on physical device
 
 ---
 
-**Last Updated**: 2025-10-18
-**Status**: Ready for Phase 3 Implementation
+## 🚀 Deployment
 
+1. Test all changes locally
+2. Fix any errors
+3. Commit to Git
+4. Push to GitHub
+5. Build new APK
+6. Test APK on device
+
+---
+
+## ⚠️ Important Notes
+
+1. **Voice Input:** Uses Gemini API - ensure API key is configured
+2. **Image Upload:** May need Supabase storage bucket setup
+3. **Database:** Verify all table names match across files
+4. **RLS:** Ensure policies allow user operations
+
+---
+
+## 📞 Need Help?
+
+If any implementation fails:
+1. Check console logs
+2. Verify Supabase connection
+3. Check API keys
+4. Review RLS policies
+5. Test with simple data first
+
+---
+
+**Status:** Hook created, implementation guide ready
+**Next Step:** Implement fixes one by one, test thoroughly

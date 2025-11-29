@@ -1,83 +1,129 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import { useAuth } from "@/contexts/auth-context";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { supabase } from "@/utils/supabase";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import {
-    ArrowLeft,
-    Calendar,
-    Droplets,
-    Leaf,
-    MapPin,
-    MessageSquare,
-    Mic,
-    MoreHorizontal,
-    Search,
-    SlidersHorizontal,
-    Sun
+  ArrowLeft,
+  Calendar,
+  Droplets,
+  Leaf,
+  MessageSquare,
+  Mic,
+  MoreHorizontal,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Sun
 } from "lucide-react-native";
-import React, { useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    Animated,
-    Dimensions,
-    Image,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const { width } = Dimensions.get("window");
+
+interface Crop {
+  id: string;
+  name: string;
+  crop_type: string;
+  quantity: number;
+  unit: string;
+  price_per_unit: number;
+  expected_harvest_date: string;
+  image_url?: string;
+  status: string;
+  created_at: string;
+}
 
 export default function MyFarms() {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const [crops, setCrops] = useState<Crop[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
+
+  // Voice input for search
+  const { isRecording, toggleRecording } = useVoiceInput({
+    onTranscript: (text) => setSearchText(text),
+    language: user?.language || 'en'
+  });
 
   // Scroll animation for glass card fade effect
   const scrollY = useRef(new Animated.Value(0)).current;
-  // Mock data for farms with crop-specific images
-  const farms = [
-    {
-      id: 1,
-      name: t('farms.greenValleyFarm'),
-      location: "Delhi, India",
-      size: `12 ${t('units.acres')}`,
-      crops: [t('market.wheat'), t('market.tomatoes'), t('market.potatoes')],
-      status: t('farms.harvesting'),
-      image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&auto=format&fit=crop&q=60", // Golden wheat field
-      yield: `2.4 ${t('units.ton')}`,
-      lastHarvest: t('common.daysAgo', { count: 2 }),
-    },
-    {
-      id: 2,
-      name: t('farms.sunshineFields'),
-      location: "Mumbai, India",
-      size: `8 ${t('units.acres')}`,
-      crops: [t('market.rice'), t('market.onions')],
-      status: t('farms.growing'),
-      image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop&q=60", // Green rice paddy
-      yield: `1.8 ${t('units.ton')}`,
-      lastHarvest: t('common.oneWeekAgo'),
-    },
-    {
-      id: 3,
-      name: t('farms.organicHaven'),
-      location: "Bangalore, India",
-      size: `15 ${t('units.acres')}`,
-      crops: [t('market.carrots'), t('farms.spinach'), t('farms.lettuce')],
-      status: t('farms.planting'),
-      image: "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&auto=format&fit=crop&q=60", // Fresh vegetables farm
-      yield: `0.9 ${t('units.ton')}`,
-      lastHarvest: t('common.weeksAgo', { count: 3 }),
-    },
-  ];
 
+  // Load crops from Supabase
+  const loadCrops = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoading(true);
+      console.log('📊 [MY-FARMS] Loading crops for user:', user.id);
+
+      const { data, error } = await supabase
+        .from('farmer_crops')
+        .select('*')
+        .eq('farmer_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ [MY-FARMS] Error loading crops:', error);
+        throw error;
+      }
+
+      console.log('✅ [MY-FARMS] Loaded crops:', data?.length || 0);
+      setCrops(data || []);
+    } catch (error) {
+      console.error('❌ [MY-FARMS] Exception loading crops:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  // Reload crops when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadCrops();
+    }, [loadCrops])
+  );
+
+  // Filter crops based on search
+  const filteredCrops = crops.filter(crop =>
+    crop.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    crop.crop_type.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  // Calculate farm stats from real data
   const farmStats = [
-    { icon: <Leaf size={20} color="#10B981" />, label: t('farms.activeCrops'), value: "12" },
+    { icon: <Leaf size={20} color="#10B981" />, label: t('farms.activeCrops'), value: crops.length.toString() },
     { icon: <Droplets size={20} color="#3B82F6" />, label: t('farms.irrigation'), value: "85%" },
     { icon: <Sun size={20} color="#F59E0B" />, label: t('farms.sunlight'), value: "7h/day" },
     { icon: <Calendar size={20} color="#8B5CF6" />, label: t('farms.season'), value: t('farms.kharif') },
   ];
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return t('common.today');
+    if (diffDays === 1) return t('common.yesterday');
+    if (diffDays < 7) return t('common.daysAgo', { count: diffDays });
+    if (diffDays < 30) return t('common.weeksAgo', { count: Math.floor(diffDays / 7) });
+    return date.toLocaleDateString();
+  };
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
@@ -85,7 +131,7 @@ export default function MyFarms() {
       <View
         className="px-6 pt-12 pb-8"
         style={{
-          backgroundColor: '#7C8B3A', // Olive/army green matching farmer-home
+          backgroundColor: '#7C8B3A',
           borderBottomLeftRadius: 40,
           borderBottomRightRadius: 40,
         }}
@@ -100,7 +146,7 @@ export default function MyFarms() {
           <Text className="text-xl font-bold text-white">{t('farms.myFarms')}</Text>
         </View>
 
-        {/* Enhanced Search Bar */}
+        {/* Enhanced Search Bar with Voice */}
         <View className="mt-2">
           <View
             className="flex-row items-center bg-white/90 rounded-2xl px-4 py-3"
@@ -117,10 +163,19 @@ export default function MyFarms() {
               placeholder={t('farms.searchFarmsCrops')}
               className="flex-1 ml-3 text-base text-gray-800"
               placeholderTextColor="#9CA3AF"
+              value={searchText}
+              onChangeText={setSearchText}
             />
             <View className="flex-row">
-              <TouchableOpacity className="p-1 mr-2">
-                <Mic size={20} color="#4B5563" />
+              <TouchableOpacity
+                className="p-1 mr-2"
+                onPress={toggleRecording}
+              >
+                <Mic
+                  size={20}
+                  color={isRecording ? '#EF4444' : '#4B5563'}
+                  fill={isRecording ? '#EF4444' : 'none'}
+                />
               </TouchableOpacity>
               <TouchableOpacity className="p-1">
                 <SlidersHorizontal size={20} color="#4B5563" />
@@ -145,7 +200,7 @@ export default function MyFarms() {
         <Animated.View
           className="mx-6 mb-6 rounded-3xl p-6 shadow-lg"
           style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.85)', // Glass effect
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.1,
@@ -181,106 +236,130 @@ export default function MyFarms() {
           </View>
         </Animated.View>
 
-        {/* My Farms Section Header */}
-        <View className="px-6 mb-6">
-          <Text className="text-xl font-bold text-gray-800">{t('farms.myFarms')} ({farms.length})</Text>
+        {/* My Crops Section Header */}
+        <View className="px-6 mb-4 flex-row justify-between items-center">
+          <Text className="text-xl font-bold text-gray-800">
+            {t('farms.myCrops')} ({filteredCrops.length})
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push('/edit-crop')}
+            className="flex-row items-center bg-emerald-600 px-4 py-2 rounded-full"
+          >
+            <Plus size={16} color="#FFFFFF" />
+            <Text className="text-white font-semibold ml-1">{t('common.add')}</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Farms Cards */}
-        <View className="px-6">
-          {farms.map((farm) => (
-            <View
-              key={farm.id}
-              className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg"
-              style={{
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 12,
-                elevation: 8,
-              }}
-            >
-              {/* Farm Image */}
-              <View className="h-40 relative">
-                <Image
-                  source={{ uri: farm.image }}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-                <View className="absolute top-3 right-3 px-3 py-1 rounded-full" style={{ backgroundColor: '#7C8B3A' }}>
-                  <Text className="text-xs font-bold text-white">{farm.status}</Text>
-                </View>
-              </View>
-              
-              {/* Farm Details */}
-              <View className="p-4">
-                <View className="flex-row justify-between items-start">
-                  <View>
-                    <Text className="text-lg font-bold text-gray-900">{farm.name}</Text>
-                    <View className="flex-row items-center mt-1">
-                      <MapPin size={14} color="#6B7280" />
-                      <Text className="text-sm text-gray-500 ml-1">{farm.location}</Text>
+        {/* Loading State */}
+        {loading ? (
+          <View className="px-6 py-12 items-center">
+            <ActivityIndicator size="large" color="#7C8B3A" />
+            <Text className="text-gray-500 mt-4">{t('common.loading')}</Text>
+          </View>
+        ) : filteredCrops.length === 0 ? (
+          /* Empty State */
+          <View className="px-6 py-12 items-center">
+            <Leaf size={48} color="#9CA3AF" />
+            <Text className="text-gray-500 text-lg mt-4 text-center">
+              {searchText ? t('farms.noCropsFound') : t('farms.noCropsYet')}
+            </Text>
+            {!searchText && (
+              <TouchableOpacity
+                onPress={() => router.push('/edit-crop')}
+                className="mt-4 bg-emerald-600 px-6 py-3 rounded-full"
+              >
+                <Text className="text-white font-semibold">{t('farms.addFirstCrop')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          /* Crops Cards */
+          <View className="px-6">
+            {filteredCrops.map((crop) => (
+              <View
+                key={crop.id}
+                className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg"
+                style={{
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 12,
+                  elevation: 8,
+                }}
+              >
+                {/* Crop Image */}
+                {crop.image_url ? (
+                  <View className="h-40 relative">
+                    <Image
+                      source={{ uri: crop.image_url }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                    <View className="absolute top-3 right-3 px-3 py-1 rounded-full" style={{ backgroundColor: '#7C8B3A' }}>
+                      <Text className="text-xs font-bold text-white">{crop.status}</Text>
                     </View>
-                    <Text className="text-sm text-gray-500 mt-1">{farm.size}</Text>
                   </View>
-                  <TouchableOpacity className="p-2">
-                    <MoreHorizontal size={20} color="#6B7280" />
-                  </TouchableOpacity>
-                </View>
-                
-                {/* Crops */}
-                <View className="mt-3">
-                  <Text className="text-sm font-semibold text-gray-700 mb-2">{t('farms.currentCrops')}</Text>
-                  <View className="flex-row flex-wrap gap-2">
-                    {farm.crops.map((crop, index) => (
-                      <View key={index} className="bg-emerald-50 px-3 py-1 rounded-full">
-                        <Text className="text-xs font-medium text-emerald-700">{crop}</Text>
+                ) : (
+                  <View className="h-40 bg-emerald-100 items-center justify-center">
+                    <Leaf size={48} color="#059669" />
+                  </View>
+                )}
+
+                {/* Crop Details */}
+                <View className="p-4">
+                  <View className="flex-row justify-between items-start">
+                    <View className="flex-1">
+                      <Text className="text-lg font-bold text-gray-900">{crop.name}</Text>
+                      <Text className="text-sm text-gray-500 mt-1">{crop.crop_type}</Text>
+                      <View className="flex-row items-center mt-2">
+                        <Text className="text-sm font-semibold text-emerald-600">
+                          {crop.quantity} {crop.unit}
+                        </Text>
+                        <Text className="text-gray-400 mx-2">•</Text>
+                        <Text className="text-sm font-semibold text-gray-900">
+                          ₹{crop.price_per_unit}/{crop.unit}
+                        </Text>
                       </View>
-                    ))}
+                    </View>
+                    <TouchableOpacity className="p-2">
+                      <MoreHorizontal size={20} color="#6B7280" />
+                    </TouchableOpacity>
                   </View>
-                </View>
 
-                {/* Farm Stats */}
-                <View className="flex-row mt-4 pt-3 border-t border-gray-100">
-                  <View className="flex-1 items-center">
-                    <Text className="text-sm font-bold text-gray-900">{farm.yield}</Text>
-                    <Text className="text-xs text-gray-500">{t('farms.lastYield')}</Text>
-                  </View>
-                  <View className="flex-1 items-center">
-                    <Text className="text-sm font-bold text-gray-900">{farm.lastHarvest}</Text>
-                    <Text className="text-xs text-gray-500">{t('farms.harvested')}</Text>
-                  </View>
-                </View>
-
-                {/* Action Buttons */}
-                <View className="flex-row mt-4 gap-3">
-                  <TouchableOpacity
-                    onPress={() => router.push({
-                      pathname: "/edit-crop",
-                      params: { farmId: farm.id.toString() }
-                    })}
-                    className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3.5 shadow-sm"
-                  >
-                    <Leaf size={18} color="#FFFFFF" />
-                    <Text className="text-white font-semibold ml-2">{t('farms.manage')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => router.push({
-                      pathname: "/insights",
-                      params: { farmId: farm.id.toString() }
-                    })}
-                    className="flex-1 flex-row items-center justify-center bg-emerald-50 rounded-xl py-3.5 shadow-sm"
-                  >
-                    <MessageSquare size={18} color="#059669" />
-                    <Text className="text-emerald-700 font-semibold ml-2">
-                      {t('farms.insights')}
+                  {/* Harvest Date */}
+                  <View className="mt-3 flex-row items-center">
+                    <Calendar size={14} color="#6B7280" />
+                    <Text className="text-sm text-gray-500 ml-2">
+                      {t('farms.harvestDate')}: {new Date(crop.expected_harvest_date).toLocaleDateString()}
                     </Text>
-                  </TouchableOpacity>
+                  </View>
+
+                  {/* Action Buttons */}
+                  <View className="flex-row mt-4 gap-3">
+                    <TouchableOpacity
+                      onPress={() => router.push({
+                        pathname: "/edit-crop",
+                        params: { cropId: crop.id }
+                      })}
+                      className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3.5 shadow-sm"
+                    >
+                      <Leaf size={18} color="#FFFFFF" />
+                      <Text className="text-white font-semibold ml-2">{t('common.edit')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="flex-1 flex-row items-center justify-center bg-emerald-50 rounded-xl py-3.5 shadow-sm"
+                    >
+                      <MessageSquare size={18} color="#059669" />
+                      <Text className="text-emerald-700 font-semibold ml-2">
+                        {t('farms.details')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        )}
       </Animated.ScrollView>
 
       {/* Bottom Navigation - Absolute Positioning */}

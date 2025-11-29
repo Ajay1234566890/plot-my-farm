@@ -3,7 +3,7 @@ import { locationService } from '@/services/location-service';
 import { supabase } from '@/utils/supabase';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { Camera, ChevronDown, ChevronLeft, MapPin, Mic } from 'lucide-react-native';
+import { Camera, ChevronDown, ChevronLeft, MapPin } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -350,23 +350,16 @@ export default function FarmerProfileSetup() {
               </View>
             </View>
 
-            {/* Pincode Input */}
+            {/* Pincode Input - No Microphone */}
             <View>
               <Text className="text-sm font-medium text-gray-700 mb-1">{t('profile.pincode')}</Text>
-              <View className="relative">
-                <TextInput
-                  placeholder={t('profile.enterPincode')}
-                  keyboardType="numeric"
-                  className="p-4 rounded-xl border border-gray-200 text-gray-900 pr-12"
-                  value={formData.pincode}
-                  onChangeText={(text) => setFormData({ ...formData, pincode: text })}
-                />
-                <TouchableOpacity
-                  className="absolute right-4 top-1/2 -mt-4"
-                >
-                  <Mic size={20} color="#374151" />
-                </TouchableOpacity>
-              </View>
+              <TextInput
+                placeholder={t('profile.enterPincode')}
+                keyboardType="numeric"
+                className="p-4 rounded-xl border border-gray-200 text-gray-900"
+                value={formData.pincode}
+                onChangeText={(text) => setFormData({ ...formData, pincode: text })}
+              />
             </View>
           </View>
 
