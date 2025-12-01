@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Paperclip, Phone, Send, Video } from 'lucide-react-native';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface Message {
   id: string;
@@ -65,8 +65,27 @@ export default function ChatScreen() {
     }
   };
 
+  const handleCall = () => {
+    Alert.alert(
+      'Call',
+      `Call ${userName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Call', onPress: () => Linking.openURL(`tel:+1234567890`) }
+      ]
+    );
+  };
+
+  const handleVideoCall = () => {
+    Alert.alert(
+      'Video Call',
+      'Video calling is not available yet.',
+      [{ text: 'OK' }]
+    );
+  };
+
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1"
       style={{ backgroundColor: '#F5F3F0' }}
@@ -82,7 +101,7 @@ export default function ChatScreen() {
       >
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
-            <TouchableOpacity 
+            <TouchableOpacity
               className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
               onPress={() => router.back()}
             >
@@ -98,10 +117,16 @@ export default function ChatScreen() {
             </View>
           </View>
           <View className="flex-row">
-            <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-2">
+            <TouchableOpacity
+              className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-2"
+              onPress={handleCall}
+            >
               <Phone size={20} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full bg-white/20">
+            <TouchableOpacity
+              className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
+              onPress={handleVideoCall}
+            >
               <Video size={20} color="white" />
             </TouchableOpacity>
           </View>
@@ -111,16 +136,15 @@ export default function ChatScreen() {
       {/* Messages */}
       <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
         {messages.map((msg) => (
-          <View 
-            key={msg.id} 
+          <View
+            key={msg.id}
             className={`flex-row mb-4 ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
           >
-            <View 
-              className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
-                msg.sender === 'me' 
-                  ? 'rounded-tr-none' 
+            <View
+              className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${msg.sender === 'me'
+                  ? 'rounded-tr-none'
                   : 'rounded-tl-none'
-              }`}
+                }`}
               style={{
                 backgroundColor: msg.sender === 'me' ? '#7C8B3A' : '#FFFFFF',
                 shadowColor: '#000',
@@ -130,15 +154,14 @@ export default function ChatScreen() {
                 elevation: 3,
               }}
             >
-              <Text 
+              <Text
                 className={`text-base ${msg.sender === 'me' ? 'text-white' : 'text-gray-900'}`}
               >
                 {msg.text}
               </Text>
-              <Text 
-                className={`text-xs mt-1 ${
-                  msg.sender === 'me' ? 'text-white/70' : 'text-gray-500'
-                }`}
+              <Text
+                className={`text-xs mt-1 ${msg.sender === 'me' ? 'text-white/70' : 'text-gray-500'
+                  }`}
               >
                 {msg.time}
               </Text>
@@ -149,7 +172,7 @@ export default function ChatScreen() {
 
       {/* Message Input */}
       <View className="px-6 pb-6">
-        <View 
+        <View
           className="bg-white rounded-2xl p-4 flex-row items-center shadow-lg"
           style={{
             shadowColor: '#000',

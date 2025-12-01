@@ -1,7 +1,9 @@
 import { useAuth } from '@/contexts/auth-context';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import {
   Bell,
+  Camera,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -45,6 +47,57 @@ export default function BuyerProfile() {
     );
   };
 
+  const handleProfilePicturePress = () => {
+    Alert.alert(
+      'Change Profile Picture',
+      'Choose an option',
+      [
+        {
+          text: 'Take Photo',
+          onPress: async () => {
+            const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+            if (permissionResult.granted === false) {
+              Alert.alert('Permission Required', 'Camera permission is required to take photos');
+              return;
+            }
+            const result = await ImagePicker.launchCameraAsync({
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets[0]) {
+              // TODO: Upload image and update profile
+              console.log('Selected image:', result.assets[0].uri);
+              Alert.alert('Success', 'Profile picture will be updated');
+            }
+          }
+        },
+        {
+          text: 'Choose from Gallery',
+          onPress: async () => {
+            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (permissionResult.granted === false) {
+              Alert.alert('Permission Required', 'Gallery permission is required to select photos');
+              return;
+            }
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets[0]) {
+              // TODO: Upload image and update profile
+              console.log('Selected image:', result.assets[0].uri);
+              Alert.alert('Success', 'Profile picture will be updated');
+            }
+          }
+        },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
+
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
       {/* Curved Header Section */}
@@ -82,12 +135,18 @@ export default function BuyerProfile() {
             elevation: 8,
           }}
         >
-          <View className="w-24 h-24 rounded-full overflow-hidden" style={{ backgroundColor: '#F5F3F0' }}>
-            <Image
-              source={{ uri: user?.profileImage || "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTF8fHVzZXJ8ZW58MHx8MHx8fDA%3D" }}
-              className="w-full h-full"
-            />
-          </View>
+          <TouchableOpacity onPress={handleProfilePicturePress}>
+            <View className="w-24 h-24 rounded-full overflow-hidden" style={{ backgroundColor: '#F5F3F0' }}>
+              <Image
+                source={{ uri: user?.profileImage || "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTF8fHVzZXJ8ZW58MHx8MHx8fDA%3D" }}
+                className="w-full h-full"
+              />
+              {/* Camera overlay */}
+              <View className="absolute bottom-0 right-0 w-8 h-8 rounded-full items-center justify-center" style={{ backgroundColor: '#B27E4C' }}>
+                <Camera size={16} color="white" />
+              </View>
+            </View>
+          </TouchableOpacity>
           <Text className="mt-4 text-xl font-bold text-gray-900">{user?.name || t('buyerProfile.buyer')}</Text>
           <Text className="text-sm text-gray-500">{user?.phone || t('buyerProfile.buyerPhone')}</Text>
           <TouchableOpacity

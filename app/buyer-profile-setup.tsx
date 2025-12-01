@@ -4,22 +4,22 @@ import { screenContextService } from '@/services/screen-context-service';
 import { validateEmail, validatePhone } from '@/utils/validation';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronDown, ChevronLeft } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 export default function BuyerProfileSetup() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, user, updateProfile } = useAuth();
   const params = useLocalSearchParams();
   const [step, setStep] = useState<'personal' | 'business' | 'preferences'>(
     'personal'
@@ -38,6 +38,39 @@ export default function BuyerProfileSetup() {
   const [errors, setErrors] = useState<any>({});
   const [showBuyerTypeDropdown, setShowBuyerTypeDropdown] = useState(false);
   const [showCropsDropdown, setShowCropsDropdown] = useState(false);
+
+  // Pre-fill form if user exists (Edit Profile mode)
+  useEffect(() => {
+    if (user) {
+      console.log('✏️ [BUYER-SETUP] Pre-filling form for editing');
+      setName(user.name || '');
+      setEmail(user.email || '');
+      setPhone(user.phone || '');
+
+      // Attempt to parse location
+      if (user.location) {
+        const parts = user.location.split(',').map(p => p.trim());
+        if (parts.length >= 1) setAddress(parts[0]);
+        if (parts.length >= 2) setCity(parts[1]);
+        if (parts.length >= 3) {
+          // State and pincode might be combined "State Pincode"
+          const lastPart = parts[2];
+          const statePincode = lastPart.split(' ');
+          if (statePincode.length > 1) {
+            // Assuming last part is pincode
+            setPincode(statePincode.pop() || '');
+            setState(statePincode.join(' '));
+          } else {
+            setState(lastPart);
+          }
+        }
+      }
+
+      setBusinessName(user.companyName || '');
+      setBuyerType(user.businessType || '');
+      // Note: selectedCrops is not currently in User interface, so we skip it or fetch it if available
+    }
+  }, [user]);
 
   // Register screen context and form fields for voice automation
   useEffect(() => {
@@ -68,13 +101,13 @@ export default function BuyerProfileSetup() {
     };
   }, [name, email, address, pincode, businessName, buyerType]);
 
-  // Set phone from params if provided
+  // Set phone from params if provided (only if not editing)
   useEffect(() => {
-    if (params.phone && typeof params.phone === 'string') {
+    if (!user && params.phone && typeof params.phone === 'string') {
       console.log('📱 [BUYER-SETUP] Received phone from login:', params.phone);
       setPhone(params.phone);
     }
-  }, [params.phone]);
+  }, [params.phone, user]);
 
   const buyerTypes = [
     t('profile.retailer'),
@@ -172,45 +205,44 @@ export default function BuyerProfileSetup() {
   const handleCompleteSetup = async () => {
     setIsLoading(true);
     try {
-      console.log('🔄 [BUYER-SETUP] Starting buyer registration...');
-      console.log('📝 [BUYER-SETUP] Registration data:', {
+      const userData = {
         name,
         email,
         phone,
-        role: 'buyer',
-        location: `${address}, ${city}, ${state} ${pincode}`,
-        businessName,
-        buyerType
-      });
-
-      await register({
-        name,
-        email,
-        phone,
-        role: 'buyer',
+        role: 'buyer' as const,
         location: `${address}, ${city}, ${state} ${pincode}`,
         companyName: businessName,
         businessType: buyerType
-      });
+      };
 
-      console.log('✅ [BUYER-SETUP] Buyer registration successful!');
+      if (user) {
+        console.log('🔄 [BUYER-SETUP] Updating existing profile...');
+        await updateProfile(userData);
+        console.log('✅ [BUYER-SETUP] Profile updated successfully!');
+        Alert.alert(t('common.success'), t('success.profileUpdated'));
+      } else {
+        console.log('🔄 [BUYER-SETUP] Starting buyer registration...');
+        await register({
+          ...userData,
+          role: 'buyer'
+        });
+        console.log('✅ [BUYER-SETUP] Buyer registration successful!');
+        // Show success message after navigation
+        setTimeout(() => {
+          Alert.alert(t('common.success'), t('success.profileSetupComplete'));
+        }, 500);
+      }
 
       // Wait longer for state to fully propagate
       console.log('⏳ [BUYER-SETUP] Waiting for auth state to update...');
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       console.log('🔄 [BUYER-SETUP] Navigating to /buyer-home...');
-
       // Navigate immediately without alert to avoid timing issues
       router.replace('/buyer-home');
 
-      // Show success message after navigation
-      setTimeout(() => {
-        Alert.alert(t('common.success'), t('success.profileSetupComplete'));
-      }, 500);
-
     } catch (error) {
-      console.error('❌ [BUYER-SETUP] Setup error:', error);
+      console.error('❌ [BUYER-SETUP] Setup/Update error:', error);
       const errorMessage = error instanceof Error ? error.message : t('errors.setupFailed');
       Alert.alert(t('common.error'), errorMessage);
     } finally {
@@ -252,8 +284,8 @@ export default function BuyerProfileSetup() {
               {step === 'personal'
                 ? t('profile.personalInfo')
                 : step === 'business'
-                ? t('profile.businessDetails')
-                : t('profile.preferences')}
+                  ? t('profile.businessDetails')
+                  : t('profile.preferences')}
             </Text>
           </View>
         </View>
@@ -262,8 +294,8 @@ export default function BuyerProfileSetup() {
           {step === 'personal'
             ? t('profile.tellAboutYourself')
             : step === 'business'
-            ? t('profile.tellAboutBusiness')
-            : t('profile.selectInterestedCrops')}
+              ? t('profile.tellAboutBusiness')
+              : t('profile.selectInterestedCrops')}
         </Text>
 
         {/* Progress Indicator */}
@@ -271,11 +303,10 @@ export default function BuyerProfileSetup() {
           {['personal', 'business', 'preferences'].map((s, idx) => (
             <View
               key={s}
-              className={`flex-1 h-1 rounded-full mr-2 ${
-                step === s || (step === 'preferences' && s !== 'personal')
+              className={`flex-1 h-1 rounded-full mr-2 ${step === s || (step === 'preferences' && s !== 'personal')
                   ? 'bg-white'
                   : 'bg-white/30'
-              }`}
+                }`}
             />
           ))}
         </View>
@@ -619,7 +650,7 @@ export default function BuyerProfileSetup() {
                   <ActivityIndicator color="#ffffff" />
                 ) : (
                   <Text className="text-white text-center text-lg font-semibold">
-                    {t('common.complete')}
+                    {user ? t('common.saveChanges') : t('common.complete')}
                   </Text>
                 )}
               </TouchableOpacity>
