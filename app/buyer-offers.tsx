@@ -1,8 +1,9 @@
 import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
+import { supabase } from '@/utils/supabase';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Bell, MessageCircle, Phone, Plus, Search, User } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -12,6 +13,62 @@ export default function BuyerOffersScreen() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'browse' | 'my-requests'>('browse');
   const [searchQuery, setSearchQuery] = useState('');
+  const [farmerOffers, setFarmerOffers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch offers from Supabase
+  useEffect(() => {
+    fetchOffers();
+  }, []);
+
+  const fetchOffers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('farmer_offers')
+        .select(`
+          *,
+          farmers (
+            full_name,
+            phone,
+            profile_image,
+            state,
+            city
+          )
+        `)
+        .eq('status', 'active');
+
+      if (error) {
+        console.error('Error fetching offers:', error);
+        return;
+      }
+
+      if (data) {
+        // Transform data to match UI requirements
+        const formattedOffers = data.map(offer => ({
+          id: offer.id,
+          farmerId: offer.farmer_id,
+          title: offer.title,
+          farmer: offer.farmers?.full_name || 'Unknown Farmer',
+          farmerPhone: offer.farmers?.phone,
+          farmerAvatar: offer.farmers?.profile_image || 'https://via.placeholder.com/150',
+          location: `${offer.farmers?.city || ''}, ${offer.farmers?.state || ''}`,
+          cropType: offer.crop_type,
+          price: `₹${offer.price}/${offer.unit}`,
+          quantity: `${offer.quantity} ${offer.unit} available`,
+          image: offer.image_url,
+          quality: 'Standard', // You might want to add this field to DB
+          harvestDate: new Date(offer.created_at).toLocaleDateString(),
+          rating: 4.5 // Placeholder
+        }));
+        setFarmerOffers(formattedOffers);
+      }
+    } catch (error) {
+      console.error('Exception fetching offers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handler functions for Call and Message
   const handleCall = (phone: string) => {
@@ -35,58 +92,6 @@ export default function BuyerOffersScreen() {
       }
     });
   };
-
-  // Mock data for available farmer offers (what buyers can browse)
-  const farmerOffers = [
-    {
-      id: 1,
-      farmerId: 'farmer-1',
-      title: t('buyerOffers.freshOrganicTomatoes'),
-      farmer: t('buyerOffers.rajeshKumar'),
-      farmerPhone: '9876543210',
-      farmerAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-      location: t('buyerOffers.punjabIndia'),
-      cropType: t('crops.tomatoes'),
-      price: "₹45/kg",
-      quantity: t('buyerOffers.kgAvailable', { count: 50 }),
-      image: "https://images.unsplash.com/photo-1518972559376-f5f715166441?w=800",
-      quality: t('buyerOffers.gradeA'),
-      harvestDate: t('common.daysAgo', { count: 2 }),
-      rating: 4.8
-    },
-    {
-      id: 2,
-      farmerId: 'farmer-2',
-      title: t('buyerOffers.farmFreshCarrots'),
-      farmer: t('buyerOffers.priyaSharma'),
-      farmerPhone: '9876543211',
-      farmerAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-      location: t('buyerOffers.haryanaIndia'),
-      cropType: t('buyerOffers.carrots'),
-      price: "₹30/kg",
-      quantity: t('buyerOffers.kgAvailable', { count: 30 }),
-      image: "https://images.unsplash.com/photo-1598453400264-46d90d1a7ea7?w=800",
-      quality: t('buyerOffers.premium'),
-      harvestDate: t('common.daysAgo', { count: 1 }),
-      rating: 4.9
-    },
-    {
-      id: 3,
-      farmerId: 'farmer-3',
-      title: t('buyerOffers.premiumWheat'),
-      farmer: t('buyerOffers.sureshPatel'),
-      farmerPhone: '9876543212',
-      farmerAvatar: 'https://randomuser.me/api/portraits/men/54.jpg',
-      location: t('buyerOffers.madhyaPradeshIndia'),
-      cropType: t('crops.wheat'),
-      price: "₹25/kg",
-      quantity: t('buyerOffers.kgAvailable', { count: 100 }),
-      image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800",
-      quality: t('buyerOffers.gradeA'),
-      harvestDate: t('common.daysAgo', { count: 3 }),
-      rating: 4.7
-    },
-  ];
 
   // Mock data for buyer's own requests (what they want to buy)
   const myRequests = [
@@ -120,8 +125,8 @@ export default function BuyerOffersScreen() {
     offer.farmer.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderFarmerOffer = ({ item }: { item: typeof farmerOffers[0] }) => (
-    <View 
+  const renderFarmerOffer = ({ item }: { item: any }) => (
+    <View
       className="bg-white rounded-xl p-4 mb-4"
       style={{
         shadowColor: '#B27E4C',
@@ -175,7 +180,7 @@ export default function BuyerOffersScreen() {
   );
 
   const renderMyRequest = ({ item }: { item: typeof myRequests[0] }) => (
-    <View 
+    <View
       className="bg-white rounded-xl p-4 mb-4"
       style={{
         shadowColor: '#B27E4C',
@@ -193,7 +198,7 @@ export default function BuyerOffersScreen() {
           <Text className="text-green-700 text-xs font-semibold capitalize">{item.status}</Text>
         </View>
       </View>
-      
+
       <Text className="text-gray-600 mb-1">{item.quantity}</Text>
       <Text className="text-gray-600 mb-1">{t('buyerOffers.maxPrice')}: {item.maxPrice}</Text>
       <Text className="text-gray-500 text-sm mb-3">{item.location} • {item.createdDate}</Text>
@@ -270,9 +275,8 @@ export default function BuyerOffersScreen() {
       <View className="flex-row mx-4 mt-4 mb-2">
         <TouchableOpacity
           onPress={() => setActiveTab('browse')}
-          className={`flex-1 py-3 rounded-l-lg items-center ${
-            activeTab === 'browse' ? 'bg-white' : 'bg-gray-200'
-          }`}
+          className={`flex-1 py-3 rounded-l-lg items-center ${activeTab === 'browse' ? 'bg-white' : 'bg-gray-200'
+            }`}
           style={activeTab === 'browse' ? {
             shadowColor: '#B27E4C',
             shadowOffset: { width: 0, height: 2 },
@@ -281,18 +285,16 @@ export default function BuyerOffersScreen() {
             elevation: 2,
           } : {}}
         >
-          <Text className={`font-semibold ${
-            activeTab === 'browse' ? 'text-gray-900' : 'text-gray-600'
-          }`}>
+          <Text className={`font-semibold ${activeTab === 'browse' ? 'text-gray-900' : 'text-gray-600'
+            }`}>
             {t('buyerOffers.browseOffers')}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => setActiveTab('my-requests')}
-          className={`flex-1 py-3 rounded-r-lg items-center ${
-            activeTab === 'my-requests' ? 'bg-white' : 'bg-gray-200'
-          }`}
+          className={`flex-1 py-3 rounded-r-lg items-center ${activeTab === 'my-requests' ? 'bg-white' : 'bg-gray-200'
+            }`}
           style={activeTab === 'my-requests' ? {
             shadowColor: '#B27E4C',
             shadowOffset: { width: 0, height: 2 },
@@ -301,9 +303,8 @@ export default function BuyerOffersScreen() {
             elevation: 2,
           } : {}}
         >
-          <Text className={`font-semibold ${
-            activeTab === 'my-requests' ? 'text-gray-900' : 'text-gray-600'
-          }`}>
+          <Text className={`font-semibold ${activeTab === 'my-requests' ? 'text-gray-900' : 'text-gray-600'
+            }`}>
             {t('buyerOffers.myRequests')}
           </Text>
         </TouchableOpacity>
@@ -318,6 +319,11 @@ export default function BuyerOffersScreen() {
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View className="items-center justify-center py-10">
+                <Text className="text-gray-500">{loading ? 'Loading offers...' : 'No offers found'}</Text>
+              </View>
+            }
           />
         ) : (
           <ScrollView className="flex-1 px-4 pb-24">
@@ -332,7 +338,7 @@ export default function BuyerOffersScreen() {
                 <Text className="text-white font-semibold ml-2">{t('buyerOffers.createRequest')}</Text>
               </TouchableOpacity>
             </View>
-            
+
             {myRequests.map((request) => (
               <View key={request.id}>
                 {renderMyRequest({ item: request })}

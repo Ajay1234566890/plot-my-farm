@@ -19,7 +19,7 @@ const getCropImage = (commodityName: string) => {
 
   // Mapping object with normalized keys
   const cropImageMap: { [key: string]: any } = {
-    // Exact matches
+    // Exact matches (Local Assets)
     'tomato': require('@/assets/images/market/tomato.jpg'),
     'tomatoes': require('@/assets/images/market/tomato.jpg'),
     'tomatolocal': require('@/assets/images/market/tomato.jpg'),
@@ -99,6 +99,72 @@ const getCropImage = (commodityName: string) => {
 
     'turmeric': require('@/assets/images/market/turmeric.jpg'),
     'haldi': require('@/assets/images/market/turmeric.jpg'),
+
+    // New Mappings (Online URLs for missing assets)
+    'lemon': { uri: 'https://images.unsplash.com/photo-1595855709915-bd98be3768e3?w=800' },
+    'nimbu': { uri: 'https://images.unsplash.com/photo-1595855709915-bd98be3768e3?w=800' },
+
+    'banana': { uri: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=800' },
+    'kela': { uri: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=800' },
+
+    'mousambi': { uri: 'https://images.unsplash.com/photo-1624823183483-3d0d82942006?w=800' },
+    'sweetlime': { uri: 'https://images.unsplash.com/photo-1624823183483-3d0d82942006?w=800' },
+
+    'woodpeas': { uri: 'https://images.unsplash.com/photo-1592321675774-3de57f3ee0dc?w=800' },
+
+    'wetpotato': { uri: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800' },
+    'potato': { uri: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800' },
+    'aloo': { uri: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800' },
+
+    'orange': { uri: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=800' },
+    'santra': { uri: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=800' },
+
+    'pineapple': { uri: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=800' },
+    'ananas': { uri: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=800' },
+
+    'coriander': { uri: 'https://images.unsplash.com/photo-1588879460618-925d159d88cc?w=800' },
+    'corianderleaves': { uri: 'https://images.unsplash.com/photo-1588879460618-925d159d88cc?w=800' },
+    'dhaniya': { uri: 'https://images.unsplash.com/photo-1588879460618-925d159d88cc?w=800' },
+
+    'guava': { uri: 'https://images.unsplash.com/photo-1536510233921-8e5043fce771?w=800' },
+    'amrud': { uri: 'https://images.unsplash.com/photo-1536510233921-8e5043fce771?w=800' },
+
+    'greenchilli': { uri: 'https://images.unsplash.com/photo-1601648764658-ad3793bc91e9?w=800' },
+    'hari_mirch': { uri: 'https://images.unsplash.com/photo-1601648764658-ad3793bc91e9?w=800' },
+
+    'paddy': { uri: 'https://images.unsplash.com/photo-1536617621572-1d5f1e6269a0?w=800' },
+    'dhan': { uri: 'https://images.unsplash.com/photo-1536617621572-1d5f1e6269a0?w=800' },
+    'rice': { uri: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800' },
+
+    'wheat': { uri: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800' },
+    'commonwheat': { uri: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800' },
+    'gehu': { uri: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800' },
+
+    'maize': { uri: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800' },
+    'corn': { uri: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800' },
+    'makka': { uri: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800' },
+
+    'soyabean': { uri: 'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=800' },
+    'soybean': { uri: 'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=800' },
+
+    'arhardal': { uri: 'https://images.unsplash.com/photo-1515543904379-3d757afe72e3?w=800' },
+    'turdal': { uri: 'https://images.unsplash.com/photo-1515543904379-3d757afe72e3?w=800' },
+    'pigeonpea': { uri: 'https://images.unsplash.com/photo-1515543904379-3d757afe72e3?w=800' },
+
+    'apple': { uri: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800' },
+    'seb': { uri: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800' },
+
+    'greencolacassia': { uri: 'https://images.unsplash.com/photo-1635435973683-596773737330?w=800' },
+    'arbi': { uri: 'https://images.unsplash.com/photo-1635435973683-596773737330?w=800' },
+
+    'gur': { uri: 'https://images.unsplash.com/photo-1610725664338-23c6f83cd4d4?w=800' },
+    'jaggery': { uri: 'https://images.unsplash.com/photo-1610725664338-23c6f83cd4d4?w=800' },
+
+    'garlic': { uri: 'https://images.unsplash.com/photo-1615477263595-5593a6772733?w=800' },
+    'lahsun': { uri: 'https://images.unsplash.com/photo-1615477263595-5593a6772733?w=800' },
+
+    'pumpkin': { uri: 'https://images.unsplash.com/photo-1570586437263-ab629fccc818?w=800' },
+    'kaddu': { uri: 'https://images.unsplash.com/photo-1570586437263-ab629fccc818?w=800' },
   };
 
   // Try exact match first

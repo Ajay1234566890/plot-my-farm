@@ -14,7 +14,6 @@ import {
   MoreHorizontal,
   Plus,
   Search,
-  SlidersHorizontal,
   Sun
 } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
@@ -176,9 +175,6 @@ export default function MyFarms() {
                   color={isRecording ? '#EF4444' : '#4B5563'}
                   fill={isRecording ? '#EF4444' : 'none'}
                 />
-              </TouchableOpacity>
-              <TouchableOpacity className="p-1">
-                <SlidersHorizontal size={20} color="#4B5563" />
               </TouchableOpacity>
             </View>
           </View>

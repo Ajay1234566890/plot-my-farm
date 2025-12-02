@@ -146,8 +146,7 @@ export default function FarmerProfileSetup() {
       // Update farmer profile in Supabase
       const { data, error } = await supabase
         .from('farmers')
-        .update(updateData)
-        .eq('id', user.id)
+        .upsert({ id: user.id, ...updateData })
         .select()
         .single();
 
