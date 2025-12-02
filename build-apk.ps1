@@ -63,7 +63,7 @@ switch ($choice) {
         Write-Host "  android\app\build\outputs\apk\debug\app-debug.apk" -ForegroundColor White
         Write-Host ""
         Write-Host "Install on device:" -ForegroundColor Yellow
-        Write-Host "  C:\Users\nagen\AppData\Local\Android\Sdk\platform-tools\adb.exe install android\app\build\outputs\apk\debug\app-debug.apk" -ForegroundColor Gray
+        Write-Host "  adb install android\app\build\outputs\apk\debug\app-debug.apk" -ForegroundColor Gray
     }
     
     "2" {
@@ -88,7 +88,7 @@ switch ($choice) {
         Write-Host "   For production, you need to sign it with a keystore" -ForegroundColor Yellow
         Write-Host ""
         Write-Host "Install on device:" -ForegroundColor Yellow
-        Write-Host "  C:\Users\nagen\AppData\Local\Android\Sdk\platform-tools\adb.exe install android\app\build\outputs\apk\release\app-release.apk" -ForegroundColor Gray
+        Write-Host "  adb install android\app\build\outputs\apk\release\app-release.apk" -ForegroundColor Gray
     }
     
     "3" {
@@ -145,4 +145,3 @@ if ($choice -eq "1") {
 
 Write-Host ""
 Write-Host "Build complete!" -ForegroundColor Green
-
