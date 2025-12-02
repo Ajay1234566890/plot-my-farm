@@ -1,0 +1,22 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "src/index.ts",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "src/index.ts"
+        }
+    ],
+    "env": {
+        "AGORA_APP_ID": "@agora_app_id",
+        "AGORA_APP_CERT": "@agora_app_cert",
+        "SUPABASE_URL": "@supabase_url",
+        "SUPABASE_SERVICE_KEY": "@supabase_service_key",
+        "TOKEN_TTL_SECONDS": "120"
+    }
+}

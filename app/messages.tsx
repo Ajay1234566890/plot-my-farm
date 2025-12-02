@@ -1,55 +1,122 @@
+import { useAuth } from '@/contexts/auth-context';
+import {
+  Chat,
+  formatChatTime,
+  getChats,
+  subscribeChatList,
+  unsubscribe,
+} from '@/services/chat-service';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
 import { MoreVertical, Search } from 'lucide-react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import FarmerBottomNav from './components/FarmerBottomNav';
 
 export default function MessagesScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { user } = useAuth();
 
-  // Mock data for conversations
-  const conversations = [
-    {
-      id: '1',
-      name: t('messages.johnSmith'),
-      role: t('messages.buyer'),
-      lastMessage: t('messages.pickupTomorrowMorning'),
-      time: '10:30 AM',
-      unread: true,
-      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    },
-    {
-      id: '2',
-      name: t('messages.greenValleyAgro'),
-      role: t('messages.distributor'),
-      lastMessage: t('messages.newOfferTomatoes'),
-      time: t('messages.yesterday'),
-      unread: false,
-      avatar: 'https://randomuser.me/api/portraits/men/54.jpg',
-    },
-    {
-      id: '3',
-      name: t('messages.sarahJohnson'),
-      role: t('messages.buyer'),
-      lastMessage: t('messages.howMuchOrganicCarrots'),
-      time: t('messages.wed'),
-      unread: true,
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-    },
-    {
-      id: '4',
-      name: t('messages.farmersCoop'),
-      role: t('messages.cooperative'),
-      lastMessage: t('messages.meetingScheduledMonday'),
-      time: t('messages.tue'),
-      unread: false,
-      avatar: 'https://randomuser.me/api/portraits/men/22.jpg',
-    },
-  ];
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [subscription, setSubscription] = useState<RealtimeChannel | null>(null);
 
+  useEffect(() => {
+    if (user?.id) {
+      loadChats();
+      setupRealtimeSubscription();
+    }
 
+    return () => {
+      if (subscription) {
+        unsubscribe(subscription);
+      }
+    };
+  }, [user?.id]);
+
+  const loadChats = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await getChats(user.id);
+      if (error) {
+        console.error('Error loading chats:', error);
+      } else if (data) {
+        setChats(data);
+      }
+    } catch (error) {
+      console.error('Exception loading chats:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const setupRealtimeSubscription = () => {
+    if (!user?.id) return;
+
+    const channel = subscribeChatList(user.id, (updatedChat) => {
+      setChats((prevChats) => {
+        const existingIndex = prevChats.findIndex((c) => c.id === updatedChat.id);
+        if (existingIndex >= 0) {
+          // Update existing chat
+          const updated = [...prevChats];
+          updated[existingIndex] = updatedChat;
+          // Sort by updated_at
+          return updated.sort(
+            (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          );
+        } else {
+          // Add new chat
+          return [updatedChat, ...prevChats];
+        }
+      });
+    });
+
+    setSubscription(channel);
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadChats();
+  };
+
+  const filteredChats = chats.filter((chat) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      chat.other_user?.name.toLowerCase().includes(query) ||
+      chat.last_message?.toLowerCase().includes(query)
+    );
+  });
+
+  const handleChatPress = (chat: Chat) => {
+    if (!chat.other_user) return;
+
+    router.push({
+      pathname: '/chat-screen',
+      params: {
+        chatId: chat.id,
+        userId: chat.other_user.id,
+        userName: chat.other_user.name,
+        userAvatar: chat.other_user.avatar || 'https://randomuser.me/api/portraits/men/32.jpg',
+        userRole: chat.other_user.role,
+      },
+    });
+  };
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
@@ -57,7 +124,7 @@ export default function MessagesScreen() {
       <View
         className="px-6 pt-12 pb-8"
         style={{
-          backgroundColor: '#7C8B3A', // Olive/army green matching farmer-home
+          backgroundColor: '#7C8B3A',
           borderBottomLeftRadius: 40,
           borderBottomRightRadius: 40,
         }}
@@ -68,9 +135,7 @@ export default function MessagesScreen() {
             <MoreVertical size={24} color="white" />
           </TouchableOpacity>
         </View>
-        <Text className="text-white/80 mb-4">
-          {t('messages.chatWithBuyersPartners')}
-        </Text>
+        <Text className="text-white/80 mb-4">{t('messages.chatWithBuyersPartners')}</Text>
 
         {/* Search Bar */}
         <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
@@ -79,51 +144,63 @@ export default function MessagesScreen() {
             className="flex-1 ml-2 text-gray-900"
             placeholder={t('messages.searchMessages')}
             placeholderTextColor="#9ca3af"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
         </View>
       </View>
 
       {/* Conversations List */}
-      <ScrollView className="flex-1 px-4">
-        {conversations.map((conversation) => (
-          <TouchableOpacity
-            key={conversation.id}
-            className="flex-row items-center py-4 border-b border-gray-100"
-            onPress={() => router.push({
-              pathname: '/chat-screen',
-              params: {
-                userId: conversation.id,
-                userName: conversation.name,
-                userAvatar: conversation.avatar,
-                userRole: conversation.role
-              }
-            })}
-          >
-            <Image
-              source={{ uri: conversation.avatar }}
-              className="w-14 h-14 rounded-full"
-            />
-            <View className="ml-3 flex-1">
-              <View className="flex-row items-center justify-between">
-                <Text className="font-semibold text-gray-900">{conversation.name}</Text>
-                <Text className="text-xs text-gray-500">{conversation.time}</Text>
-              </View>
-              <Text className="text-sm text-gray-500">{conversation.role}</Text>
-              <View className="flex-row items-center mt-1">
-                <Text 
-                  className={`text-sm ${conversation.unread ? 'text-gray-900 font-medium' : 'text-gray-500'}`}
-                  numberOfLines={1}
-                >
-                  {conversation.lastMessage}
-                </Text>
-                {conversation.unread && (
-                  <View className="ml-2 w-2 h-2 bg-green-600 rounded-full" />
-                )}
-              </View>
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#7C8B3A" />
+        </View>
+      ) : (
+        <ScrollView
+          className="flex-1 px-4"
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        >
+          {filteredChats.length === 0 ? (
+            <View className="items-center justify-center py-20">
+              <Text className="text-gray-500 text-center">
+                {searchQuery ? t('messages.noResults') : t('messages.noChats')}
+              </Text>
             </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+          ) : (
+            filteredChats.map((chat) => (
+              <TouchableOpacity
+                key={chat.id}
+                className="flex-row items-center py-4 border-b border-gray-100"
+                onPress={() => handleChatPress(chat)}
+              >
+                <Image
+                  source={{
+                    uri:
+                      chat.other_user?.avatar || 'https://randomuser.me/api/portraits/men/32.jpg',
+                  }}
+                  className="w-14 h-14 rounded-full"
+                />
+                <View className="ml-3 flex-1">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="font-semibold text-gray-900">
+                      {chat.other_user?.name || 'Unknown'}
+                    </Text>
+                    <Text className="text-xs text-gray-500">{formatChatTime(chat.updated_at)}</Text>
+                  </View>
+                  <Text className="text-sm text-gray-500 capitalize">
+                    {chat.other_user?.role || 'User'}
+                  </Text>
+                  <View className="flex-row items-center mt-1">
+                    <Text className="text-sm text-gray-500" numberOfLines={1}>
+                      {chat.last_message || t('messages.noMessages')}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+      )}
 
       <FarmerBottomNav activeTab="messages" />
     </View>

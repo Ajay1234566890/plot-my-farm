@@ -815,7 +815,11 @@
         "message3": "That works for me. When can I pick up?",
         "message4": "Anytime tomorrow morning would be fine",
         "message5": "Yes, I can pick up tomorrow morning",
-        "typeMessage": "Type a message..."
+        "typeMessage": "Type a message...",
+        "noMessages": "No messages yet",
+        "phoneNotAvailable": "Phone number not available",
+        "sendError": "Failed to send message. Please try again.",
+        "farmer": "Farmer"
     },
     "marketPrices": {
         "liveMarketPrices": "Live Market Prices",
@@ -918,9 +922,11 @@
     "messages": {
         "messages": "Messages",
         "chatWithBuyersPartners": "Chat with buyers and partners",
+        "chatWithFarmersPartners": "Chat with farmers and partners",
         "searchMessages": "Search messages...",
         "johnSmith": "John Smith",
         "buyer": "Buyer",
+        "farmer": "Farmer",
         "pickupTomorrowMorning": "Yes, I can pick up tomorrow morning",
         "greenValleyAgro": "Green Valley Agro",
         "distributor": "Distributor",
@@ -934,6 +940,8 @@
         "meetingScheduledMonday": "Meeting scheduled for next Monday",
         "tue": "Tue",
         "noMessages": "No messages",
+        "noChats": "No chats yet. Start a conversation!",
+        "noResults": "No results found",
         "typeMessage": "Type a message",
         "send": "Send",
         "online": "Online",

@@ -13,7 +13,8 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app needs access to your location to provide accurate weather information for your farm.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to provide accurate weather information for your farm.",
-        "NSMicrophoneUsageDescription": "This app needs access to your microphone to enable voice commands and voice AI assistant features."
+        "NSMicrophoneUsageDescription": "This app needs access to your microphone to enable voice commands and voice AI assistant features.",
+        "NSCameraUsageDescription": "This app needs access to your camera for video calls and scanning crops."
       }
     },
     "android": {

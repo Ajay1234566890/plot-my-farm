@@ -14,72 +14,95 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'tomato': require('@/assets/images/market/tomato.jpg'),
   'tomatoes': require('@/assets/images/market/tomato.jpg'),
   'tamatar': require('@/assets/images/market/tomato.jpg'),
-  
+
   'onion': require('@/assets/images/market/onion.jpg'),
   'onions': require('@/assets/images/market/onion.jpg'),
   'pyaz': require('@/assets/images/market/onion.jpg'),
   'kanda': require('@/assets/images/market/onion.jpg'),
-  
+
   'cauliflower': require('@/assets/images/market/cauliflower.jpg'),
   'phool gobhi': require('@/assets/images/market/cauliflower.jpg'),
   'gobi': require('@/assets/images/market/cauliflower.jpg'),
-  
+
   'brinjal': require('@/assets/images/market/brinjal.jpg'),
   'eggplant': require('@/assets/images/market/brinjal.jpg'),
   'baingan': require('@/assets/images/market/brinjal.jpg'),
   'aubergine': require('@/assets/images/market/brinjal.jpg'),
-  
+
   'chilli': require('@/assets/images/market/dry_chillies.jpg'),
   'chillies': require('@/assets/images/market/dry_chillies.jpg'),
   'dry chilli': require('@/assets/images/market/dry_chillies.jpg'),
   'dry chillies': require('@/assets/images/market/dry_chillies.jpg'),
   'mirchi': require('@/assets/images/market/dry_chillies.jpg'),
   'red chilli': require('@/assets/images/market/dry_chillies.jpg'),
-  'green chilli': require('@/assets/images/market/dry_chillies.jpg'),
-  
+
+  // Green chilli - NEW from crops folder
+  'green chilli': require('@/assets/images/crops/green_chilli.jpg'),
+  'green chillies': require('@/assets/images/crops/green_chilli.jpg'),
+  'hari mirchi': require('@/assets/images/crops/green_chilli.jpg'),
+
   'cucumber': require('@/assets/images/market/cucumber.jpg'),
   'cucumbers': require('@/assets/images/market/cucumber.jpg'),
   'kheera': require('@/assets/images/market/cucumber.jpg'),
   'kakdi': require('@/assets/images/market/cucumber.jpg'),
-  
+
   'bitter gourd': require('@/assets/images/market/little_gourd_kundru.jpg'),
   'karela': require('@/assets/images/market/little_gourd_kundru.jpg'),
-  
+
   'bottle gourd': require('@/assets/images/market/bottle_gourd.jpg'),
   'lauki': require('@/assets/images/market/bottle_gourd.jpg'),
   'ghiya': require('@/assets/images/market/bottle_gourd.jpg'),
   'doodhi': require('@/assets/images/market/bottle_gourd.jpg'),
-  
+
   'ridge gourd': require('@/assets/images/market/ridge_gourd.jpg'),
   'turai': require('@/assets/images/market/ridge_gourd.jpg'),
   'tori': require('@/assets/images/market/ridge_gourd.jpg'),
-  
+
   'lady finger': require('@/assets/images/market/ladies_finger.jpg'),
   'ladies finger': require('@/assets/images/market/ladies_finger.jpg'),
   'okra': require('@/assets/images/market/ladies_finger.jpg'),
   'bhindi': require('@/assets/images/market/ladies_finger.jpg'),
-  
+
   'radish': require('@/assets/images/market/radish.jpg'),
   'mooli': require('@/assets/images/market/radish.jpg'),
   'muli': require('@/assets/images/market/radish.jpg'),
-  
+
   'beetroot': require('@/assets/images/market/beetroot.jpg'),
   'beet': require('@/assets/images/market/beetroot.jpg'),
   'chukandar': require('@/assets/images/market/beetroot.jpg'),
-  
+
   'ginger': require('@/assets/images/market/ginger.jpg'),
   'adrak': require('@/assets/images/market/ginger.jpg'),
   'adrakh': require('@/assets/images/market/ginger.jpg'),
-  
+
   'elephant yam': require('@/assets/images/market/elephant_yam.jpg'),
   'yam': require('@/assets/images/market/elephant_yam.jpg'),
   'suran': require('@/assets/images/market/elephant_yam.jpg'),
   'jimikand': require('@/assets/images/market/elephant_yam.jpg'),
-  
+
   'little gourd': require('@/assets/images/market/little_gourd_kundru.jpg'),
   'kundru': require('@/assets/images/market/little_gourd_kundru.jpg'),
   'kundri': require('@/assets/images/market/little_gourd_kundru.jpg'),
   'ivy gourd': require('@/assets/images/market/little_gourd_kundru.jpg'),
+
+  // Peas - NEW from crops folder
+  'peas': require('@/assets/images/crops/peas.jpg'),
+  'pea': require('@/assets/images/crops/peas.jpg'),
+  'matar': require('@/assets/images/crops/peas.jpg'),
+  'green peas': require('@/assets/images/crops/peas.jpg'),
+
+  // Coriander - NEW from crops folder
+  'coriander': require('@/assets/images/crops/coriander_leaves.jpg'),
+  'coriander leaves': require('@/assets/images/crops/coriander_leaves.jpg'),
+  'dhania': require('@/assets/images/crops/coriander_leaves.jpg'),
+  'cilantro': require('@/assets/images/crops/coriander_leaves.jpg'),
+
+  // Colacassia - NEW from crops folder
+  'colacassia': require('@/assets/images/crops/colacassia.jpg'),
+  'colocasia': require('@/assets/images/crops/colacassia.jpg'),
+  'arvi': require('@/assets/images/crops/colacassia.jpg'),
+  'taro': require('@/assets/images/crops/colacassia.jpg'),
+  'taro root': require('@/assets/images/crops/colacassia.jpg'),
 
   // Pulses & Legumes - Local accurate images with variations
   'gram': require('@/assets/images/market/bengal_gram.jpg'),
@@ -91,30 +114,90 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'desi chana': require('@/assets/images/market/bengal_gram.jpg'),
   'garbanzo': require('@/assets/images/market/bengal_gram.jpg'),
 
+  // Tur Dal - NEW from crops folder
+  'tur': require('@/assets/images/crops/tur_dal.jpg'),
+  'tur dal': require('@/assets/images/crops/tur_dal.jpg'),
+  'toor dal': require('@/assets/images/crops/tur_dal.jpg'),
+  'arhar': require('@/assets/images/crops/tur_dal.jpg'),
+  'arhar dal': require('@/assets/images/crops/tur_dal.jpg'),
+  'pigeon pea': require('@/assets/images/crops/tur_dal.jpg'),
+  'pigeon peas': require('@/assets/images/crops/tur_dal.jpg'),
+
+  // Soyabean - NEW from crops folder
+  'soybean': require('@/assets/images/crops/soyabean.jpg'),
+  'soyabean': require('@/assets/images/crops/soyabean.jpg'),
+  'soya': require('@/assets/images/crops/soyabean.jpg'),
+  'soy': require('@/assets/images/crops/soyabean.jpg'),
+  'soyabeans': require('@/assets/images/crops/soyabean.jpg'),
+
   // Fruits - Local accurate images with variations
   'pomegranate': require('@/assets/images/market/pomogranate.jpg'),
   'pomegranates': require('@/assets/images/market/pomogranate.jpg'),
   'anar': require('@/assets/images/market/pomogranate.jpg'),
   'anaar': require('@/assets/images/market/pomogranate.jpg'),
 
+  // Lemon - NEW from crops folder
+  'lemon': require('@/assets/images/crops/lemon.jpg'),
+  'lemons': require('@/assets/images/crops/lemon.jpg'),
+  'nimbu': require('@/assets/images/crops/lemon.jpg'),
+  'lime': require('@/assets/images/crops/lemon.jpg'),
+
+  // Sweet Lime - NEW from crops folder
+  'sweet lime': require('@/assets/images/crops/sweet_lime.jpg'),
+  'sweet lemon': require('@/assets/images/crops/sweet_lime.jpg'),
+  'mosambi': require('@/assets/images/crops/sweet_lime.jpg'),
+  'mousambi': require('@/assets/images/crops/sweet_lime.jpg'),
+
+  // Guava - NEW from crops folder
+  'guava': require('@/assets/images/crops/guava.jpg'),
+  'guavas': require('@/assets/images/crops/guava.jpg'),
+  'amrud': require('@/assets/images/crops/guava.jpg'),
+  'peru': require('@/assets/images/crops/guava.jpg'),
+
+  // Orange - NEW from crops folder
+  'orange': require('@/assets/images/crops/orange.jpg'),
+  'oranges': require('@/assets/images/crops/orange.jpg'),
+  'santra': require('@/assets/images/crops/orange.jpg'),
+  'narangi': require('@/assets/images/crops/orange.jpg'),
+
+  // Pineapple - NEW from crops folder
+  'pineapple': require('@/assets/images/crops/pineapple.jpg'),
+  'pineapples': require('@/assets/images/crops/pineapple.jpg'),
+  'ananas': require('@/assets/images/crops/pineapple.jpg'),
+
+  // Grains & Cereals - NEW from crops folder
+  'paddy': require('@/assets/images/crops/paddy.jpg'),
+  'rice': require('@/assets/images/crops/paddy.jpg'),
+  'dhan': require('@/assets/images/crops/paddy.jpg'),
+  'chawal': require('@/assets/images/crops/paddy.jpg'),
+
+  'wheat': require('@/assets/images/crops/wheat.jpg'),
+  'gehun': require('@/assets/images/crops/wheat.jpg'),
+  'gehu': require('@/assets/images/crops/wheat.jpg'),
+
   // Cash Crops - Local accurate images with variations
   'cotton': require('@/assets/images/market/cotton.jpg'),
   'kapas': require('@/assets/images/market/cotton.jpg'),
   'kappas': require('@/assets/images/market/cotton.jpg'),
-  
+
   'coconut': require('@/assets/images/market/coconut.jpg'),
   'coconuts': require('@/assets/images/market/coconut.jpg'),
   'nariyal': require('@/assets/images/market/coconut.jpg'),
   'copra': require('@/assets/images/market/coconut.jpg'),
-  
+
   'tender coconut': require('@/assets/images/market/tender_coconut.jpg'),
   'green coconut': require('@/assets/images/market/tender_coconut.jpg'),
-  
+
   'betelnut': require('@/assets/images/market/betelnut.jpg'),
   'betel nut': require('@/assets/images/market/betelnut.jpg'),
   'areca nut': require('@/assets/images/market/betelnut.jpg'),
   'supari': require('@/assets/images/market/betelnut.jpg'),
   'supari (betelnut)': require('@/assets/images/market/betelnut.jpg'),
+
+  // Wood - NEW from crops folder
+  'wood': require('@/assets/images/crops/wood.jpg'),
+  'timber': require('@/assets/images/crops/wood.jpg'),
+  'lakdi': require('@/assets/images/crops/wood.jpg'),
 
   // Spices - Local accurate images with variations
   'turmeric': require('@/assets/images/market/turmeric.jpg'),
@@ -166,13 +249,13 @@ class MarketPricesService {
    */
   private getCropImage(commodity: string): string {
     const normalizedName = commodity.toLowerCase().trim();
-    
+
     for (const [key, image] of Object.entries(CROP_IMAGE_MAP)) {
       if (normalizedName.includes(key)) {
         return image;
       }
     }
-    
+
     return CROP_IMAGE_MAP.default;
   }
 
@@ -193,22 +276,22 @@ class MarketPricesService {
   ): Promise<MarketPrice[]> {
     try {
       console.log('🌾 [MARKET PRICES] Fetching from government API...');
-      
+
       // Build API URL
       let apiUrl = `${API_BASE_URL}?api-key=${API_KEY}&format=json&limit=${limit}&offset=${offset}`;
-      
+
       if (state) {
         apiUrl += `&filters[state]=${encodeURIComponent(state)}`;
       }
 
       const response = await fetch(apiUrl);
-      
+
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status}`);
       }
 
       const data: APIResponse = await response.json();
-      
+
       console.log(`✅ [MARKET PRICES] Fetched ${data.records?.length || 0} records`);
 
       // Transform and process data
