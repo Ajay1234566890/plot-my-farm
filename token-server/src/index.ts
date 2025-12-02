@@ -1,11 +1,9 @@
 import { RtcRole, RtcTokenBuilder } from 'agora-access-token';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import { authMiddleware } from './middleware/auth';
 import { rateLimiter } from './middleware/rateLimiter';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
