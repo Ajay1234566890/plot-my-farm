@@ -8,7 +8,7 @@ import {
 } from '@/services/chat-service';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
-import { MoreVertical, Search } from 'lucide-react-native';
+import { Search } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -129,11 +129,8 @@ export default function BuyerMessagesScreen() {
           borderBottomRightRadius: 40,
         }}
       >
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center mb-4">
           <Text className="text-xl font-bold text-white">{t('messages.messages')}</Text>
-          <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full bg-white/20">
-            <MoreVertical size={24} color="white" />
-          </TouchableOpacity>
         </View>
         <Text className="text-white/80 mb-4">{t('messages.chatWithFarmersPartners')}</Text>
 

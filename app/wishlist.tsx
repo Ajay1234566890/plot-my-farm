@@ -1,9 +1,9 @@
 import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Heart, Search } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function Wishlist() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function Wishlist() {
       available: t('wishlist.kgAvailable', { amount: 50 }),
       price: t('wishlist.pricePerKg', { price: 200 }),
       image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
     },
     {
       id: 2,
@@ -26,7 +26,7 @@ export default function Wishlist() {
       available: t('wishlist.dozensAvailable', { amount: 100 }),
       price: t('wishlist.pricePerDozen', { price: 330 }),
       image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+        "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
     },
     {
       id: 3,
@@ -35,7 +35,7 @@ export default function Wishlist() {
       available: t('wishlist.kgAvailable', { amount: 80 }),
       price: t('wishlist.pricePerKg', { price: 145 }),
       image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+        "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
     },
     {
       id: 4,
@@ -44,19 +44,27 @@ export default function Wishlist() {
       available: t('wishlist.kgAvailable', { amount: 15 }),
       price: t('wishlist.pricePerKg', { price: 180 }),
       image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+        "https://images.unsplash.com/photo-1459411621453-7c6526433a8a?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0",
       outOfStock: true,
     },
   ];
 
+  // State to manage wishlist items
+  const [wishlistItems, setWishlistItems] = useState(mockWishlistItems);
+
   const handleRemoveFromWishlist = (id: number) => {
-    // In a real app, this would update the wishlist state
-    console.log("Remove item:", id);
+    setWishlistItems(prevItems => prevItems.filter(item => item.id !== id));
   };
 
   const handleAddToCart = (id: number) => {
-    // In a real app, this would add the item to cart
-    console.log("Add to cart:", id);
+    const item = wishlistItems.find(item => item.id === id);
+    if (item) {
+      Alert.alert(
+        "Added to Cart",
+        `${item.name} has been added to your cart!`,
+        [{ text: "OK" }]
+      );
+    }
   };
 
   return (
@@ -95,7 +103,7 @@ export default function Wishlist() {
         className="flex-1 px-4 pt-4"
         showsVerticalScrollIndicator={false}
       >
-        {mockWishlistItems.map((item) => (
+        {wishlistItems.map((item) => (
           <View
             key={item.id}
             className="bg-white rounded-xl p-4 mb-4 shadow-sm"

@@ -181,12 +181,11 @@ export default function NearbyBuyers() {
           style={{
             marginTop: 16,
             marginHorizontal: 16,
-            height: 200,
             borderRadius: 16,
             overflow: 'hidden',
             opacity: mapOpacity,
             backgroundColor: 'rgba(255, 255, 255, 0.7)', // Glass effect
-            // Note: backdropFilter is not supported in React Native directly, 
+            // Note: backdropFilter is not supported in React Native directly,
             // but we simulate glass with transparency and blur if possible or just transparency
             borderWidth: 1,
             borderColor: 'rgba(255, 255, 255, 0.3)',

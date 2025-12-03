@@ -275,12 +275,6 @@ function BuyerHomeContent() {
                   backgroundColor: 'transparent'
                 }}
               />
-              <TouchableOpacity
-                style={{ padding: 4 }}
-                onPress={() => router.push('/nearby-farmers')}
-              >
-                <MapPin size={16} color="rgba(255, 255, 255, 0.8)" />
-              </TouchableOpacity>
             </View>
           </View>
         </View>

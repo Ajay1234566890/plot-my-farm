@@ -7,7 +7,6 @@ import {
     MessageCircle,
     Phone,
     Search,
-    SlidersHorizontal,
     Star
 } from "lucide-react-native";
 import React from "react";
@@ -120,9 +119,6 @@ export default function NearbyFarmers() {
             className="flex-1 ml-3 text-base text-gray-800"
             placeholderTextColor="#9CA3AF"
           />
-          <TouchableOpacity className="p-1">
-            <SlidersHorizontal size={20} color="#4B5563" />
-          </TouchableOpacity>
         </View>
       </View>
 
