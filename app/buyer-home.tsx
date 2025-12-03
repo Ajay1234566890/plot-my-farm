@@ -157,28 +157,28 @@ function BuyerHomeContent() {
   const cropsPreview = [
     {
       id: 1,
-      name: "Organic Tomatoes",
+      name: "Green Chilli",
       farmer: "Green Farm",
       price: "₹200/kg",
       image: require('@/assets/images/crops/green_chilli.jpg'),
     },
     {
       id: 2,
-      name: "Fresh Corn",
+      name: "Wheat",
       farmer: "Valley Farms",
       price: "₹230/kg",
       image: require('@/assets/images/crops/wheat.jpg'),
     },
     {
       id: 3,
-      name: "Carrots",
+      name: "Coriander Leaves",
       farmer: "Farm Fresh",
       price: "₹145/kg",
       image: require('@/assets/images/crops/coriander_leaves.jpg'),
     },
     {
       id: 4,
-      name: "Bell Peppers",
+      name: "Peas",
       farmer: "Organic Valley",
       price: "₹275/kg",
       image: require('@/assets/images/crops/peas.jpg'),
