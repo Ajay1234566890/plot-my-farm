@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Dimensions,
   Image,
@@ -60,6 +61,7 @@ function BuyerHomeContent() {
   const [loadingPrices, setLoadingPrices] = useState(true);
   const [nearbyFarmers, setNearbyFarmers] = useState<Farmer[]>([]);
   const [loadingFarmers, setLoadingFarmers] = useState(true);
+  const [wishlist, setWishlist] = useState<Set<number>>(new Set());
 
   // Scroll animation for glass card fade effect (matching Farmer Dashboard)
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -158,34 +160,45 @@ function BuyerHomeContent() {
       name: "Organic Tomatoes",
       farmer: "Green Farm",
       price: "₹200/kg",
-      image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+      image: require('@/assets/images/crops/green_chilli.jpg'),
     },
     {
       id: 2,
       name: "Fresh Corn",
       farmer: "Valley Farms",
       price: "₹230/kg",
-      image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+      image: require('@/assets/images/crops/wheat.jpg'),
     },
     {
       id: 3,
       name: "Carrots",
       farmer: "Farm Fresh",
       price: "₹145/kg",
-      image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+      image: require('@/assets/images/crops/coriander_leaves.jpg'),
     },
     {
       id: 4,
       name: "Bell Peppers",
       farmer: "Organic Valley",
       price: "₹275/kg",
-      image:
-        "https://images.unsplash.com/photo-1518843874671-6ab90f6775b6?w=900&auto=format&fit=crop&q=60",
+      image: require('@/assets/images/crops/peas.jpg'),
     },
   ];
+
+  // Wishlist toggle handler
+  const toggleWishlist = (cropId: number) => {
+    setWishlist((prev) => {
+      const newWishlist = new Set(prev);
+      if (newWishlist.has(cropId)) {
+        newWishlist.delete(cropId);
+        Alert.alert(t('common.success'), t('buyerHome.removedFromWishlist'));
+      } else {
+        newWishlist.add(cropId);
+        Alert.alert(t('common.success'), t('buyerHome.addedToWishlist'));
+      }
+      return newWishlist;
+    });
+  };
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
@@ -240,17 +253,14 @@ function BuyerHomeContent() {
           <View className="mt-2">
             <View
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Buyer translucent white
+                backgroundColor: 'transparent', // Transparent to match top section
                 borderRadius: 16,
                 paddingHorizontal: 12,
                 paddingVertical: 8,
                 flexDirection: 'row',
                 alignItems: 'center',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 4,
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.3)',
               }}
             >
               <Search size={18} color="#FFFFFF" />
@@ -265,7 +275,10 @@ function BuyerHomeContent() {
                   backgroundColor: 'transparent'
                 }}
               />
-              <TouchableOpacity style={{ padding: 4 }}>
+              <TouchableOpacity
+                style={{ padding: 4 }}
+                onPress={() => router.push('/nearby-farmers')}
+              >
                 <MapPin size={16} color="rgba(255, 255, 255, 0.8)" />
               </TouchableOpacity>
             </View>
@@ -385,6 +398,7 @@ function BuyerHomeContent() {
             <TouchableOpacity
               className="px-4 py-2 rounded-full"
               style={{ backgroundColor: '#B27E4C' }}
+              onPress={() => router.push('/nearby-crops')}
             >
               <Text className="text-sm font-semibold text-white">
                 {t('common.viewAll')}
@@ -413,11 +427,18 @@ function BuyerHomeContent() {
               >
                 <View className="relative">
                   <Image
-                    source={{ uri: crop.image }}
+                    source={crop.image}
                     className="w-full h-32 rounded-2xl mb-3"
                   />
-                  <TouchableOpacity className="absolute top-2 right-2 bg-white rounded-full p-2 shadow">
-                    <Heart size={16} color="#B27E4C" fill="white" />
+                  <TouchableOpacity
+                    className="absolute top-2 right-2 bg-white rounded-full p-2 shadow"
+                    onPress={() => toggleWishlist(crop.id)}
+                  >
+                    <Heart
+                      size={16}
+                      color="#B27E4C"
+                      fill={wishlist.has(crop.id) ? "#B27E4C" : "white"}
+                    />
                   </TouchableOpacity>
                 </View>
                 <Text className="text-gray-800 font-bold text-base mb-1">{crop.name}</Text>
@@ -549,8 +570,8 @@ function BuyerHomeContent() {
             <TouchableOpacity
               onPress={() => setActiveTab(Tab.NearbyCrops)}
               className={`px-6 py-3 rounded-full ${activeTab === Tab.NearbyCrops
-                  ? "shadow-lg"
-                  : ""
+                ? "shadow-lg"
+                : ""
                 }`}
               style={{
                 backgroundColor: activeTab === Tab.NearbyCrops ? '#B27E4C' : '#B27E4C20',
@@ -558,8 +579,8 @@ function BuyerHomeContent() {
             >
               <Text
                 className={`font-semibold ${activeTab === Tab.NearbyCrops
-                    ? "text-white"
-                    : "text-gray-700"
+                  ? "text-white"
+                  : "text-gray-700"
                   }`}
               >
                 {t('buyerHome.nearbyCrops')}
@@ -568,8 +589,8 @@ function BuyerHomeContent() {
             <TouchableOpacity
               onPress={() => setActiveTab(Tab.NearbyFarmers)}
               className={`px-6 py-3 rounded-full ${activeTab === Tab.NearbyFarmers
-                  ? "shadow-lg"
-                  : ""
+                ? "shadow-lg"
+                : ""
                 }`}
               style={{
                 backgroundColor: activeTab === Tab.NearbyFarmers ? '#B27E4C' : '#B27E4C20',
@@ -577,8 +598,8 @@ function BuyerHomeContent() {
             >
               <Text
                 className={`font-semibold ${activeTab === Tab.NearbyFarmers
-                    ? "text-white"
-                    : "text-gray-700"
+                  ? "text-white"
+                  : "text-gray-700"
                   }`}
               >
                 {t('buyerHome.nearbyFarmers')}
@@ -604,7 +625,7 @@ function BuyerHomeContent() {
                   }}
                 >
                   <Image
-                    source={{ uri: crop.image }}
+                    source={crop.image}
                     className="w-16 h-16 rounded-2xl mr-4"
                   />
                   <View className="flex-1">
@@ -614,8 +635,15 @@ function BuyerHomeContent() {
                       {crop.price}
                     </Text>
                   </View>
-                  <TouchableOpacity className="p-2">
-                    <Heart size={20} color="#B27E4C" fill="white" />
+                  <TouchableOpacity
+                    className="p-2"
+                    onPress={() => toggleWishlist(crop.id)}
+                  >
+                    <Heart
+                      size={20}
+                      color="#B27E4C"
+                      fill={wishlist.has(crop.id) ? "#B27E4C" : "white"}
+                    />
                   </TouchableOpacity>
                 </TouchableOpacity>
               ))}
@@ -647,7 +675,10 @@ function BuyerHomeContent() {
                       <Text className="text-gray-800 font-bold text-base">{farmer.name}</Text>
                       <Text className="text-gray-500 text-sm">{farmer.distance} {t('buyerHome.away')}</Text>
                     </View>
-                    <TouchableOpacity className="p-2">
+                    <TouchableOpacity
+                      className="p-2"
+                      onPress={() => router.push('/nearby-farmers')}
+                    >
                       <MapPin size={20} color="#B27E4C" />
                     </TouchableOpacity>
                   </TouchableOpacity>

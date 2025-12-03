@@ -2,12 +2,13 @@ import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'expo-router';
 import {
-    ChevronLeft,
-    Search
+  ChevronLeft,
+  Search,
+  X
 } from 'lucide-react-native';
-import React from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface Order {
   id: string;
@@ -21,6 +22,8 @@ export default function MyOrders() {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const orders: Order[] = [
     {
@@ -46,6 +49,11 @@ export default function MyOrders() {
     },
   ];
 
+  const filteredOrders = orders.filter(order =>
+    order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.trackingNumber.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
       {/* Curved Header Section - Buyer Design System */}
@@ -57,86 +65,116 @@ export default function MyOrders() {
           borderBottomRightRadius: 40,
         }}
       >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-3">
-            <TouchableOpacity
-              className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
-              onPress={() => router.back()}
-            >
-              <ChevronLeft color="white" size={24} />
-            </TouchableOpacity>
-            <Text className="text-white text-xl font-bold">{t('orders.myOrders')}</Text>
-          </View>
-          <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full bg-white/20">
-            <Search color="white" size={24} />
-          </TouchableOpacity>
+        <View className="flex-row items-center justify-between h-12">
+          {isSearching ? (
+            <View className="flex-1 flex-row items-center bg-white/20 rounded-full px-4 py-1">
+              <Search color="white" size={20} />
+              <TextInput
+                className="flex-1 ml-2 text-white text-base"
+                placeholder={t('common.search')}
+                placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus
+              />
+              <TouchableOpacity onPress={() => {
+                setIsSearching(false);
+                setSearchQuery('');
+              }}>
+                <X color="white" size={20} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View className="flex-row items-center gap-3">
+                <TouchableOpacity
+                  className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
+                  onPress={() => router.back()}
+                >
+                  <ChevronLeft color="white" size={24} />
+                </TouchableOpacity>
+                <Text className="text-white text-xl font-bold">{t('orders.myOrders')}</Text>
+              </View>
+              <TouchableOpacity
+                className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
+                onPress={() => setIsSearching(true)}
+              >
+                <Search color="white" size={24} />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
 
       {/* Orders List */}
       <ScrollView className="flex-1 px-4 pt-4">
-        {orders.map((order) => (
-          <TouchableOpacity
-            key={order.id}
-            className="bg-white p-4 mb-4 rounded-xl"
-            style={{
-              shadowColor: '#B27E4C',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 4,
-              borderWidth: 1,
-              borderColor: '#B27E4C10'
-            }}
-            onPress={() => router.push(`/track-order?orderId=${order.id}`)}
-          >
-            <View className="flex-row justify-between items-start mb-2">
-              <Text className="text-gray-900 font-medium">
-                {t('orders.orderNumberHash', { number: order.id })}
-              </Text>
-              <Text className="text-gray-500 text-sm">
-                {order.date}
-              </Text>
-            </View>
-
-            <View className="mb-2">
-              <Text className="text-gray-500 text-sm">
-                {t('orders.trackingNumber')}
-              </Text>
-              <Text className="text-gray-700">
-                {order.trackingNumber}
-              </Text>
-            </View>
-
-            <View className="flex-row justify-between items-center">
-              <View>
+        {filteredOrders.length === 0 ? (
+          <View className="items-center justify-center py-10">
+            <Text className="text-gray-500">{t('common.noData')}</Text>
+          </View>
+        ) : (
+          filteredOrders.map((order) => (
+            <TouchableOpacity
+              key={order.id}
+              className="bg-white p-4 mb-4 rounded-xl"
+              style={{
+                shadowColor: '#B27E4C',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 4,
+                borderWidth: 1,
+                borderColor: '#B27E4C10'
+              }}
+              onPress={() => router.push(`/track-order?orderId=${order.id}`)}
+            >
+              <View className="flex-row justify-between items-start mb-2">
+                <Text className="text-gray-900 font-medium">
+                  {t('orders.orderNumberHash', { number: order.id })}
+                </Text>
                 <Text className="text-gray-500 text-sm">
-                  {t('orders.totalAmount')}
-                </Text>
-                <Text className="text-gray-900 font-semibold">
-                  ₹{order.amount.toLocaleString()}
+                  {order.date}
                 </Text>
               </View>
 
-              <View className="flex-row items-center">
-                <View
-                  className={`rounded-full h-2 w-2 mr-2 ${
-                    order.status === 'Delivered' ? 'bg-green-500' : 'bg-yellow-500'
-                  }`}
-                />
-                <Text
-                  className={
-                    order.status === 'Delivered'
-                      ? 'text-green-500'
-                      : 'text-yellow-500'
-                  }
-                >
-                  {t(`orders.${order.status.toLowerCase()}`)}
+              <View className="mb-2">
+                <Text className="text-gray-500 text-sm">
+                  {t('orders.trackingNumber')}
+                </Text>
+                <Text className="text-gray-700">
+                  {order.trackingNumber}
                 </Text>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+
+              <View className="flex-row justify-between items-center">
+                <View>
+                  <Text className="text-gray-500 text-sm">
+                    {t('orders.totalAmount')}
+                  </Text>
+                  <Text className="text-gray-900 font-semibold">
+                    ₹{order.amount.toLocaleString()}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center">
+                  <View
+                    className={`rounded-full h-2 w-2 mr-2 ${order.status === 'Delivered' ? 'bg-green-500' : 'bg-yellow-500'
+                      }`}
+                  />
+                  <Text
+                    className={
+                      order.status === 'Delivered'
+                        ? 'text-green-500'
+                        : 'text-yellow-500'
+                    }
+                  >
+                    {t(`orders.${order.status.toLowerCase()}`)}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
 
       {/* Bottom Navigation */}
