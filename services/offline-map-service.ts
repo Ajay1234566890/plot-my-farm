@@ -21,7 +21,7 @@ export interface OfflineRegion {
 
 export interface OfflinePackStatus {
   name: string;
-  state: 'inactive' | 'active' | 'complete';
+  state: number | string; // MapLibre uses consts, but often returns number/string
   percentage: number;
   completedResourceCount: number;
   completedResourceSize: number;
@@ -30,7 +30,7 @@ export interface OfflinePackStatus {
 }
 
 const OFFLINE_REGIONS_KEY = '@offline_map_regions';
-const DEFAULT_STYLE_URL = 'https://demotiles.maplibre.org/style.json';
+const DEFAULT_STYLE_URL = 'https://api.maptiler.com/maps/streets/style.json?key=S1newPOTVEpCrOQg9RYx';
 
 /**
  * Create an offline region for download
@@ -68,11 +68,12 @@ export async function createOfflineRegion(
     // Create offline pack
     await MapLibreGL.offlineManager.createPack(
       {
-        name,
+        name, // Required by type definition
         styleURL: region.styleURL,
         bounds: [[bounds.ne[0], bounds.ne[1]], [bounds.sw[0], bounds.sw[1]]],
         minZoom,
         maxZoom,
+        metadata: { name }, // Store name in metadata
       },
       (region, status) => {
         console.log(`📥 [OFFLINE MAP] Download progress: ${status.percentage.toFixed(1)}%`);
@@ -81,7 +82,7 @@ export async function createOfflineRegion(
         if (error) {
           console.error('❌ [OFFLINE MAP] Download error:', error);
         } else {
-          console.log('✅ [OFFLINE MAP] Download complete:', region.name);
+          console.log('✅ [OFFLINE MAP] Download complete:', name);
         }
       }
     );
@@ -102,16 +103,22 @@ export async function createOfflineRegion(
 export async function getOfflinePacks(): Promise<OfflinePackStatus[]> {
   try {
     const packs = await MapLibreGL.offlineManager.getPacks();
-    
-    return packs.map(pack => ({
-      name: pack.name,
-      state: pack.state,
-      percentage: pack.percentage,
-      completedResourceCount: pack.completedResourceCount,
-      completedResourceSize: pack.completedResourceSize,
-      completedTileCount: pack.completedTileCount,
-      requiredResourceCount: pack.requiredResourceCount,
+
+    const packStatuses = await Promise.all(packs.map(async (pack) => {
+      const status = await pack.status();
+      const metadata = pack.metadata; // Property, not method
+      return {
+        name: metadata?.name || 'Unknown Region',
+        state: status.state,
+        percentage: status.percentage,
+        completedResourceCount: status.completedResourceCount,
+        completedResourceSize: status.completedResourceSize,
+        completedTileCount: status.completedTileCount,
+        requiredResourceCount: status.requiredResourceCount,
+      };
     }));
+
+    return packStatuses;
   } catch (error) {
     console.error('❌ [OFFLINE MAP] Failed to get offline packs:', error);
     return [];
@@ -123,9 +130,16 @@ export async function getOfflinePacks(): Promise<OfflinePackStatus[]> {
  */
 export async function deleteOfflinePack(name: string): Promise<void> {
   try {
-    await MapLibreGL.offlineManager.deletePack(name);
+    const packs = await MapLibreGL.offlineManager.getPacks();
+    for (const pack of packs) {
+      const metadata = pack.metadata; // Property, not method
+      if (metadata?.name === name) {
+        await MapLibreGL.offlineManager.deletePack(pack.name); // Delete by internal name/ID
+        console.log(`✅ [OFFLINE MAP] Deleted offline pack: ${name}`);
+        break;
+      }
+    }
     await removeOfflineRegion(name);
-    console.log(`✅ [OFFLINE MAP] Deleted offline pack: ${name}`);
   } catch (error) {
     console.error('❌ [OFFLINE MAP] Failed to delete offline pack:', error);
     throw error;
@@ -150,8 +164,16 @@ export async function getOfflinePackStatus(name: string): Promise<OfflinePackSta
  */
 export async function pauseOfflinePackDownload(name: string): Promise<void> {
   try {
-    await MapLibreGL.offlineManager.pausePackDownload(name);
-    console.log(`⏸️ [OFFLINE MAP] Paused download: ${name}`);
+    const packs = await MapLibreGL.offlineManager.getPacks();
+    for (const pack of packs) {
+      const metadata = pack.metadata; // Property, not method
+      if (metadata?.name === name) {
+        await pack.pause();
+        console.log(`⏸️ [OFFLINE MAP] Paused download: ${name}`);
+        return;
+      }
+    }
+    console.warn(`⚠️ [OFFLINE MAP] Pack not found to pause: ${name}`);
   } catch (error) {
     console.error('❌ [OFFLINE MAP] Failed to pause download:', error);
     throw error;
@@ -163,8 +185,16 @@ export async function pauseOfflinePackDownload(name: string): Promise<void> {
  */
 export async function resumeOfflinePackDownload(name: string): Promise<void> {
   try {
-    await MapLibreGL.offlineManager.resumePackDownload(name);
-    console.log(`▶️ [OFFLINE MAP] Resumed download: ${name}`);
+    const packs = await MapLibreGL.offlineManager.getPacks();
+    for (const pack of packs) {
+      const metadata = pack.metadata; // Property, not method
+      if (metadata?.name === name) {
+        await pack.resume();
+        console.log(`▶️ [OFFLINE MAP] Resumed download: ${name}`);
+        return;
+      }
+    }
+    console.warn(`⚠️ [OFFLINE MAP] Pack not found to resume: ${name}`);
   } catch (error) {
     console.error('❌ [OFFLINE MAP] Failed to resume download:', error);
     throw error;
@@ -178,11 +208,11 @@ async function saveOfflineRegion(region: OfflineRegion): Promise<void> {
   try {
     const regionsJson = await AsyncStorage.getItem(OFFLINE_REGIONS_KEY);
     const regions: OfflineRegion[] = regionsJson ? JSON.parse(regionsJson) : [];
-    
+
     // Remove existing region with same name
     const filteredRegions = regions.filter(r => r.name !== region.name);
     filteredRegions.push(region);
-    
+
     await AsyncStorage.setItem(OFFLINE_REGIONS_KEY, JSON.stringify(filteredRegions));
   } catch (error) {
     console.error('❌ [OFFLINE MAP] Failed to save region metadata:', error);
@@ -196,7 +226,7 @@ async function removeOfflineRegion(name: string): Promise<void> {
   try {
     const regionsJson = await AsyncStorage.getItem(OFFLINE_REGIONS_KEY);
     const regions: OfflineRegion[] = regionsJson ? JSON.parse(regionsJson) : [];
-    
+
     const filteredRegions = regions.filter(r => r.name !== name);
     await AsyncStorage.setItem(OFFLINE_REGIONS_KEY, JSON.stringify(filteredRegions));
   } catch (error) {

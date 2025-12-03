@@ -113,21 +113,23 @@ function FarmerHomeContent() {
     setIsVoiceAgentOpen(true);
   };
 
-  // Mock data for recommended buyers (restored from original)
-  const recommendedBuyers = [
-    {
-      name: t('farmerHome.buyerName1'),
-      location: t('farmerHome.buyerLocation1'),
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dXNlcnxlbnwwfHwwfHx8MA%3D%3D",
-    },
-    {
-      name: t('farmerHome.buyerName2'),
-      location: t('farmerHome.buyerLocation2'),
-      avatar:
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fHVzZXJ8ZW58MHx8MHx8fDA%3D",
-    },
-  ];
+  // Real data for recommended buyers
+  const [recommendedBuyers, setRecommendedBuyers] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadRecommendedBuyers();
+  }, []);
+
+  const loadRecommendedBuyers = async () => {
+    try {
+      // Default to current location or a fixed point if not available
+      const location = { latitude: 20.5937, longitude: 78.9629 };
+      const buyers = await import('@/services/map-service').then(m => m.fetchNearbyBuyers(location, 50000));
+      setRecommendedBuyers(buyers.slice(0, 3)); // Show top 3
+    } catch (error) {
+      console.error('Error loading recommended buyers:', error);
+    }
+  };
 
   // Quick actions data (your original functionality - made visually beautiful)
   const quickActions = [
@@ -514,25 +516,36 @@ function FarmerHomeContent() {
               className="flex-row items-center bg-white rounded-2xl p-4 mb-3 shadow shadow-gray-200"
             >
               <Image
-                source={{ uri: buyer.avatar }}
+                source={{ uri: buyer.avatar_url || "https://randomuser.me/api/portraits/men/32.jpg" }}
                 className="w-12 h-12 rounded-full"
                 resizeMode="cover"
               />
               <View className="ml-3 flex-1">
                 <Text className="text-base font-bold text-gray-800">
-                  {buyer.name}
+                  {buyer.full_name || t('common.unknownUser')}
                 </Text>
-                <Text className="text-sm text-gray-500">{buyer.location}</Text>
+                <Text className="text-sm text-gray-500">{buyer.distanceFormatted || 'Unknown distance'}</Text>
               </View>
               <View className="flex-row gap-2">
                 <TouchableOpacity
-                  onPress={() => router.push("/nearby-buyers")}
+                  onPress={() => router.push({
+                    pathname: "/nearby-buyers",
+                    params: { selectedBuyerId: buyer.id }
+                  })}
                   className="p-2 bg-emerald-100 rounded-full"
                 >
                   <MapPin size={20} color="#059669" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => router.push("/chat-screen")}
+                  onPress={() => router.push({
+                    pathname: "/chat-screen",
+                    params: {
+                      userId: buyer.id,
+                      userName: buyer.full_name,
+                      userAvatar: buyer.avatar_url,
+                      userRole: 'buyer'
+                    }
+                  })}
                   className="p-2 bg-blue-100 rounded-full"
                 >
                   <MessageCircle size={20} color="#2563EB" />

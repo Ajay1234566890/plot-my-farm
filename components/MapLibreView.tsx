@@ -24,7 +24,7 @@ MapLibreGL.setAccessToken(null);
 MapLibreGL.setConnected(true);
 
 const MAPTILER_API_KEY = 'S1newPOTVEpCrOQg9RYx';
-const STYLE_URL = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_API_KEY}`;
+const STYLE_URL = `https://api.maptiler.com/maps/streets/style.json?key=${MAPTILER_API_KEY}`;
 
 // Default location (India center)
 const DEFAULT_COORDS: [number, number] = [78.9629, 20.5937];
@@ -44,7 +44,7 @@ export default function MapLibreView(props: MapLibreViewProps) {
     latitude: number;
     longitude: number;
   } | undefined>();
-  const mapRef = useRef<MapLibreGL.MapView>(null);
+  const mapRef = useRef<any>(null);
 
   // Get real-time nearby users
   const { nearbyUsers, loading } = useRealtimeLocations(currentLocation);

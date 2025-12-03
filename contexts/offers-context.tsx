@@ -1,4 +1,6 @@
-import React, { createContext, ReactNode, useContext, useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { supabase } from '@/utils/supabase';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 export interface Offer {
   id: number;
@@ -14,75 +16,101 @@ export interface Offer {
 
 interface OffersContextType {
   offers: Offer[];
-  addOffer: (offer: Omit<Offer, 'id' | 'daysAgo' | 'buyers' | 'status'>) => void;
-  updateOffer: (id: number, offer: Partial<Offer>) => void;
-  deleteOffer: (id: number) => void;
+  loading: boolean;
+  refreshOffers: () => Promise<void>;
+  addOffer: (offer: Omit<Offer, 'id' | 'daysAgo' | 'buyers' | 'status'>) => Promise<void>;
+  updateOffer: (id: number, offer: Partial<Offer>) => Promise<void>;
+  deleteOffer: (id: number) => Promise<void>;
 }
 
 const OffersContext = createContext<OffersContextType | undefined>(undefined);
 
 export function OffersProvider({ children }: { children: ReactNode }) {
-  const [offers, setOffers] = useState<Offer[]>([
-    {
-      id: 1,
-      title: "Fresh Organic Tomatoes",
-      cropType: "Tomatoes",
-      price: "₹45/kg",
-      quantity: "50 kg",
-      image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3",
-      status: "active",
-      daysAgo: 2,
-      buyers: 5
-    },
-    {
-      id: 2,
-      title: "Farm Fresh Carrots",
-      cropType: "Carrots",
-      price: "₹30/kg",
-      quantity: "30 kg",
-      image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3",
-      status: "active",
-      daysAgo: 5,
-      buyers: 3
-    },
-    {
-      id: 3,
-      title: "Premium Wheat",
-      cropType: "Wheat",
-      price: "₹25/kg",
-      quantity: "100 kg",
-      image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&auto=format&fit=crop&q=80&ixlib=rb-4.0.3",
-      status: "sold",
-      daysAgo: 7,
-      buyers: 8
-    },
-  ]);
+  const { user } = useAuth();
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const addOffer = (newOffer: Omit<Offer, 'id' | 'daysAgo' | 'buyers' | 'status'>) => {
-    const offer: Offer = {
-      ...newOffer,
-      id: Math.max(...offers.map(o => o.id), 0) + 1,
-      status: 'active',
-      daysAgo: 0,
-      buyers: 0,
-    };
-    setOffers(prevOffers => [offer, ...prevOffers]);
+  const fetchOffers = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('farmer_offers')
+        .select('*')
+        .eq('farmer_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching offers:', error);
+        return;
+      }
+
+      if (data) {
+        const mappedOffers: Offer[] = data.map((item: any) => {
+          // Calculate days ago
+          const createdDate = new Date(item.created_at);
+          const today = new Date();
+          const diffTime = Math.abs(today.getTime() - createdDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          return {
+            id: item.id,
+            title: item.title,
+            cropType: item.crop_type,
+            price: `₹${item.price}/${item.unit || 'kg'}`,
+            quantity: `${item.quantity} ${item.unit || 'kg'}`,
+            image: item.image_url || 'https://via.placeholder.com/150',
+            status: item.status,
+            daysAgo: diffDays,
+            buyers: 0, // Mock for now as we don't have buyers count in offers table yet
+          };
+        });
+        setOffers(mappedOffers);
+      }
+    } catch (error) {
+      console.error('Error in fetchOffers:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateOffer = (id: number, updatedOffer: Partial<Offer>) => {
-    setOffers(prevOffers =>
-      prevOffers.map(offer =>
-        offer.id === id ? { ...offer, ...updatedOffer } : offer
-      )
-    );
+  useEffect(() => {
+    fetchOffers();
+  }, [user]);
+
+  const refreshOffers = async () => {
+    await fetchOffers();
   };
 
-  const deleteOffer = (id: number) => {
-    setOffers(prevOffers => prevOffers.filter(offer => offer.id !== id));
+  const addOffer = async (newOffer: Omit<Offer, 'id' | 'daysAgo' | 'buyers' | 'status'>) => {
+    // This is now handled directly in add-offer.tsx, but we keep this for compatibility or future use
+    // If used, it should insert into Supabase
+    await fetchOffers();
+  };
+
+  const updateOffer = async (id: number, updatedOffer: Partial<Offer>) => {
+    // This is now handled directly in add-offer.tsx
+    await fetchOffers();
+  };
+
+  const deleteOffer = async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from('farmer_offers')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setOffers(prevOffers => prevOffers.filter(offer => offer.id !== id));
+    } catch (error) {
+      console.error('Error deleting offer:', error);
+    }
   };
 
   return (
-    <OffersContext.Provider value={{ offers, addOffer, updateOffer, deleteOffer }}>
+    <OffersContext.Provider value={{ offers, loading, refreshOffers, addOffer, updateOffer, deleteOffer }}>
       {children}
     </OffersContext.Provider>
   );
