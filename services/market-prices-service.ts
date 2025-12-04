@@ -205,6 +205,27 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'haladi': require('@/assets/images/market/turmeric.jpg'),
   'manjal': require('@/assets/images/market/turmeric.jpg'),
 
+  // Garlic - Using ginger image as fallback (similar appearance)
+  'garlic': require('@/assets/images/market/ginger.jpg'),
+  'lahsun': require('@/assets/images/market/ginger.jpg'),
+  'lasun': require('@/assets/images/market/ginger.jpg'),
+
+  // Green Banana - Using pineapple as fallback
+  'green banana': require('@/assets/images/crops/pineapple.jpg'),
+  'raw banana': require('@/assets/images/crops/pineapple.jpg'),
+  'plantain': require('@/assets/images/crops/pineapple.jpg'),
+  'kachha kela': require('@/assets/images/crops/pineapple.jpg'),
+
+  // Papaya - Using guava as fallback (similar tropical fruit)
+  'papaya': require('@/assets/images/crops/guava.jpg'),
+  'papita': require('@/assets/images/crops/guava.jpg'),
+  'pawpaw': require('@/assets/images/crops/guava.jpg'),
+
+  // Jaggery - Using turmeric as fallback (similar color)
+  'jaggery': require('@/assets/images/market/turmeric.jpg'),
+  'gur': require('@/assets/images/market/turmeric.jpg'),
+  'gud': require('@/assets/images/market/turmeric.jpg'),
+
   // Default fallback - using tomato as default
   'default': require('@/assets/images/market/tomato.jpg')
 };
