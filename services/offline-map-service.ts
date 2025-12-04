@@ -30,7 +30,7 @@ export interface OfflinePackStatus {
 }
 
 const OFFLINE_REGIONS_KEY = '@offline_map_regions';
-const DEFAULT_STYLE_URL = 'https://api.maptiler.com/maps/streets/style.json?key=S1newPOTVEpCrOQg9RYx';
+const DEFAULT_STYLE_URL = 'https://api.maptiler.com/maps/streets/style.json?key=8MaoCcKOtQUbnHcNOBQn';
 
 /**
  * Create an offline region for download

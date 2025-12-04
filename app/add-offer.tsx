@@ -41,9 +41,11 @@ export default function AddOffer() {
     t('crops.tomatoes'),
     t('crops.onions'),
     t('crops.cotton'),
+    'Other'
   ];
 
   const [cropType, setCropType] = useState("");
+  const [customCropType, setCustomCropType] = useState("");
   const [quantity, setQuantity] = useState("");
   const [pricePerUnit, setPricePerUnit] = useState("");
   const [minOrderQuantity, setMinOrderQuantity] = useState("");
@@ -57,7 +59,12 @@ export default function AddOffer() {
     if (isEditMode && offerId && offers) {
       const existingOffer = offers.find(o => o.id === offerId);
       if (existingOffer) {
-        setCropType(existingOffer.cropType || '');
+        if (cropTypes.includes(existingOffer.cropType || '')) {
+          setCropType(existingOffer.cropType || '');
+        } else {
+          setCropType('Other');
+          setCustomCropType(existingOffer.cropType || '');
+        }
         setQuantity(existingOffer.quantity?.replace(' kg', '') || '');
         setPricePerUnit(existingOffer.price?.replace('₹', '').replace('/kg', '') || '');
         if (existingOffer.image) {
@@ -92,7 +99,9 @@ export default function AddOffer() {
   };
 
   const handleSubmit = async () => {
-    if (!cropType || !quantity || !pricePerUnit) {
+    const finalCropType = cropType === 'Other' ? customCropType : cropType;
+
+    if (!finalCropType || !quantity || !pricePerUnit) {
       Alert.alert(t('common.error'), t('addOffer.fillRequiredFields'));
       return;
     }
@@ -105,13 +114,13 @@ export default function AddOffer() {
     setIsSaving(true);
 
     try {
-      const cropTypeEnglish = cropType.split(' ').pop() || cropType;
+      const cropTypeEnglish = finalCropType.split(' ').pop() || finalCropType;
       const image = cropImage || cropImageMap[cropTypeEnglish] || cropImageMap['Tomatoes'];
 
       const offerDbData = {
         farmer_id: user.id,
-        title: `${t('crops.fresh')} ${cropType}`,
-        crop_type: cropType,
+        title: `${t('crops.fresh')} ${finalCropType}`,
+        crop_type: finalCropType,
         price: parseFloat(pricePerUnit),
         quantity: parseFloat(quantity),
         unit: 'kg',
@@ -199,6 +208,18 @@ export default function AddOffer() {
                   <Text className="text-gray-900">{type}</Text>
                 </TouchableOpacity>
               ))}
+            </View>
+          )}
+          {cropType === 'Other' && (
+            <View className="mt-4">
+              <Text className="text-gray-600 mb-2">Enter Crop Type</Text>
+              <TextInput
+                value={customCropType}
+                onChangeText={setCustomCropType}
+                placeholder="e.g. Red Chilli"
+                className="border border-gray-300 rounded-lg p-4 text-gray-900 bg-white"
+                placeholderTextColor="#9ca3af"
+              />
             </View>
           )}
         </View>

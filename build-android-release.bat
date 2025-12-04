@@ -1,7 +1,7 @@
 @echo off
 echo ========================================
 echo   Building Android Release APK
-echo   MapTiler API Key: S1newPOTVEpCrOQg9RYx
+echo   MapTiler API Key: 8MaoCcKOtQUbnHcNOBQn
 echo ========================================
 echo.
 

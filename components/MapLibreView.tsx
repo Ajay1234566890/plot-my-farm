@@ -23,8 +23,9 @@ import {
 MapLibreGL.setAccessToken(null);
 MapLibreGL.setConnected(true);
 
-const MAPTILER_API_KEY = 'S1newPOTVEpCrOQg9RYx';
-const STYLE_URL = `https://api.maptiler.com/maps/streets/style.json?key=${MAPTILER_API_KEY}`;
+const MAPTILER_API_KEY = '8MaoCcKOtQUbnHcNOBQn';
+// Updated to streets-v2 for better details (roads, labels, buildings)
+const STYLE_URL = "https://api.maptiler.com/maps/streets/style.json?key=8MaoCcKOtQUbnHcNOBQn";
 
 // Default location (India center)
 const DEFAULT_COORDS: [number, number] = [78.9629, 20.5937];
@@ -96,6 +97,11 @@ export default function MapLibreView(props: MapLibreViewProps) {
     };
 
     fetchLocation();
+
+    // Clear cached tiles to ensure fresh map style
+    MapLibreGL.offlineManager.resetDatabase()
+      .then(() => console.log('🧹 Map cache cleared'))
+      .catch(err => console.log('⚠️ Failed to clear map cache:', err));
   }, [user?.id]);
 
   // Web platform fallback

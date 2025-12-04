@@ -20,6 +20,7 @@ import React, { useCallback, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Dimensions,
   Image,
@@ -122,6 +123,34 @@ export default function MyFarms() {
     if (diffDays < 7) return t('common.daysAgo', { count: diffDays });
     if (diffDays < 30) return t('common.weeksAgo', { count: Math.floor(diffDays / 7) });
     return date.toLocaleDateString();
+  };
+
+  const handleDeleteCrop = async (cropId: string) => {
+    Alert.alert(
+      t('common.delete'),
+      t('farms.deleteConfirmation') || "Are you sure you want to delete this crop?",
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('farmer_crops')
+                .delete()
+                .eq('id', cropId);
+
+              if (error) throw error;
+              loadCrops();
+            } catch (error) {
+              console.error('Error deleting crop:', error);
+              Alert.alert(t('common.error'), t('errors.deleteFailed'));
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -317,7 +346,7 @@ export default function MyFarms() {
                         </Text>
                       </View>
                     </View>
-                    <TouchableOpacity className="p-2">
+                    <TouchableOpacity className="p-2" onPress={() => handleDeleteCrop(crop.id)}>
                       <MoreHorizontal size={20} color="#6B7280" />
                     </TouchableOpacity>
                   </View>

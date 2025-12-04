@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { MarketPrice, marketPricesService } from '@/services/market-prices-service';
 import { RADIUS_PRESETS } from "@/utils/haversine";
+import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 import {
   Bell,
@@ -59,6 +60,7 @@ function FarmerHomeContent() {
   const [loadingPrices, setLoadingPrices] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
+  const [myCrops, setMyCrops] = useState<any[]>([]);
 
   // Scroll animation
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -128,6 +130,28 @@ function FarmerHomeContent() {
       setRecommendedBuyers(buyers.slice(0, 3)); // Show top 3
     } catch (error) {
       console.error('Error loading recommended buyers:', error);
+    }
+  };
+
+  // Fetch my crops
+  useEffect(() => {
+    if (user?.id) {
+      fetchMyCrops();
+    }
+  }, [user?.id]);
+
+  const fetchMyCrops = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('farmer_crops')
+        .select('*')
+        .eq('farmer_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (data) setMyCrops(data);
+    } catch (error) {
+      console.error('Error fetching crops:', error);
     }
   };
 
@@ -563,25 +587,49 @@ function FarmerHomeContent() {
             className="relative"
           >
             <View className="bg-white rounded-3xl overflow-hidden shadow-lg">
-              <Image
-                source={{
-                  uri: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8ZmFybSUyMGZpZWxkfGVufDB8fDB8fHww"
-                }}
-                className="w-full h-48"
-                resizeMode="cover"
-              />
-              {/* Overlay content */}
-              <View className="absolute inset-0 bg-black/20 rounded-3xl" />
-              <View className="absolute bottom-4 left-4 right-4">
-                <View className="bg-white/90 backdrop-blur-sm rounded-2xl p-4">
-                  <Text className="text-gray-800 text-base font-semibold">
-                    {t('farmerHome.organicVegetableFarm')}
-                  </Text>
-                  <Text className="text-gray-600 text-sm">
-                    {t('farmerHome.farmDetails')}
-                  </Text>
-                </View>
-              </View>
+              {myCrops.length > 0 ? (
+                <>
+                  <Image
+                    source={{
+                      uri: myCrops[0].image_url || "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&auto=format&fit=crop&q=60"
+                    }}
+                    className="w-full h-48"
+                    resizeMode="cover"
+                  />
+                  <View className="absolute inset-0 bg-black/20 rounded-3xl" />
+                  <View className="absolute bottom-4 left-4 right-4">
+                    <View className="bg-white/90 backdrop-blur-sm rounded-2xl p-4">
+                      <Text className="text-gray-800 text-base font-semibold">
+                        {myCrops[0].name}
+                      </Text>
+                      <Text className="text-gray-600 text-sm">
+                        {myCrops[0].crop_type} • {myCrops[0].quantity} {myCrops[0].unit}
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Image
+                    source={{
+                      uri: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8ZmFybSUyMGZpZWxkfGVufDB8fDB8fHww"
+                    }}
+                    className="w-full h-48"
+                    resizeMode="cover"
+                  />
+                  <View className="absolute inset-0 bg-black/20 rounded-3xl" />
+                  <View className="absolute bottom-4 left-4 right-4">
+                    <View className="bg-white/90 backdrop-blur-sm rounded-2xl p-4">
+                      <Text className="text-gray-800 text-base font-semibold">
+                        {t('farmerHome.organicVegetableFarm')}
+                      </Text>
+                      <Text className="text-gray-600 text-sm">
+                        {t('farmerHome.farmDetails')}
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
           </TouchableOpacity>
         </View>
