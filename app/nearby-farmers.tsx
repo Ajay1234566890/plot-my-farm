@@ -112,12 +112,29 @@ export default function NearbyFarmers() {
         </Text>
 
         {/* Search Bar */}
-        <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
-          <Search size={20} color="#4B5563" />
+        <View
+          style={{
+            backgroundColor: 'transparent',
+            borderRadius: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+          }}
+        >
+          <Search size={18} color="#FFFFFF" />
           <TextInput
             placeholder="Search farmers, locations..."
-            className="flex-1 ml-3 text-base text-gray-800"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor="rgba(255, 255, 255, 0.9)"
+            style={{
+              flex: 1,
+              marginLeft: 8,
+              fontSize: 14,
+              color: 'white',
+              backgroundColor: 'transparent'
+            }}
           />
         </View>
       </View>

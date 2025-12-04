@@ -304,15 +304,19 @@ export default function BuyerProfileSetup() {
             <View
               key={s}
               className={`flex-1 h-1 rounded-full mr-2 ${step === s || (step === 'preferences' && s !== 'personal')
-                  ? 'bg-white'
-                  : 'bg-white/30'
+                ? 'bg-white'
+                : 'bg-white/30'
                 }`}
             />
           ))}
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 px-6 pt-6"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
 
         {step === 'personal' ? (
           <>
@@ -466,20 +470,23 @@ export default function BuyerProfileSetup() {
             </View>
 
             {/* Next Button */}
-            <TouchableOpacity
-              onPress={handleNextStep}
-              disabled={isLoading}
-              className="p-4 rounded-xl flex-row items-center justify-center"
-              style={{ backgroundColor: !isLoading ? '#B27E4C' : '#D1D5DB' }}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#ffffff" />
-              ) : (
-                <Text className="text-white text-center text-lg font-semibold">
-                  {t('common.next')}
-                </Text>
-              )}
-            </TouchableOpacity>
+            {/* Next Button */}
+            <View className="mb-6">
+              <TouchableOpacity
+                onPress={handleNextStep}
+                disabled={isLoading}
+                className="p-4 rounded-xl flex-row items-center justify-center"
+                style={{ backgroundColor: !isLoading ? '#B27E4C' : '#D1D5DB' }}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text className="text-white text-center text-lg font-semibold">
+                    {t('common.next')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </>
         ) : step === 'business' ? (
           <>

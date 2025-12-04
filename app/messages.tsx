@@ -8,8 +8,8 @@ import {
 } from '@/services/chat-service';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
-import { Search } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { ChevronLeft, Search } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -130,19 +130,43 @@ export default function MessagesScreen() {
         }}
       >
         <View className="flex-row items-center mb-4">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-4"
+          >
+            <ChevronLeft size={24} color="white" />
+          </TouchableOpacity>
           <Text className="text-xl font-bold text-white">{t('messages.messages')}</Text>
         </View>
         <Text className="text-white/80 mb-4">{t('messages.chatWithBuyersPartners')}</Text>
 
         {/* Search Bar */}
-        <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
-          <Search size={20} color="#9ca3af" />
+        {/* Search Bar */}
+        <View
+          style={{
+            backgroundColor: 'transparent',
+            borderRadius: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+          }}
+        >
+          <Search size={18} color="#FFFFFF" />
           <TextInput
-            className="flex-1 ml-2 text-gray-900"
             placeholder={t('messages.searchMessages')}
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor="rgba(255, 255, 255, 0.9)"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            style={{
+              flex: 1,
+              marginLeft: 8,
+              fontSize: 14,
+              color: 'white',
+              backgroundColor: 'transparent'
+            }}
           />
         </View>
       </View>
