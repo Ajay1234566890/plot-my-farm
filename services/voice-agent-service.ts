@@ -50,8 +50,8 @@ class VoiceAgentService {
 
   private initialize() {
     try {
-      const apiKey = Constants.expoConfig?.extra?.EXPO_PUBLIC_GEMINI_API_KEY || 
-                     process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+      const apiKey = Constants.expoConfig?.extra?.EXPO_PUBLIC_GEMINI_API_KEY ||
+        process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 
       if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
         console.warn('⚠️ Gemini API key not configured. Voice agent will use mock responses.');
@@ -238,7 +238,7 @@ class VoiceAgentService {
 
       // Build system prompt based on context
       const systemPrompt = this.buildSystemPrompt();
-      
+
       // Build conversation history for context
       const conversationText = this.conversationContext.conversationHistory
         .map(msg => `${msg.role}: ${msg.content}`)

@@ -37,10 +37,10 @@ class SpeechToTextService {
   private initializeGemini() {
     try {
       const apiKey = Constants.expoConfig?.extra?.EXPO_PUBLIC_GEMINI_API_KEY ||
-                     process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+        process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 
       if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE' || apiKey.trim() === '') {
-        console.warn('⚠️ Gemini API key not configured for STT. Will use mock transcription.');
+        console.warn('⚠ Gemini API key not configured for STT. Will use mock transcription.');
         return;
       }
 
@@ -73,7 +73,7 @@ class SpeechToTextService {
         console.log('✅ Audio permission granted');
         return true;
       } else {
-        console.warn('⚠️ Audio permission denied:', status);
+        console.warn('⚠ Audio permission denied:', status);
         return false;
       }
     } catch (error) {
@@ -104,34 +104,34 @@ class SpeechToTextService {
         playThroughEarpieceAndroid: false,
       });
 
-      console.log('🎙️ Creating recording instance...');
+      console.log('🎙 Creating recording instance...');
       // Create and start recording with explicit configuration for better Android compatibility
       const recordingOptions = Platform.OS === 'android'
         ? {
-            android: {
-              extension: '.m4a',
-              outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-              audioEncoder: Audio.AndroidAudioEncoder.AAC,
-              sampleRate: 44100,
-              numberOfChannels: 2,
-              bitRate: 128000,
-            },
-            ios: {
-              extension: '.m4a',
-              outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-              audioQuality: Audio.IOSAudioQuality.HIGH,
-              sampleRate: 44100,
-              numberOfChannels: 2,
-              bitRate: 128000,
-              linearPCMBitDepth: 16,
-              linearPCMIsBigEndian: false,
-              linearPCMIsFloat: false,
-            },
-            web: {
-              mimeType: 'audio/webm',
-              bitsPerSecond: 128000,
-            },
-          }
+          android: {
+            extension: '.m4a',
+            outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+            audioEncoder: Audio.AndroidAudioEncoder.AAC,
+            sampleRate: 44100,
+            numberOfChannels: 2,
+            bitRate: 128000,
+          },
+          ios: {
+            extension: '.m4a',
+            outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+            audioQuality: Audio.IOSAudioQuality.HIGH,
+            sampleRate: 44100,
+            numberOfChannels: 2,
+            bitRate: 128000,
+            linearPCMBitDepth: 16,
+            linearPCMIsBigEndian: false,
+            linearPCMIsFloat: false,
+          },
+          web: {
+            mimeType: 'audio/webm',
+            bitsPerSecond: 128000,
+          },
+        }
         : Audio.RecordingOptionsPresets.HIGH_QUALITY;
 
       const { recording } = await Audio.Recording.createAsync(recordingOptions);
@@ -151,7 +151,7 @@ class SpeechToTextService {
       if (status.isRecording) {
         console.log('✅ Voice recording started successfully and is actively capturing audio');
       } else {
-        console.warn('⚠️ Recording created but not actively recording. Status:', status);
+        console.warn('⚠ Recording created but not actively recording. Status:', status);
       }
     } catch (error: any) {
       console.error('❌ Error starting recording:', error);
@@ -168,7 +168,7 @@ class SpeechToTextService {
   async stopRecording(): Promise<string | null> {
     try {
       if (!this.recording) {
-        console.warn('⚠️ No recording to stop');
+        console.warn('⚠ No recording to stop');
         return null;
       }
 
@@ -233,7 +233,7 @@ class SpeechToTextService {
         });
       } catch (readError) {
         console.error('❌ Error reading audio file:', readError);
-        throw new Error('Failed to read audio file');
+        throw new Error('Failed to read audio file. Please try recording again.');
       }
 
       console.log('📊 Audio file size:', audioBase64.length, 'characters');
@@ -241,12 +241,12 @@ class SpeechToTextService {
       // Check if the file has content
       if (!audioBase64 || audioBase64.length === 0) {
         console.error('❌ Audio file is empty');
-        throw new Error('Audio recording is empty');
+        throw new Error('Audio recording is empty. Please speak louder and try again.');
       }
 
       // If Gemini is not initialized, use mock transcription but log this
       if (!this.genAI) {
-        console.warn('⚠️ Gemini not initialized for STT. Using mock response for development.');
+        console.warn('⚠ Gemini not initialized for STT. Using mock response for development.');
         console.warn('📝 Note: This will not process your actual voice input.');
         return await this.mockTranscription(language);
       }
@@ -255,32 +255,60 @@ class SpeechToTextService {
       const languageNames: { [key: string]: string } = {
         en: 'English',
         hi: 'Hindi',
-        te: 'Telugu', 
+        te: 'Telugu',
         ta: 'Tamil',
         kn: 'Kannada',
       };
 
       const languageName = languageNames[language] || 'English';
-      console.log(`🌐 Target language: ${languageName}`);
+      console.log(🌐 Target language: ${languageName});
 
-      // Use Gemini 2.5 Pro for transcription
+      // Use Gemini 2.5 Pro for transcription with enhanced prompts
       const modelIds = [
-        'gemini-2.5-pro',
         'gemini-2.0-flash-exp',
         'gemini-1.5-flash',
         'gemini-1.5-pro',
       ];
 
+      let lastError: any = null;
+
       for (const modelId of modelIds) {
         try {
-          console.log(`🔄 Attempting transcription with model: ${modelId}`);
-          const model = this.genAI.getGenerativeModel({ model: modelId });
+          console.log(🔄 Attempting transcription with model: ${modelId});
+          const model = this.genAI.getGenerativeModel({
+            model: modelId,
+            generationConfig: {
+              temperature: 0.1, // Lower temperature for more accurate transcription
+              topP: 0.8,
+              topK: 40,
+            }
+          });
 
-          const prompt = `Please transcribe this audio recording into ${languageName}. I want to understand exactly what the user is saying. Return only the transcribed text, nothing else.`;
+          // Enhanced prompt for better transcription accuracy
+          const prompt = `You are an expert speech-to-text transcription system. 
+
+TASK: Transcribe the audio recording into ${languageName} text with maximum accuracy.
+
+INSTRUCTIONS:
+1. Listen carefully to the entire audio
+2. Transcribe EXACTLY what is spoken, word for word
+3. Handle background noise and unclear speech intelligently
+4. If the audio is unclear or empty, respond with: "Could not understand audio"
+5. Return ONLY the transcribed text - no explanations, no formatting, no extra text
+6. Preserve the natural language and grammar of the speaker
+7. For search queries or commands, capture the intent clearly
+
+IMPORTANT: 
+- Do not add punctuation unless clearly spoken
+- Do not correct grammar unless it changes meaning
+- Focus on accuracy over formality
+- If multiple interpretations exist, choose the most likely one
+
+Transcribe the audio now:`;
 
           // Determine audio format based on platform
           const mimeType = Platform.OS === 'ios' ? 'audio/m4a' : 'audio/mp4';
-          console.log(`📱 Platform: ${Platform.OS}, MIME type: ${mimeType}`);
+          console.log(📱 Platform: ${Platform.OS}, MIME type: ${mimeType});
 
           const result = await model.generateContent([
             {
@@ -293,43 +321,57 @@ class SpeechToTextService {
           ]);
 
           const response = result.response;
-          const transcribedText = response.text().trim();
+          let transcribedText = response.text().trim();
 
           console.log('📝 Raw Gemini response:', transcribedText);
+
+          // Clean up the response
+          transcribedText = transcribedText
+            .replace(/^["']|["']$/g, '') // Remove surrounding quotes
+            .replace(/\n+/g, ' ') // Replace newlines with spaces
+            .trim();
+
+          // Check for "could not understand" response
+          if (transcribedText.toLowerCase().includes('could not understand')) {
+            console.warn('⚠ Audio was unclear, trying next model');
+            lastError = new Error('Audio unclear');
+            continue;
+          }
 
           if (transcribedText && transcribedText.length > 0) {
             console.log('✅ Real transcription successful:', transcribedText);
             console.log('🎯 This is the actual user voice input being processed');
             return transcribedText;
           } else {
-            console.warn('⚠️ Empty transcription from model, trying next model');
+            console.warn('⚠ Empty transcription from model, trying next model');
+            lastError = new Error('Empty transcription');
           }
         } catch (modelError: any) {
-          console.warn(`⚠️ Model ${modelId} failed:`, modelError.message);
+          console.warn(⚠ Model ${modelId} failed:, modelError.message);
+          lastError = modelError;
+
           if (modelError.message.includes('quota')) {
             console.warn('📊 Gemini API quota exceeded');
-            break; // Don't try other models if quota exceeded
+            throw new Error('Voice recognition service temporarily unavailable. Please try again later.');
           }
           // Continue to next model for other errors
         }
       }
 
-      // If all models fail, log this as a development issue
+      // If all models fail, provide helpful error message
       console.error('❌ All Gemini transcription models failed');
-      console.error('🔧 Please check:');
-      console.error('   1. Gemini API key configuration');
-      console.error('   2. API quota and billing');
-      console.error('   3. Audio recording quality');
-      console.error('📝 Using mock response for now (this is NOT your actual voice input)');
-      
-      return await this.mockTranscription(language);
+      console.error('Last error:', lastError);
+
+      throw new Error('Could not understand your voice. Please speak clearly and try again.');
     } catch (error: any) {
       console.error('❌ Critical error in audio transcription:', error);
-      console.error('🔧 This means your voice input was not processed');
-      console.error('📝 Returning mock response (not your actual voice)');
-      
-      // On critical error, return a helpful message
-      return 'Sorry, I could not process your voice input. Please try speaking more clearly or check your microphone.';
+
+      // Return user-friendly error message
+      if (error.message.includes('quota') || error.message.includes('temporarily unavailable')) {
+        throw error; // Re-throw quota errors
+      }
+
+      throw new Error('Voice recognition failed. Please check your microphone and try again.');
     }
   }
 
