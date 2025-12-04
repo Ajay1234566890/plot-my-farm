@@ -261,7 +261,7 @@ class SpeechToTextService {
       };
 
       const languageName = languageNames[language] || 'English';
-      console.log(🌐 Target language: ${languageName});
+      console.log(`🌐 Target language: ${languageName}`);
 
       // Use Gemini 2.5 Pro for transcription with enhanced prompts
       const modelIds = [
@@ -274,7 +274,7 @@ class SpeechToTextService {
 
       for (const modelId of modelIds) {
         try {
-          console.log(🔄 Attempting transcription with model: ${modelId});
+          console.log(`🔄 Attempting transcription with model: ${modelId}`);
           const model = this.genAI.getGenerativeModel({
             model: modelId,
             generationConfig: {
@@ -308,7 +308,7 @@ Transcribe the audio now:`;
 
           // Determine audio format based on platform
           const mimeType = Platform.OS === 'ios' ? 'audio/m4a' : 'audio/mp4';
-          console.log(📱 Platform: ${Platform.OS}, MIME type: ${mimeType});
+          console.log(`📱 Platform: ${Platform.OS}, MIME type: ${mimeType}`);
 
           const result = await model.generateContent([
             {
@@ -347,7 +347,7 @@ Transcribe the audio now:`;
             lastError = new Error('Empty transcription');
           }
         } catch (modelError: any) {
-          console.warn(⚠ Model ${modelId} failed:, modelError.message);
+          console.warn(`⚠ Model ${modelId} failed:`, modelError.message);
           lastError = modelError;
 
           if (modelError.message.includes('quota')) {
