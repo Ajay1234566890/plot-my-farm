@@ -12,3 +12,9 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+
+-keep class com.maplibre.maplibregl.** { *; }
+-keep interface com.maplibre.maplibregl.** { *; }
+-dontwarn com.maplibre.maplibregl.**
+-keep class com.mapbox.mapboxsdk.** { *; }
+-dontwarn com.mapbox.mapboxsdk.**

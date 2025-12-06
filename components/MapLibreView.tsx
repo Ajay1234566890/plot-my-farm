@@ -1,12 +1,5 @@
-/**
- * 🗺️ Real-Time MapLibre View Component
- * MapTiler + Supabase + Real-time location updates
- * Shows nearby farmers/buyers with custom markers
- */
-
 import { useAuth } from '@/contexts/auth-context';
 import { useMapMarkers, useRealtimeLocations } from '@/hooks/useRealtimeLocations';
-import { getUserLocation } from '@/services/realtime-map-service';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
 import React, { useEffect, useRef, useState } from 'react';
@@ -16,19 +9,20 @@ import {
   Platform,
   StyleSheet,
   Text,
-  View,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
-// MapLibre configuration
+// ✅ 1. MAPTILER CONFIG & API KEY
+const MAPTILER_API_KEY = "8MaoCcKOtQUbnHCNOBQn";
+const STYLE_URL = `https://api.maptiler.com/maps/streets-v4/style.json?key=${MAPTILER_API_KEY}`;
+
+// Fix for Android Release & Debug Logging
 MapLibreGL.setAccessToken(null);
 MapLibreGL.setConnected(true);
+MapLibreGL.setLogLevel(MapLibreGL.LogLevel.verbose);
 
-const MAPTILER_API_KEY = '8MaoCcKOtQUbnHcNOBQn';
-// Updated to streets-v2 for better details (roads, labels, buildings)
-const STYLE_URL = "https://api.maptiler.com/maps/streets/style.json?key=8MaoCcKOtQUbnHcNOBQn";
-
-// Default location (India center)
-const DEFAULT_COORDS: [number, number] = [78.9629, 20.5937];
+const DEFAULT_COORDS: [number, number] = [78.9629, 20.5937]; // India Center fallback
 
 interface MapLibreViewProps {
   showFarmers?: boolean;
@@ -39,86 +33,72 @@ interface MapLibreViewProps {
 
 export default function MapLibreView(props: MapLibreViewProps) {
   const { user } = useAuth();
-  const [coords, setCoords] = useState<[number, number]>(DEFAULT_COORDS);
+  const mapRef = useRef<MapLibreGL.MapView>(null);
+  const cameraRef = useRef<MapLibreGL.Camera>(null);
+
   const [isReady, setIsReady] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | undefined>();
-  const mapRef = useRef<any>(null);
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [userCoords, setUserCoords] = useState<[number, number]>(DEFAULT_COORDS);
+  const [currentLocationObj, setCurrentLocationObj] = useState<{ latitude: number, longitude: number } | undefined>();
 
-  // Get real-time nearby users
-  const { nearbyUsers, loading } = useRealtimeLocations(currentLocation);
-  const markers = useMapMarkers(nearbyUsers, currentLocation);
+  // Real-time data hooks
+  const { nearbyUsers, loading } = useRealtimeLocations(currentLocationObj);
+  const markers = useMapMarkers(nearbyUsers, currentLocationObj);
 
-  // Get user location
   useEffect(() => {
-    const fetchLocation = async () => {
-      try {
-        // First try to get from Supabase
-        if (user?.id) {
-          const { data: savedLocation } = await getUserLocation(user.id);
-          if (savedLocation) {
-            setCoords([savedLocation.longitude, savedLocation.latitude]);
-            setCurrentLocation(savedLocation);
-            setIsReady(true);
-            return;
-          }
-        }
+    let mounted = true;
 
-        // Request location permission
+    const initMap = async () => {
+      try {
+        // 1. Permissions
         const { status } = await Location.requestForegroundPermissionsAsync();
+        if (!mounted) return;
+
         if (status !== 'granted') {
-          console.log('❌ Location permission denied - using default location');
+          console.log('Permission denied');
           setIsReady(true);
           return;
         }
+        setPermissionGranted(true);
 
-        // Get current location
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
+        // 2. Get Location
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (!mounted) return;
+
+        const newCoords: [number, number] = [loc.coords.longitude, loc.coords.latitude];
+        setUserCoords(newCoords);
+        setCurrentLocationObj({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude
         });
 
-        const newCoords: [number, number] = [
-          location.coords.longitude,
-          location.coords.latitude,
-        ];
-        setCoords(newCoords);
-        setCurrentLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
         setIsReady(true);
-        console.log('✅ Location obtained:', newCoords);
-      } catch (error) {
-        console.error('❌ Location error:', error);
-        setIsReady(true);
+      } catch (e) {
+        console.error("Map Init Error:", e);
+        if (mounted) setIsReady(true);
       }
     };
 
-    fetchLocation();
+    initMap();
 
-    // Clear cached tiles to ensure fresh map style
-    MapLibreGL.offlineManager.resetDatabase()
-      .then(() => console.log('🧹 Map cache cleared'))
-      .catch(err => console.log('⚠️ Failed to clear map cache:', err));
+    return () => { mounted = false; };
   }, [user?.id]);
 
-  // Web platform fallback
-  if (Platform.OS === 'web') {
+  // Loading State
+  if (!isReady) {
     return (
       <View style={styles.center}>
-        <Text style={styles.fallbackText}>Map view is available on mobile devices</Text>
+        <ActivityIndicator size="large" color="#7C8B3A" />
+        <Text style={{ marginTop: 10, color: '#555' }}>Loading Map...</Text>
       </View>
     );
   }
 
-  // Show loading
-  if (!isReady) {
+  // Web Fallback
+  if (Platform.OS === 'web') {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading map...</Text>
+        <Text>Map is available on mobile only.</Text>
       </View>
     );
   }
@@ -132,119 +112,114 @@ export default function MapLibreView(props: MapLibreViewProps) {
         logoEnabled={false}
         attributionEnabled={true}
         attributionPosition={{ bottom: 8, left: 8 }}
-        onDidFinishLoadingMap={() => console.log('✅ Map loaded')}
+        // ✅ EXACT transformRequest as required
+        transformRequest={(url) => {
+          const lower = url.toLowerCase();
+          if (
+            lower.includes("maptiler") ||
+            lower.includes("tiles") ||
+            lower.includes("tilehosting") ||
+            lower.includes("maps.") ||
+            lower.includes("/tiles/") ||
+            lower.includes("/fonts/")
+          ) {
+            const sep = url.includes("?") ? "&" : "?";
+            return { url: `${url}${sep}key=8MaoCcKOtQUbnHCNOBQn` };
+          }
+          return { url };
+        }}
+        onDidFinishLoadingMap={() => console.log('✅ Map Fully Loaded')}
       >
         <MapLibreGL.Camera
-          zoomLevel={13}
-          centerCoordinate={coords}
+          ref={cameraRef}
+          zoomLevel={15}
+          centerCoordinate={userCoords}
           animationMode="flyTo"
-          animationDuration={1000}
+          animationDuration={2000}
+          followUserLocation={true}
+          followUserMode="normal"
         />
 
+        {/* ✅ Show User Location */}
         <MapLibreGL.UserLocation
           visible={true}
-          androidRenderMode="compass"
+          androidRenderMode="gps"
           showsUserHeadingIndicator={true}
         />
 
-        {/* Render markers for nearby users */}
-        {markers.map((marker) => (
-          <MapLibreGL.MarkerView
-            key={marker.id}
-            id={marker.id}
-            coordinate={marker.coordinates}
-          >
-            <View style={styles.markerContainer}>
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={{ uri: marker.avatar }}
-                  style={styles.avatar}
-                  resizeMode="cover"
-                />
-              </View>
-              {marker.distance && (
-                <View style={styles.distanceContainer}>
-                  <Text style={styles.distanceText}>{marker.distance}</Text>
-                </View>
-              )}
-            </View>
-          </MapLibreGL.MarkerView>
-        ))}
-      </MapLibreGL.MapView>
+        {/* ✅ Render Markers */}
+        {markers.map((marker) => {
+          if (!marker.coordinates || marker.coordinates.length !== 2) return null;
 
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="small" color="#007AFF" />
-        </View>
-      )}
+          return (
+            <MapLibreGL.MarkerView
+              key={marker.id}
+              id={marker.id}
+              coordinate={marker.coordinates}
+            >
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => props.onUserPress && props.onUserPress({
+                  id: marker.id,
+                  role: marker.id.startsWith('farmer') ? 'farmer' : 'buyer'
+                })}
+              >
+                <View style={[styles.markerContainer, { borderColor: marker.id === user?.id ? '#2196F3' : '#fff' }]}>
+                  <View style={styles.avatarContainer}>
+                    <Image
+                      source={{ uri: marker.avatar || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" }}
+                      style={styles.avatar}
+                      resizeMode="cover"
+                    />
+                  </View>
+                  {marker.distance && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{marker.distance}</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            </MapLibreGL.MarkerView>
+          );
+        })}
+
+      </MapLibreGL.MapView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#e0e0e0' },
   map: { flex: 1 },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  fallbackText: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' },
   markerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: 48,
+    height: 48,
   },
   avatarContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: '#FFFFFF',
     backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
-    overflow: 'hidden',
   },
-  avatar: {
-    width: '100%',
-    height: '100%',
-  },
-  distanceContainer: {
-    marginTop: 4,
-    backgroundColor: '#000000CC',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  distanceText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  loadingOverlay: {
+  avatar: { width: '100%', height: '100%' },
+  badge: {
     position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: '#FFFFFFEE',
-    padding: 8,
+    bottom: -4,
+    backgroundColor: 'rgba(0,0,0,0.7)',
     borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
   },
+  badgeText: { color: '#fff', fontSize: 9, fontWeight: 'bold' }
 });
