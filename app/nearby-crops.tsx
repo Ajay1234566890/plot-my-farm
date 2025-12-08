@@ -1,7 +1,8 @@
 import BuyerBottomNav from '@/app/components/BuyerBottomNav';
+import { useAuth } from '@/contexts/auth-context';
 import { Crop, cropService } from '@/services/crop-service';
 import { useRouter } from 'expo-router';
-import { MessageCircle, Phone } from "lucide-react-native";
+import { MessageCircle, Phone, Search } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,6 +12,7 @@ import {
   Linking,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from "react-native";
@@ -18,22 +20,40 @@ import {
 export default function NearbyCrops() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [crops, setCrops] = useState<Crop[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch crops on mount
+  // Fetch crops on mount and when user changes
   useEffect(() => {
     fetchCrops();
-  }, []);
+  }, [user]);
 
   const fetchCrops = async () => {
     try {
       setLoading(true);
-      console.log('🌾 [NEARBY-CROPS] Fetching crops...');
+      console.log('🌾 [NEARBY-CROPS] Fetching location-based crops...');
 
-      // Fetch all crops (no status filter to show all available crops)
-      const fetchedCrops = await cropService.getAllCrops();
+      // Get user location from user metadata
+      const userLocation = user?.user_metadata?.latitude && user?.user_metadata?.longitude
+        ? {
+          latitude: user.user_metadata.latitude,
+          longitude: user.user_metadata.longitude
+        }
+        : null;
+
+      let fetchedCrops: Crop[];
+
+      if (userLocation) {
+        // Fetch nearby crops based on user location (50km radius)
+        console.log('📍 [NEARBY-CROPS] Using user location:', userLocation);
+        fetchedCrops = await cropService.getNearbyCrops(userLocation, 50000);
+      } else {
+        // Fallback to all crops if no location available
+        console.log('⚠️ [NEARBY-CROPS] No user location, fetching all crops');
+        fetchedCrops = await cropService.getAllCrops();
+      }
 
       console.log(`✅ [NEARBY-CROPS] Fetched ${fetchedCrops.length} crops`);
       setCrops(fetchedCrops);
@@ -84,11 +104,34 @@ export default function NearbyCrops() {
           borderBottomRightRadius: 40,
         }}
       >
-        <View className="flex-row items-center justify-between mb-4">
-          <TouchableOpacity
-            className="flex-1 ml-3 text-white text-base"
+        <View className="flex-row items-center mb-4">
+          <Text className="text-xl font-bold text-white">{t('buyer.nearbyCrops')}</Text>
+        </View>
+
+        {/* Search Bar - Matching buyer-home.tsx styling */}
+        <View
+          style={{
+            backgroundColor: 'transparent',
+            borderRadius: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+          }}
+        >
+          <Search size={18} color="#FFFFFF" />
+          <TextInput
             placeholder={t('buyer.searchForCrops')}
-            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+            placeholderTextColor="rgba(255, 255, 255, 0.9)"
+            style={{
+              flex: 1,
+              marginLeft: 8,
+              fontSize: 14,
+              color: 'white',
+              backgroundColor: 'transparent'
+            }}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -108,6 +151,9 @@ export default function NearbyCrops() {
         ) : filteredCrops.length === 0 ? (
           <View className="flex-1 items-center justify-center py-20">
             <Text className="text-gray-500 text-lg">{t('buyer.noCropsFound')}</Text>
+            <Text className="text-gray-400 text-sm mt-2 text-center px-6">
+              {userLocation ? t('buyer.noCropsNearby') : t('buyer.enableLocationForNearbyCrops')}
+            </Text>
           </View>
         ) : (
           <View className="space-y-4">
@@ -144,6 +190,11 @@ export default function NearbyCrops() {
                       {crop.location && (
                         <Text className="text-xs text-gray-400 mt-1">
                           📍 {crop.location}
+                        </Text>
+                      )}
+                      {(crop as any).distanceFormatted && (
+                        <Text className="text-xs font-medium mt-1" style={{ color: '#B27E4C' }}>
+                          📏 {(crop as any).distanceFormatted} away
                         </Text>
                       )}
                     </View>

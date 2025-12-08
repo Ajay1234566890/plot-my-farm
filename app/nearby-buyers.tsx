@@ -138,13 +138,30 @@ export default function NearbyBuyers() {
           <Text className="text-xl font-bold text-white">{t('buyer.nearbyBuyers')}</Text>
         </View>
 
-        {/* Search Bar */}
-        <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
-          <Search size={20} color="#4B5563" />
+        {/* Search Bar - Matching buyer-home.tsx styling */}
+        <View
+          style={{
+            backgroundColor: 'transparent',
+            borderRadius: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+          }}
+        >
+          <Search size={18} color="#FFFFFF" />
           <TextInput
             placeholder={t('buyer.searchBuyersLocations')}
-            className="flex-1 ml-3 text-base text-gray-800"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor="rgba(255, 255, 255, 0.9)"
+            style={{
+              flex: 1,
+              marginLeft: 8,
+              fontSize: 14,
+              color: 'white',
+              backgroundColor: 'transparent'
+            }}
             value={searchText}
             onChangeText={setSearchText}
           />
@@ -153,8 +170,8 @@ export default function NearbyBuyers() {
             onPress={toggleRecording}
           >
             <Mic
-              size={20}
-              color={isRecording ? '#EF4444' : '#4B5563'}
+              size={18}
+              color={isRecording ? '#EF4444' : '#FFFFFF'}
               fill={isRecording ? '#EF4444' : 'none'}
             />
           </TouchableOpacity>

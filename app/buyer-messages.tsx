@@ -9,7 +9,7 @@ import {
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
 import { Search } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -120,11 +120,11 @@ export default function BuyerMessagesScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
-      {/* Curved Header Section - Buyer Blue Theme */}
+      {/* Curved Header Section - Buyer Theme */}
       <View
         className="px-6 pt-12 pb-8"
         style={{
-          backgroundColor: '#2563EB',
+          backgroundColor: '#B27E4C',
           borderBottomLeftRadius: 40,
           borderBottomRightRadius: 40,
         }}
@@ -134,13 +134,30 @@ export default function BuyerMessagesScreen() {
         </View>
         <Text className="text-white/80 mb-4">{t('messages.chatWithFarmersPartners')}</Text>
 
-        {/* Search Bar */}
-        <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md">
-          <Search size={20} color="#9ca3af" />
+        {/* Search Bar - Matching buyer-home.tsx styling */}
+        <View
+          style={{
+            backgroundColor: 'transparent',
+            borderRadius: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+          }}
+        >
+          <Search size={18} color="#FFFFFF" />
           <TextInput
-            className="flex-1 ml-2 text-gray-900"
             placeholder={t('messages.searchMessages')}
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor="rgba(255, 255, 255, 0.9)"
+            style={{
+              flex: 1,
+              marginLeft: 8,
+              fontSize: 14,
+              color: 'white',
+              backgroundColor: 'transparent'
+            }}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />

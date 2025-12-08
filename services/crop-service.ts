@@ -156,6 +156,99 @@ class CropService {
   }
 
   /**
+   * Get nearby crops based on user location
+   * @param userLocation User's current location
+   * @param radiusInMeters Search radius in meters (default: 50km)
+   * @returns Array of nearby crops sorted by distance
+   */
+  async getNearbyCrops(
+    userLocation: { latitude: number; longitude: number },
+    radiusInMeters: number = 50000
+  ): Promise<Crop[]> {
+    try {
+      console.log('🌾 [CROP-SERVICE] Fetching nearby crops...');
+      console.log('📍 User location:', userLocation);
+      console.log('📏 Radius:', radiusInMeters / 1000, 'km');
+
+      // Fetch all crops with farmer data
+      const { data, error } = await supabase
+        .from('farmer_crops')
+        .select(`
+          *,
+          farmer:farmers(id, full_name, phone, location, profile_image_url, latitude, longitude)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ [CROP-SERVICE] Fetch failed:', error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        console.log('ℹ️ [CROP-SERVICE] No crops found in database');
+        return [];
+      }
+
+      // Filter crops by location if they have coordinates
+      const cropsWithLocation = data.filter(crop => {
+        // Check if crop has direct coordinates
+        if (crop.latitude && crop.longitude) {
+          return true;
+        }
+        // Check if farmer has coordinates
+        if (crop.farmer?.latitude && crop.farmer?.longitude) {
+          return true;
+        }
+        return false;
+      });
+
+      console.log(`📊 [CROP-SERVICE] Crops with location: ${cropsWithLocation.length}/${data.length}`);
+
+      // Calculate distance for each crop and filter by radius
+      const cropsWithDistance = cropsWithLocation
+        .map(crop => {
+          // Use crop coordinates if available, otherwise use farmer coordinates
+          const cropLat = crop.latitude || crop.farmer?.latitude;
+          const cropLng = crop.longitude || crop.farmer?.longitude;
+
+          if (!cropLat || !cropLng) return null;
+
+          // Calculate distance using Haversine formula
+          const R = 6371e3; // Earth's radius in meters
+          const φ1 = (userLocation.latitude * Math.PI) / 180;
+          const φ2 = (cropLat * Math.PI) / 180;
+          const Δφ = ((cropLat - userLocation.latitude) * Math.PI) / 180;
+          const Δλ = ((cropLng - userLocation.longitude) * Math.PI) / 180;
+
+          const a =
+            Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          const distance = R * c;
+
+          return {
+            ...crop,
+            distance,
+            distanceFormatted: distance < 1000
+              ? `${Math.round(distance)} m`
+              : `${(distance / 1000).toFixed(1)} km`
+          };
+        })
+        .filter((crop): crop is NonNullable<typeof crop> => crop !== null)
+        .filter(crop => crop.distance <= radiusInMeters);
+
+      // Sort by distance (nearest first)
+      const sortedCrops = cropsWithDistance.sort((a, b) => a.distance - b.distance);
+
+      console.log(`✅ [CROP-SERVICE] Found ${sortedCrops.length} nearby crops`);
+      return sortedCrops;
+    } catch (error) {
+      console.error('❌ [CROP-SERVICE] Exception:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get crops by farmer ID
    */
   async getCropsByFarmer(farmerId: string): Promise<Crop[]> {
