@@ -22,23 +22,36 @@ export default function Screen() {
         currentSegments: segments,
       });
 
-      // Check if user is already on a valid authenticated screen
-      const isOnAuthScreen = segments.length > 0 && (
-        segments[0] === 'farmer-home' ||
-        segments[0] === 'buyer-home' ||
-        segments[0] === 'farmer-profile-setup' ||
-        segments[0] === 'buyer-profile-setup'
-      );
+      // Check if user is already on a valid screen (auth flow or registration flow)
+      const currentScreen = segments.length > 0 ? segments[0] : null;
+      const validScreens = [
+        'farmer-home',
+        'buyer-home',
+        'farmer-profile-setup',
+        'buyer-profile-setup',
+        'farmer-registration',
+        'login',
+        'select-role',
+        'splash'
+      ];
 
-      // If user is signed in and already on their home screen, don't redirect
-      if (isSignedIn && user && isOnAuthScreen) {
-        console.log('✅ [INDEX] User already on valid screen, skipping navigation');
+      // If user is already on any valid screen, don't redirect
+      if (currentScreen && validScreens.includes(currentScreen)) {
+        console.log('✅ [INDEX] User already on valid screen:', currentScreen, '- skipping navigation');
         hasNavigated.current = true;
         return;
       }
 
       // Add a small delay to ensure state is fully updated
       const navigationTimeout = setTimeout(() => {
+        // Double-check we haven't navigated elsewhere in the meantime
+        const latestScreen = segments.length > 0 ? segments[0] : null;
+        if (latestScreen && validScreens.includes(latestScreen)) {
+          console.log('✅ [INDEX] User navigated to', latestScreen, 'during timeout - aborting navigation');
+          hasNavigated.current = true;
+          return;
+        }
+
         if (isSignedIn && user && user.role) {
           // Navigate to role-specific home screen
           console.log('✅ [INDEX] User is signed in with role:', user.role);
