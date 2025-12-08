@@ -2,24 +2,23 @@ import FarmerBottomNav from "@/app/components/FarmerBottomNav";
 import * as DocumentPicker from 'expo-document-picker';
 import { useRouter } from 'expo-router';
 import {
-    ArrowLeft,
-    Camera,
-    FileText,
-    Phone,
-    Send,
-    Video
+  ArrowLeft,
+  Camera,
+  FileText,
+  Phone,
+  Send
 } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    Image,
-    Linking,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  Linking,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 export default function FarmersIdeas() {
@@ -87,12 +86,7 @@ export default function FarmersIdeas() {
     );
   };
 
-  const handleVideoCall = () => {
-    Alert.alert(
-      t('common.videoCall'),
-      t('doubts.videoCallFeatureComingSoon')
-    );
-  };
+
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
@@ -156,12 +150,7 @@ export default function FarmersIdeas() {
           >
             <Phone size={20} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleVideoCall}
-            className="bg-blue-600 rounded-full p-3"
-          >
-            <Video size={20} color="white" />
-          </TouchableOpacity>
+
           <TouchableOpacity
             onPress={handleFileUpload}
             className="bg-gray-600 rounded-full p-3"

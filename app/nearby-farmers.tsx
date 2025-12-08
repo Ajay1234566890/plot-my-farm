@@ -1,25 +1,26 @@
 import BuyerBottomNav from "@/app/components/BuyerBottomNav";
+import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import MapLibreView from "@/components/MapLibreView";
 import { RADIUS_PRESETS } from "@/utils/haversine";
 import { useRouter } from 'expo-router';
 import {
-    ArrowLeft,
-    MessageCircle,
-    Phone,
-    Search,
-    Star
+  ArrowLeft,
+  MessageCircle,
+  Phone,
+  Search,
+  Star
 } from "lucide-react-native";
 import React from "react";
 import {
-    Alert,
-    Dimensions,
-    Image,
-    Linking,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Dimensions,
+  Image,
+  Linking,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -141,15 +142,17 @@ export default function NearbyFarmers() {
 
       {/* Real MapLibre Map */}
       <View className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg" style={{ height: 250 }}>
-        <MapLibreView
-          showFarmers={true}
-          showBuyers={false}
-          radiusInMeters={RADIUS_PRESETS.DEFAULT}
-          onUserPress={(farmer) => {
-            console.log('Selected farmer:', farmer.full_name);
-            // Can navigate to farmer details here
-          }}
-        />
+        <MapErrorBoundary fallbackMessage="Unable to load map">
+          <MapLibreView
+            showFarmers={true}
+            showBuyers={false}
+            radiusInMeters={RADIUS_PRESETS.DEFAULT}
+            onUserPress={(farmer) => {
+              console.log('Selected farmer:', farmer.full_name);
+              // Can navigate to farmer details here
+            }}
+          />
+        </MapErrorBoundary>
       </View>
 
       {/* Farmers List */}

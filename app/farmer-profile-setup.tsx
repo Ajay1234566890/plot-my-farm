@@ -165,15 +165,17 @@ export default function FarmerProfileSetup() {
   };
 
   // Handle continue
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!formData.name || !formData.state || !formData.city) {
       Alert.alert(t('common.error'), 'Please fill in all required fields');
       return;
     }
-    // TODO: Implement save and navigate
-    Alert.alert(t('common.success'), 'Profile updated successfully!', [
-      { text: t('common.ok'), onPress: () => router.back() }
-    ]);
+
+    // Save profile first
+    await handleSave();
+
+    // Navigate to farmer home dashboard (use replace to prevent going back)
+    router.replace('/farmer-home');
   };
 
   return (

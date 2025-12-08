@@ -1,4 +1,3 @@
-import { CallButton } from '@/components/CallButton';
 import { useAuth } from '@/contexts/auth-context';
 import {
   getMessages,
@@ -132,9 +131,7 @@ export default function BuyerChatScreen() {
     }
   };
 
-  const handleVideoCall = () => {
-    Alert.alert('Video Call', 'Video calling is not available yet.', [{ text: 'OK' }]);
-  };
+
 
   const formatMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -174,20 +171,11 @@ export default function BuyerChatScreen() {
           </View>
           <View className="flex-row">
             <TouchableOpacity
-              className="w-10 h-10 items-center justify-center rounded-full bg-white/20 mr-2"
+              className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
               onPress={handleCall}
             >
               <Phone size={20} color="white" />
             </TouchableOpacity>
-            <View className="w-10 h-10 items-center justify-center rounded-full bg-white/20">
-              <CallButton
-                userId={userId}
-                userName={userName}
-                userAvatar={userAvatar}
-                size="small"
-                variant="primary"
-              />
-            </View>
           </View>
         </View>
       </View>

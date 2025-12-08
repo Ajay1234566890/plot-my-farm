@@ -1,4 +1,5 @@
 import FarmerBottomNav from "@/app/components/FarmerBottomNav";
+import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import MapLibreView from "@/components/MapLibreView";
 import { useAuth } from "@/contexts/auth-context";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
@@ -196,9 +197,7 @@ export default function NearbyBuyers() {
             borderRadius: 16,
             overflow: 'hidden',
             opacity: mapOpacity,
-            backgroundColor: 'rgba(255, 255, 255, 0.7)', // Glass effect
-            // Note: backdropFilter is not supported in React Native directly,
-            // but we simulate glass with transparency and blur if possible or just transparency
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
             borderWidth: 1,
             borderColor: 'rgba(255, 255, 255, 0.3)',
             shadowColor: '#000',
@@ -208,14 +207,17 @@ export default function NearbyBuyers() {
             elevation: 10,
           }}
         >
-          <MapLibreView
-            showFarmers={false}
-            showBuyers={true}
-            radiusInMeters={RADIUS_PRESETS.DEFAULT}
-            onUserPress={(buyer) => {
-              console.log('Selected buyer:', buyer.full_name);
-            }}
-          />
+          <MapErrorBoundary fallbackMessage={t('errors.mapUnavailable')}>
+            <MapLibreView
+              showFarmers={false}
+              showBuyers={true}
+              radiusInMeters={RADIUS_PRESETS.DEFAULT}
+              onUserPress={(buyer) => {
+                // Navigate to buyer details or just highlight
+                // console.log('Selected buyer:', buyer.full_name); 
+              }}
+            />
+          </MapErrorBoundary>
         </Animated.View>
 
         {/* Buyers List Section */}

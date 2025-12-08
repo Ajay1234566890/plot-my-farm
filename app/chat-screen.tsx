@@ -1,5 +1,4 @@
 import { useAuth } from '@/contexts/auth-context';
-import { agoraService } from '@/services/agora-service';
 import {
   getMessages,
   Message,
@@ -7,11 +6,10 @@ import {
   subscribeMessages,
   unsubscribe,
 } from '@/services/chat-service';
-import { createCall, updateCallStatus } from '@/services/supabase-calls';
 import { supabase } from '@/utils/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Paperclip, Phone, PhoneOff, Send, Video as VideoIcon } from 'lucide-react-native';
+import { ArrowLeft, Paperclip, Phone, Send } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,7 +18,6 @@ import {
   Image,
   KeyboardAvoidingView,
   Linking,
-  Modal,
   Platform,
   ScrollView,
   Text,
@@ -28,7 +25,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { RtcSurfaceView } from 'react-native-agora';
 
 export default function ChatScreen() {
   const { t } = useTranslation();
@@ -44,11 +40,7 @@ export default function ChatScreen() {
   const [subscription, setSubscription] = useState<RealtimeChannel | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Video Call State
-  const [isCallActive, setIsCallActive] = useState(false);
-  const [channelName, setChannelName] = useState('');
-  const [remoteUid, setRemoteUid] = useState<number>(0);
-  const [currentCallId, setCurrentCallId] = useState<string | null>(null);
+
 
   // Get params
   const chatId = params.chatId as string;
@@ -68,9 +60,6 @@ export default function ChatScreen() {
     return () => {
       if (subscription) {
         unsubscribe(subscription);
-      }
-      if (isCallActive) {
-        endCall();
       }
     };
   }, [chatId, user?.id]);
@@ -144,71 +133,7 @@ export default function ChatScreen() {
     }
   };
 
-  const handleVideoCall = async () => {
-    if (!user?.id) return;
 
-    try {
-      // Initialize Agora
-      // Note: Using a hardcoded App ID for now as requested by user to "fix" things. 
-      // In production, this should be in env.
-      const AGORA_APP_ID = '44d4f6f8924b434794318c9a35282476';
-      await agoraService.init(AGORA_APP_ID);
-
-      const newChannelName = `call_${user.id}_${userId}_${Date.now()}`;
-      setChannelName(newChannelName);
-
-      // Create call record in Supabase
-      const { data: callData, error } = await createCall(user.id, userId, newChannelName);
-
-      if (error) {
-        console.error('Failed to create call:', error);
-        Alert.alert('Error', 'Failed to start call');
-        return;
-      }
-
-      if (callData) {
-        setCurrentCallId(callData.id);
-      }
-
-      // Join Agora Channel
-      // For testing, using null token (requires App ID only mode in Agora console)
-      await agoraService.joinChannel('', newChannelName, 0);
-
-      setIsCallActive(true);
-
-      // Setup event handlers
-      agoraService.registerEventHandlers({
-        onUserJoined: (_connection, uid) => {
-          console.log('Remote user joined:', uid);
-          setRemoteUid(uid);
-        },
-        onUserOffline: (_connection, uid) => {
-          console.log('Remote user offline:', uid);
-          setRemoteUid(0);
-          endCall(); // End call if remote user leaves
-        },
-      });
-
-    } catch (error) {
-      console.error('Video call error:', error);
-      Alert.alert('Error', 'Failed to initialize video call');
-    }
-  };
-
-  const endCall = async () => {
-    try {
-      await agoraService.leaveChannel();
-      setIsCallActive(false);
-      setRemoteUid(0);
-
-      if (currentCallId) {
-        await updateCallStatus(currentCallId, 'ended');
-        setCurrentCallId(null);
-      }
-    } catch (error) {
-      console.error('Error ending call:', error);
-    }
-  };
 
   const formatMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -253,12 +178,7 @@ export default function ChatScreen() {
             >
               <Phone size={20} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity
-              className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
-              onPress={handleVideoCall}
-            >
-              <VideoIcon size={20} color="white" />
-            </TouchableOpacity>
+
           </View>
         </View>
       </View>
@@ -353,49 +273,7 @@ export default function ChatScreen() {
         </View>
       </View>
 
-      {/* Video Call Modal */}
-      <Modal
-        visible={isCallActive}
-        animationType="slide"
-        onRequestClose={endCall}
-      >
-        <View className="flex-1 bg-gray-900">
-          {/* Remote Video (Full Screen) */}
-          {remoteUid !== 0 ? (
-            <RtcSurfaceView
-              canvas={{ uid: remoteUid }}
-              className="flex-1"
-            />
-          ) : (
-            <View className="flex-1 items-center justify-center">
-              <Text className="text-white text-lg">Waiting for user to join...</Text>
-              <ActivityIndicator size="large" color="white" className="mt-4" />
-            </View>
-          )}
 
-          {/* Local Video (Floating) */}
-          <View
-            className="absolute top-12 right-4 w-32 h-48 bg-black rounded-xl overflow-hidden border-2 border-white"
-            style={{ elevation: 5 }}
-          >
-            <RtcSurfaceView
-              canvas={{ uid: 0 }}
-              className="flex-1"
-              zOrderMediaOverlay={true}
-            />
-          </View>
-
-          {/* Call Controls */}
-          <View className="absolute bottom-10 left-0 right-0 items-center">
-            <TouchableOpacity
-              onPress={endCall}
-              className="w-16 h-16 rounded-full bg-red-500 items-center justify-center shadow-lg"
-            >
-              <PhoneOff size={32} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </KeyboardAvoidingView>
   );
 }

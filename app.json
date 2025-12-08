@@ -72,7 +72,8 @@
       "router": {},
       "eas": {
         "projectId": "4287f44c-e707-4463-97bd-c44c80521229"
-      }
+      },
+      "MAPTILER_API_KEY": "8MaoCcKOtQUbnHcNOBQn"
     }
   }
 }

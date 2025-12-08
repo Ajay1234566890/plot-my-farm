@@ -267,13 +267,18 @@ class MarketPricesService {
 
   /**
    * Get crop image based on commodity name
+   * Prioritizes longer matches (more specific) over shorter ones
    */
   private getCropImage(commodity: string): string {
     const normalizedName = commodity.toLowerCase().trim();
 
-    for (const [key, image] of Object.entries(CROP_IMAGE_MAP)) {
+    // Sort keys by length descending to match specific names first
+    // e.g. "Green Chilli" should match "green chilli" before "chilli"
+    const keys = Object.keys(CROP_IMAGE_MAP).sort((a, b) => b.length - a.length);
+
+    for (const key of keys) {
       if (normalizedName.includes(key)) {
-        return image;
+        return CROP_IMAGE_MAP[key];
       }
     }
 
