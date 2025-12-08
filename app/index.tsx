@@ -1,15 +1,17 @@
 import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useRouter, useSegments } from 'expo-router';
+import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 export default function Screen() {
   const router = useRouter();
+  const segments = useSegments();
   const { isSignedIn, isLoading, hasSeenSplash, user } = useAuth();
+  const hasNavigated = useRef(false);
 
   useEffect(() => {
-    // Wait for auth to be loaded
-    if (!isLoading) {
+    // Only run navigation logic once when app first loads
+    if (!isLoading && !hasNavigated.current) {
       console.log('🔄 [INDEX] App initialization complete, routing user...');
       console.log('📊 [INDEX] Auth state:', {
         isSignedIn,
@@ -17,7 +19,23 @@ export default function Screen() {
         userRole: user?.role,
         userId: user?.id,
         userName: user?.name,
+        currentSegments: segments,
       });
+
+      // Check if user is already on a valid authenticated screen
+      const isOnAuthScreen = segments.length > 0 && (
+        segments[0] === 'farmer-home' ||
+        segments[0] === 'buyer-home' ||
+        segments[0] === 'farmer-profile-setup' ||
+        segments[0] === 'buyer-profile-setup'
+      );
+
+      // If user is signed in and already on their home screen, don't redirect
+      if (isSignedIn && user && isOnAuthScreen) {
+        console.log('✅ [INDEX] User already on valid screen, skipping navigation');
+        hasNavigated.current = true;
+        return;
+      }
 
       // Add a small delay to ensure state is fully updated
       const navigationTimeout = setTimeout(() => {
@@ -42,11 +60,12 @@ export default function Screen() {
           console.log('🔓 [INDEX] Returning user not signed in, navigating to select-role');
           router.replace('/select-role');
         }
+        hasNavigated.current = true;
       }, 100); // Small delay to ensure state is updated
 
       return () => clearTimeout(navigationTimeout);
     }
-  }, [isLoading, isSignedIn, hasSeenSplash, user, router]);
+  }, [isLoading]); // Only depend on isLoading, not on user or isSignedIn
 
   return (
     <View className="flex-1 bg-white items-center justify-center">
