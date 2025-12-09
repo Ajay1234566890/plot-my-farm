@@ -2,81 +2,25 @@ import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
-    ArrowLeft,
-    Heart,
-    MessageCircle,
-    Phone,
-    Share2,
-    ShoppingCart,
-    Star
+  ArrowLeft,
+  Heart,
+  MessageCircle,
+  Phone,
+  Share2,
+  ShoppingCart,
+  Star
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    Image,
-    Linking,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  Linking,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
-
-const mockCropDetails = {
-  id: 1,
-  name: "Organic Heirloom Tomatoes",
-  description:
-    "These heirloom tomatoes are grown organically on a small family farm, known for their rich flavor and vibrant colors. They are perfect for salads, sauces, or enjoying fresh.",
-  origin:
-    "Grown in the fertile valleys of Punjab, India, these tomatoes benefit from the region's ideal climate and sustainable farming practices.",
-  farmer: {
-    name: "Rajesh Kumar",
-    location: "Punjab, India",
-    image:
-      "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&auto=format&fit=crop&q=60",
-  },
-  availability: {
-    quantity: "50 kg",
-    price: "₹45/kg",
-  },
-  rating: 4.8,
-  reviewCount: 125,
-  quality: "Grade A",
-  harvestDate: "2 days ago",
-  ratingDistribution: [
-    { stars: 5, percentage: 75 },
-    { stars: 4, percentage: 15 },
-    { stars: 3, percentage: 5 },
-    { stars: 2, percentage: 3 },
-    { stars: 1, percentage: 2 },
-  ],
-  reviews: [
-    {
-      id: 1,
-      user: {
-        name: "Sophia Bennett",
-        image:
-          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=60",
-        date: "2 weeks ago",
-      },
-      rating: 5,
-      comment:
-        "These tomatoes are absolutely delicious! The flavor is so much richer than store-bought tomatoes. I highly recommend them.",
-    },
-    {
-      id: 2,
-      user: {
-        name: "Liam Harper",
-        image:
-          "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=400&auto=format&fit=crop&q=60",
-        date: "1 month ago",
-      },
-      rating: 4,
-      comment:
-        "Great quality tomatoes, though a bit pricey. They were perfect for my caprese salad.",
-    },
-  ],
-};
 
 export default function BuyerCropDetails() {
   const router = useRouter();
@@ -84,6 +28,27 @@ export default function BuyerCropDetails() {
   const params = useLocalSearchParams();
   const { t } = useTranslation();
   const [isFavorite, setIsFavorite] = useState(false);
+
+  // Parse params
+  const cropData = {
+    id: params.id,
+    name: params.name as string || "Crop Name",
+    description: params.description as string || "No description available.",
+    origin: params.origin as string || params.location as string || "Unknown Origin",
+    image: params.image ? (typeof params.image === 'string' ? { uri: params.image } : params.image) : { uri: "https://via.placeholder.com/400" },
+    price: params.price as string || "₹0/kg",
+    quantity: params.quantity as string || "Available",
+    quality: params.quality as string || "Standard",
+    rating: params.rating ? parseFloat(params.rating as string) : 4.5,
+    reviewCount: params.reviewCount ? parseInt(params.reviewCount as string) : 0,
+    farmer: {
+      id: params.farmerId as string,
+      name: params.farmerName as string || "Unknown Farmer",
+      location: params.farmerLocation as string || params.location as string || "Unknown Location",
+      image: params.farmerImage ? { uri: params.farmerImage as string } : { uri: "https://via.placeholder.com/150" },
+      phone: params.farmerPhone as string,
+    }
+  };
 
   const renderStars = (rating: number) => {
     return [...Array(5)].map((_, index) => (
@@ -97,28 +62,37 @@ export default function BuyerCropDetails() {
   };
 
   const handleCall = () => {
-    const phoneNumber = '+1234567890'; // Replace with actual farmer phone
-    Alert.alert(
-      t('common.call'),
-      t('common.calling') + ' farmer',
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('common.call'), onPress: () => Linking.openURL(`tel:${phoneNumber}`) }
-      ]
-    );
+    const phoneNumber = cropData.farmer.phone;
+    if (phoneNumber) {
+      Alert.alert(
+        t('common.call'),
+        `${t('common.calling')} ${cropData.farmer.name}?`,
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('common.call'), onPress: () => Linking.openURL(`tel:${phoneNumber}`) }
+        ]
+      );
+    } else {
+      Alert.alert(t('common.error'), t('errors.phoneNotAvailable'));
+    }
   };
 
   const handleMessageFarmer = () => {
     router.push({
-      pathname: "/buyer-messages",
-      params: { farmerId: mockCropDetails.farmer.name }
+      pathname: "/buyer-chat-screen",
+      params: {
+        userId: cropData.farmer.id,
+        userName: cropData.farmer.name,
+        userAvatar: typeof cropData.farmer.image === 'object' && 'uri' in cropData.farmer.image ? cropData.farmer.image.uri : '',
+        cropName: cropData.name
+      }
     });
   };
 
   const handleAddToCart = () => {
     Alert.alert(
       t('common.success'),
-      'Added to cart successfully!',
+      t('buyer.addedToCart'),
       [{ text: t('common.ok') }]
     );
   };
@@ -126,7 +100,7 @@ export default function BuyerCropDetails() {
   const handleShare = () => {
     Alert.alert(
       t('common.share'),
-      'Share this crop with others',
+      t('buyer.shareCrop'),
       [{ text: t('common.cancel'), style: 'cancel' }]
     );
   };
@@ -153,8 +127,8 @@ export default function BuyerCropDetails() {
           >
             <ArrowLeft size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">
-            Crop Details
+          <Text className="text-xl font-bold text-white" numberOfLines={1} style={{ maxWidth: '60%' }}>
+            {cropData.name}
           </Text>
           <TouchableOpacity
             className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
@@ -170,14 +144,13 @@ export default function BuyerCropDetails() {
         <View className="px-6 pt-6">
           <View className="relative">
             <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1518972559376-f5f715166441?w=800",
-              }}
+              source={cropData.image}
               className="w-full h-64 rounded-3xl"
+              resizeMode="cover"
             />
             {/* Quality Badge */}
             <View className="absolute top-4 left-4 bg-green-500 px-4 py-2 rounded-full">
-              <Text className="text-white font-bold">{mockCropDetails.quality}</Text>
+              <Text className="text-white font-bold">{cropData.quality}</Text>
             </View>
           </View>
         </View>
@@ -186,22 +159,22 @@ export default function BuyerCropDetails() {
         <View className="px-6 py-6">
           {/* Title and Price */}
           <View className="flex-row justify-between items-start mb-4">
-            <View className="flex-1">
+            <View className="flex-1 mr-4">
               <Text className="text-3xl font-bold text-gray-900 mb-2">
-                {mockCropDetails.name}
+                {cropData.name}
               </Text>
               <View className="flex-row items-center">
-                {renderStars(mockCropDetails.rating)}
+                {renderStars(cropData.rating)}
                 <Text className="ml-2 text-gray-600">
-                  {mockCropDetails.rating} ({mockCropDetails.reviewCount} {t('common.reviews')})
+                  {cropData.rating} ({cropData.reviewCount} {t('common.reviews')})
                 </Text>
               </View>
             </View>
             <View className="items-end">
               <Text className="text-3xl font-bold" style={{ color: '#B27E4C' }}>
-                {mockCropDetails.availability.price}
+                {cropData.price}
               </Text>
-              <Text className="text-gray-500">{mockCropDetails.availability.quantity} available</Text>
+              <Text className="text-gray-500">{cropData.quantity}</Text>
             </View>
           </View>
 
@@ -209,20 +182,19 @@ export default function BuyerCropDetails() {
           <TouchableOpacity
             className="flex-row items-center bg-gray-50 rounded-2xl p-4 mb-6"
             onPress={() => router.push({
-              pathname: "/farmer-details",
-              params: { farmerId: "1" }
+              pathname: "/nearby-farmers", // Or farmer details if available
+              params: { selectedFarmerId: cropData.farmer.id }
             })}
           >
             <Image
-              source={{ uri: mockCropDetails.farmer.image }}
+              source={cropData.farmer.image}
               className="w-16 h-16 rounded-full mr-4"
             />
             <View className="flex-1">
               <Text className="text-lg font-bold text-gray-900">
-                {mockCropDetails.farmer.name}
+                {cropData.farmer.name}
               </Text>
-              <Text className="text-gray-600">{mockCropDetails.farmer.location}</Text>
-              <Text className="text-gray-500 text-sm mt-1">Harvested {mockCropDetails.harvestDate}</Text>
+              <Text className="text-gray-600">{cropData.farmer.location}</Text>
             </View>
             <ArrowLeft size={20} color="#B27E4C" style={{ transform: [{ rotate: '180deg' }] }} />
           </TouchableOpacity>
@@ -233,7 +205,7 @@ export default function BuyerCropDetails() {
               {t('common.description')}
             </Text>
             <Text className="text-gray-700 leading-6">
-              {mockCropDetails.description}
+              {cropData.description}
             </Text>
           </View>
 
@@ -243,7 +215,7 @@ export default function BuyerCropDetails() {
               {t('common.origin')}
             </Text>
             <Text className="text-gray-700 leading-6">
-              {mockCropDetails.origin}
+              {cropData.origin}
             </Text>
           </View>
 
@@ -265,53 +237,6 @@ export default function BuyerCropDetails() {
               <MessageCircle size={18} color="#B27E4C" />
               <Text className="font-semibold ml-2" style={{ color: '#B27E4C' }}>{t('common.message')}</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Reviews Section */}
-          <View className="mb-6">
-            <Text className="text-xl font-bold text-gray-900 mb-4">
-              {t('common.reviews')}
-            </Text>
-
-            {/* Rating Distribution */}
-            <View className="bg-gray-50 rounded-2xl p-4 mb-4">
-              {mockCropDetails.ratingDistribution.map((item) => (
-                <View key={item.stars} className="flex-row items-center mb-2">
-                  <Text className="text-gray-700 w-12">{item.stars} ★</Text>
-                  <View className="flex-1 bg-gray-200 rounded-full h-2 mx-3">
-                    <View
-                      className="h-2 rounded-full"
-                      style={{
-                        width: `${item.percentage}%`,
-                        backgroundColor: '#B27E4C',
-                      }}
-                    />
-                  </View>
-                  <Text className="text-gray-600 w-12 text-right">{item.percentage}%</Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Individual Reviews */}
-            {mockCropDetails.reviews.map((review) => (
-              <View
-                key={review.id}
-                className="bg-white border border-gray-200 rounded-2xl p-4 mb-4"
-              >
-                <View className="flex-row items-start mb-3">
-                  <Image
-                    source={{ uri: review.user.image }}
-                    className="w-12 h-12 rounded-full mr-3"
-                  />
-                  <View className="flex-1">
-                    <Text className="font-bold text-gray-900">{review.user.name}</Text>
-                    <Text className="text-gray-500 text-sm">{review.user.date}</Text>
-                  </View>
-                  <View className="flex-row">{renderStars(review.rating)}</View>
-                </View>
-                <Text className="text-gray-700 leading-5">{review.comment}</Text>
-              </View>
-            ))}
           </View>
         </View>
       </ScrollView>
@@ -342,7 +267,7 @@ export default function BuyerCropDetails() {
           >
             <ShoppingCart size={20} color="white" />
             <Text className="text-white font-bold text-lg ml-2">
-              Add to Cart
+              {t('buyer.addToCart')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -353,4 +278,3 @@ export default function BuyerCropDetails() {
     </View>
   );
 }
-

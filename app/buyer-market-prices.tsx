@@ -2,7 +2,7 @@ import { locationService } from '@/services/location-service';
 import { MarketPrice, marketPricesService } from '@/services/market-prices-service';
 import { useRouter } from "expo-router";
 import { ArrowLeft, MapPin, RefreshCw, Search, TrendingDown, TrendingUp } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import BuyerBottomNav from './components/BuyerBottomNav';
@@ -154,7 +154,7 @@ export default function BuyerMarketPrices() {
           showsVerticalScrollIndicator={false}
         >
           {filteredCrops.map((crop) => (
-            <View
+            <TouchableOpacity
               key={crop.id}
               className="bg-white rounded-xl p-4 mb-4 shadow-sm flex-row items-center"
               style={{
@@ -166,6 +166,23 @@ export default function BuyerMarketPrices() {
                 borderWidth: 1,
                 borderColor: '#B27E4C10'
               }}
+              onPress={() => router.push({
+                pathname: "/market-price-details",
+                params: {
+                  commodity: crop.commodity,
+                  market: crop.market,
+                  state: crop.state,
+                  district: crop.district,
+                  minPrice: crop.minPrice.toString(),
+                  maxPrice: crop.maxPrice.toString(),
+                  modalPrice: crop.modalPrice.toString(),
+                  unit: crop.unit,
+                  date: crop.priceDate,
+                  image: typeof crop.image === 'string' ? crop.image : Image.resolveAssetSource(crop.image).uri,
+                  trend: crop.trend,
+                  priceChange: crop.priceChange?.toString()
+                }
+              })}
             >
               <Image
                 source={typeof crop.image === 'string' ? { uri: crop.image } : crop.image}
@@ -214,7 +231,7 @@ export default function BuyerMarketPrices() {
                   </View>
                 )}
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       )}

@@ -19,10 +19,14 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'onions': require('@/assets/images/market/onion.jpg'),
   'pyaz': require('@/assets/images/market/onion.jpg'),
   'kanda': require('@/assets/images/market/onion.jpg'),
+  'onion green': require('@/assets/images/market/onion.jpg'),
 
   'cauliflower': require('@/assets/images/market/cauliflower.jpg'),
   'phool gobhi': require('@/assets/images/market/cauliflower.jpg'),
   'gobi': require('@/assets/images/market/cauliflower.jpg'),
+
+  'cabbage': require('@/assets/images/market/cauliflower.jpg'), // Fallback to cauliflower if no cabbage image
+  'patta gobhi': require('@/assets/images/market/cauliflower.jpg'),
 
   'brinjal': require('@/assets/images/market/brinjal.jpg'),
   'eggplant': require('@/assets/images/market/brinjal.jpg'),
@@ -57,6 +61,7 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'ridge gourd': require('@/assets/images/market/ridge_gourd.jpg'),
   'turai': require('@/assets/images/market/ridge_gourd.jpg'),
   'tori': require('@/assets/images/market/ridge_gourd.jpg'),
+  'ridgeguard': require('@/assets/images/market/ridge_gourd.jpg'),
 
   'lady finger': require('@/assets/images/market/ladies_finger.jpg'),
   'ladies finger': require('@/assets/images/market/ladies_finger.jpg'),
@@ -66,6 +71,7 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'radish': require('@/assets/images/market/radish.jpg'),
   'mooli': require('@/assets/images/market/radish.jpg'),
   'muli': require('@/assets/images/market/radish.jpg'),
+  'raddish': require('@/assets/images/market/radish.jpg'),
 
   'beetroot': require('@/assets/images/market/beetroot.jpg'),
   'beet': require('@/assets/images/market/beetroot.jpg'),
@@ -90,6 +96,8 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'pea': require('@/assets/images/crops/peas.jpg'),
   'matar': require('@/assets/images/crops/peas.jpg'),
   'green peas': require('@/assets/images/crops/peas.jpg'),
+  'peas cod': require('@/assets/images/crops/peas.jpg'),
+  'peas wet': require('@/assets/images/crops/peas.jpg'),
 
   // Coriander - NEW from crops folder
   'coriander': require('@/assets/images/crops/coriander_leaves.jpg'),
@@ -113,6 +121,7 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'kabuli chana': require('@/assets/images/market/bengal_gram.jpg'),
   'desi chana': require('@/assets/images/market/bengal_gram.jpg'),
   'garbanzo': require('@/assets/images/market/bengal_gram.jpg'),
+  'green gram': require('@/assets/images/market/bengal_gram.jpg'), // Fallback
 
   // Tur Dal - NEW from crops folder
   'tur': require('@/assets/images/crops/tur_dal.jpg'),
@@ -165,6 +174,14 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'pineapples': require('@/assets/images/crops/pineapple.jpg'),
   'ananas': require('@/assets/images/crops/pineapple.jpg'),
 
+  // Apple
+  'apple': require('@/assets/images/market/pomogranate.jpg'), // Fallback
+  'seb': require('@/assets/images/market/pomogranate.jpg'),
+
+  // Banana
+  'banana': require('@/assets/images/crops/pineapple.jpg'), // Fallback
+  'kela': require('@/assets/images/crops/pineapple.jpg'),
+
   // Grains & Cereals - NEW from crops folder
   'paddy': require('@/assets/images/crops/paddy.jpg'),
   'rice': require('@/assets/images/crops/paddy.jpg'),
@@ -174,6 +191,7 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'wheat': require('@/assets/images/crops/wheat.jpg'),
   'gehun': require('@/assets/images/crops/wheat.jpg'),
   'gehu': require('@/assets/images/crops/wheat.jpg'),
+  'maize': require('@/assets/images/crops/wheat.jpg'), // Fallback
 
   // Cash Crops - Local accurate images with variations
   'cotton': require('@/assets/images/market/cotton.jpg'),
@@ -215,16 +233,23 @@ const CROP_IMAGE_MAP: Record<string, any> = {
   'raw banana': require('@/assets/images/crops/pineapple.jpg'),
   'plantain': require('@/assets/images/crops/pineapple.jpg'),
   'kachha kela': require('@/assets/images/crops/pineapple.jpg'),
+  'banana - green': require('@/assets/images/crops/pineapple.jpg'),
 
   // Papaya - Using guava as fallback (similar tropical fruit)
   'papaya': require('@/assets/images/crops/guava.jpg'),
   'papita': require('@/assets/images/crops/guava.jpg'),
   'pawpaw': require('@/assets/images/crops/guava.jpg'),
+  'papaya (raw)': require('@/assets/images/crops/guava.jpg'),
 
   // Jaggery - Using turmeric as fallback (similar color)
   'jaggery': require('@/assets/images/market/turmeric.jpg'),
   'gur': require('@/assets/images/market/turmeric.jpg'),
   'gud': require('@/assets/images/market/turmeric.jpg'),
+
+  // Flowers
+  'rose': require('@/assets/images/market/tomato.jpg'), // Fallback
+  'jasmine': require('@/assets/images/market/tomato.jpg'), // Fallback
+  'marigold': require('@/assets/images/market/tomato.jpg'), // Fallback
 
   // Default fallback - using tomato as default
   'default': require('@/assets/images/market/tomato.jpg')
@@ -254,10 +279,14 @@ interface APIResponse {
     market: string;
     commodity: string;
     variety?: string;
-    arrival_date: string;
-    min_price: string;
-    max_price: string;
-    modal_price: string;
+    arrival_date?: string;
+    Arrival_Date?: string;
+    min_price?: string;
+    max_price?: string;
+    modal_price?: string;
+    Min_x0020_Price?: string;
+    Max_x0020_Price?: string;
+    Modal_x0020_Price?: string;
   }>;
 }
 
@@ -293,11 +322,39 @@ class MarketPricesService {
   }
 
   /**
+   * Normalize commodity name
+   * Removes parentheses, special chars, and standardizes case
+   */
+  private normalizeCommodityName(name: string): string {
+    if (!name) return '';
+    // Remove content in parentheses, e.g., "Bhindi(Ladies Finger)" -> "Bhindi"
+    let normalized = name.replace(/\s*\(.*?\)\s*/g, '').trim();
+    // Remove special characters and extra spaces
+    normalized = normalized.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, ' ');
+    // Title case
+    return normalized.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  }
+
+  /**
+   * Parse date string to timestamp for comparison
+   * Format: DD/MM/YYYY
+   */
+  private parseDate(dateStr: string): number {
+    if (!dateStr) return 0;
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      // Month is 0-indexed in JS Date
+      return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])).getTime();
+    }
+    return 0;
+  }
+
+  /**
    * Fetch market prices from government API
    */
   async fetchMarketPrices(
     state?: string,
-    limit: number = 100,
+    limit: number = 200, // Increased limit to allow for filtering
     offset: number = 0
   ): Promise<MarketPrice[]> {
     try {
@@ -320,15 +377,34 @@ class MarketPricesService {
 
       console.log(`✅ [MARKET PRICES] Fetched ${data.records?.length || 0} records`);
 
-      // Transform and process data
-      const prices: MarketPrice[] = (data.records || []).map((record, index) => {
-        const modalPrice = parseFloat(record.modal_price) || 0;
-        const minPrice = parseFloat(record.min_price) || 0;
-        const maxPrice = parseFloat(record.max_price) || 0;
+      // Map to store unique commodities (Deduplication Logic)
+      // Key: Normalized Commodity Name, Value: MarketPrice
+      const uniqueCommodities = new Map<string, MarketPrice>();
 
-        return {
-          id: `${record.commodity}-${record.market}-${index}`,
-          commodity: record.commodity,
+      (data.records || []).forEach((record, index) => {
+        // 1. Clean Data: Skip invalid entries
+        const modalPriceStr = record.modal_price || record.Modal_x0020_Price || '0';
+        const minPriceStr = record.min_price || record.Min_x0020_Price || '0';
+        const maxPriceStr = record.max_price || record.Max_x0020_Price || '0';
+
+        if (!record.commodity || modalPriceStr === '0') {
+          return;
+        }
+
+        const modalPrice = parseFloat(modalPriceStr) || 0;
+        const minPrice = parseFloat(minPriceStr) || 0;
+        const maxPrice = parseFloat(maxPriceStr) || 0;
+
+        // 2. Normalize Name
+        const normalizedName = this.normalizeCommodityName(record.commodity);
+        if (!normalizedName) return;
+
+        const arrivalDate = record.arrival_date || record.Arrival_Date || '';
+        const priceDate = this.parseDate(arrivalDate);
+
+        const newPrice: MarketPrice = {
+          id: `${normalizedName}-${record.market}-${index}`,
+          commodity: normalizedName, // Use normalized name
           variety: record.variety,
           market: record.market,
           state: record.state,
@@ -336,11 +412,29 @@ class MarketPricesService {
           minPrice: this.convertQuintalToKg(minPrice),
           maxPrice: this.convertQuintalToKg(maxPrice),
           modalPrice: this.convertQuintalToKg(modalPrice),
-          priceDate: record.arrival_date,
+          priceDate: arrivalDate,
           unit: 'kg',
-          image: this.getCropImage(record.commodity),
+          image: this.getCropImage(record.commodity), // Use original name for image matching as it might have more context
         };
+
+        // 3. Deduplicate: Keep latest price
+        if (uniqueCommodities.has(normalizedName)) {
+          const existing = uniqueCommodities.get(normalizedName)!;
+          const existingDate = this.parseDate(existing.priceDate);
+
+          // If new record is newer, replace
+          if (priceDate > existingDate) {
+            uniqueCommodities.set(normalizedName, newPrice);
+          }
+          // If same date, maybe prefer one with higher price (often indicates better quality/more recent update)
+          // or just keep existing. Let's keep existing to be stable unless newer.
+        } else {
+          uniqueCommodities.set(normalizedName, newPrice);
+        }
       });
+
+      // Convert Map to Array
+      const prices = Array.from(uniqueCommodities.values());
 
       // Cache to Supabase
       await this.cachePrices(prices);

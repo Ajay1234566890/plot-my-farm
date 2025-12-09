@@ -9,180 +9,6 @@ import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity
 import BuyerBottomNav from './components/BuyerBottomNav';
 import FarmerBottomNav from './components/FarmerBottomNav';
 
-// Crop image mapping function with fuzzy matching
-const getCropImage = (commodityName: string) => {
-  // Normalize the commodity name
-  const normalized = commodityName
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '') // Remove spaces, symbols, etc.
-    .trim();
-
-  // Mapping object with normalized keys
-  const cropImageMap: { [key: string]: any } = {
-    // Exact matches (Local Assets)
-    'tomato': require('@/assets/images/market/tomato.jpg'),
-    'tomatoes': require('@/assets/images/market/tomato.jpg'),
-    'tomatolocal': require('@/assets/images/market/tomato.jpg'),
-    'tomatohybrid': require('@/assets/images/market/tomato.jpg'),
-
-    'onion': require('@/assets/images/market/onion.jpg'),
-    'onions': require('@/assets/images/market/onion.jpg'),
-    'onionlocal': require('@/assets/images/market/onion.jpg'),
-    'onionred': require('@/assets/images/market/onion.jpg'),
-
-    'beetroot': require('@/assets/images/market/beetroot.jpg'),
-    'beet': require('@/assets/images/market/beetroot.jpg'),
-
-    'bengalgram': require('@/assets/images/market/bengal_gram.jpg'),
-    'gram': require('@/assets/images/market/bengal_gram.jpg'),
-    'chana': require('@/assets/images/market/bengal_gram.jpg'),
-
-    'betelnut': require('@/assets/images/market/betelnut.jpg'),
-    'arecanut': require('@/assets/images/market/betelnut.jpg'),
-    'supari': require('@/assets/images/market/betelnut.jpg'),
-
-    'bottlegourd': require('@/assets/images/market/bottle_gourd.jpg'),
-    'lauki': require('@/assets/images/market/bottle_gourd.jpg'),
-    'doodhi': require('@/assets/images/market/bottle_gourd.jpg'),
-
-    'brinjal': require('@/assets/images/market/brinjal.jpg'),
-    'eggplant': require('@/assets/images/market/brinjal.jpg'),
-    'baingan': require('@/assets/images/market/brinjal.jpg'),
-    'aubergine': require('@/assets/images/market/brinjal.jpg'),
-
-    'cauliflower': require('@/assets/images/market/cauliflower.jpg'),
-    'gobi': require('@/assets/images/market/cauliflower.jpg'),
-
-    'coconut': require('@/assets/images/market/coconut.jpg'),
-    'nariyal': require('@/assets/images/market/coconut.jpg'),
-
-    'tendercoconut': require('@/assets/images/market/tender_coconut.jpg'),
-    'youngcoconut': require('@/assets/images/market/tender_coconut.jpg'),
-
-    'cotton': require('@/assets/images/market/cotton.jpg'),
-    'kapas': require('@/assets/images/market/cotton.jpg'),
-
-    'cucumber': require('@/assets/images/market/cucumber.jpg'),
-    'kheera': require('@/assets/images/market/cucumber.jpg'),
-
-    'drychillies': require('@/assets/images/market/dry_chillies.jpg'),
-    'drychilli': require('@/assets/images/market/dry_chillies.jpg'),
-    'redchilli': require('@/assets/images/market/dry_chillies.jpg'),
-    'chilli': require('@/assets/images/market/dry_chillies.jpg'),
-    'chili': require('@/assets/images/market/dry_chillies.jpg'),
-
-    'elephantyam': require('@/assets/images/market/elephant_yam.jpg'),
-    'suran': require('@/assets/images/market/elephant_yam.jpg'),
-    'yam': require('@/assets/images/market/elephant_yam.jpg'),
-
-    'ginger': require('@/assets/images/market/ginger.jpg'),
-    'adrak': require('@/assets/images/market/ginger.jpg'),
-
-    'ladiesfinger': require('@/assets/images/market/ladies_finger.jpg'),
-    'okra': require('@/assets/images/market/ladies_finger.jpg'),
-    'bhindi': require('@/assets/images/market/ladies_finger.jpg'),
-
-    'littlegourd': require('@/assets/images/market/little_gourd_kundru.jpg'),
-    'kundru': require('@/assets/images/market/little_gourd_kundru.jpg'),
-    'tindora': require('@/assets/images/market/little_gourd_kundru.jpg'),
-
-    'pomegranate': require('@/assets/images/market/pomogranate.jpg'),
-    'pomogranate': require('@/assets/images/market/pomogranate.jpg'),
-    'anar': require('@/assets/images/market/pomogranate.jpg'),
-
-    'radish': require('@/assets/images/market/radish.jpg'),
-    'mooli': require('@/assets/images/market/radish.jpg'),
-
-    'ridgegourd': require('@/assets/images/market/ridge_gourd.jpg'),
-    'turai': require('@/assets/images/market/ridge_gourd.jpg'),
-    'tori': require('@/assets/images/market/ridge_gourd.jpg'),
-
-    'turmeric': require('@/assets/images/market/turmeric.jpg'),
-    'haldi': require('@/assets/images/market/turmeric.jpg'),
-
-    // New Mappings (Online URLs for missing assets)
-    'lemon': { uri: 'https://images.unsplash.com/photo-1595855709915-bd98be3768e3?w=800' },
-    'nimbu': { uri: 'https://images.unsplash.com/photo-1595855709915-bd98be3768e3?w=800' },
-
-    'banana': { uri: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=800' },
-    'kela': { uri: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=800' },
-
-    'mousambi': { uri: 'https://images.unsplash.com/photo-1624823183483-3d0d82942006?w=800' },
-    'sweetlime': { uri: 'https://images.unsplash.com/photo-1624823183483-3d0d82942006?w=800' },
-
-    'woodpeas': { uri: 'https://images.unsplash.com/photo-1592321675774-3de57f3ee0dc?w=800' },
-
-    'wetpotato': { uri: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800' },
-    'potato': { uri: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800' },
-    'aloo': { uri: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800' },
-
-    'orange': { uri: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=800' },
-    'santra': { uri: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=800' },
-
-    'pineapple': { uri: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=800' },
-    'ananas': { uri: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=800' },
-
-    'coriander': { uri: 'https://images.unsplash.com/photo-1588879460618-925d159d88cc?w=800' },
-    'corianderleaves': { uri: 'https://images.unsplash.com/photo-1588879460618-925d159d88cc?w=800' },
-    'dhaniya': { uri: 'https://images.unsplash.com/photo-1588879460618-925d159d88cc?w=800' },
-
-    'guava': { uri: 'https://images.unsplash.com/photo-1536510233921-8e5043fce771?w=800' },
-    'amrud': { uri: 'https://images.unsplash.com/photo-1536510233921-8e5043fce771?w=800' },
-
-    'greenchilli': { uri: 'https://images.unsplash.com/photo-1601648764658-ad3793bc91e9?w=800' },
-    'hari_mirch': { uri: 'https://images.unsplash.com/photo-1601648764658-ad3793bc91e9?w=800' },
-
-    'paddy': { uri: 'https://images.unsplash.com/photo-1536617621572-1d5f1e6269a0?w=800' },
-    'dhan': { uri: 'https://images.unsplash.com/photo-1536617621572-1d5f1e6269a0?w=800' },
-    'rice': { uri: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800' },
-
-    'wheat': { uri: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800' },
-    'commonwheat': { uri: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800' },
-    'gehu': { uri: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800' },
-
-    'maize': { uri: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800' },
-    'corn': { uri: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800' },
-    'makka': { uri: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800' },
-
-    'soyabean': { uri: 'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=800' },
-    'soybean': { uri: 'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=800' },
-
-    'arhardal': { uri: 'https://images.unsplash.com/photo-1515543904379-3d757afe72e3?w=800' },
-    'turdal': { uri: 'https://images.unsplash.com/photo-1515543904379-3d757afe72e3?w=800' },
-    'pigeonpea': { uri: 'https://images.unsplash.com/photo-1515543904379-3d757afe72e3?w=800' },
-
-    'apple': { uri: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800' },
-    'seb': { uri: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800' },
-
-    'greencolacassia': { uri: 'https://images.unsplash.com/photo-1635435973683-596773737330?w=800' },
-    'arbi': { uri: 'https://images.unsplash.com/photo-1635435973683-596773737330?w=800' },
-
-    'gur': { uri: 'https://images.unsplash.com/photo-1610725664338-23c6f83cd4d4?w=800' },
-    'jaggery': { uri: 'https://images.unsplash.com/photo-1610725664338-23c6f83cd4d4?w=800' },
-
-    'garlic': { uri: 'https://images.unsplash.com/photo-1615477263595-5593a6772733?w=800' },
-    'lahsun': { uri: 'https://images.unsplash.com/photo-1615477263595-5593a6772733?w=800' },
-
-    'pumpkin': { uri: 'https://images.unsplash.com/photo-1570586437263-ab629fccc818?w=800' },
-    'kaddu': { uri: 'https://images.unsplash.com/photo-1570586437263-ab629fccc818?w=800' },
-  };
-
-  // Try exact match first
-  if (cropImageMap[normalized]) {
-    return cropImageMap[normalized];
-  }
-
-  // Try substring matching for partial matches
-  for (const [key, image] of Object.entries(cropImageMap)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      return image;
-    }
-  }
-
-  // Default fallback image
-  return require('@/assets/images/market/tomato.jpg');
-};
-
 export default function MarketRealPrices() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -213,14 +39,7 @@ export default function MarketRealPrices() {
 
       // Fetch prices with location
       const prices = await marketPricesService.getMarketPricesWithLocation(100);
-
-      // Map images to crops
-      const pricesWithImages = prices.map(price => ({
-        ...price,
-        image: getCropImage(price.commodity)
-      }));
-
-      setMarketPrices(pricesWithImages);
+      setMarketPrices(prices);
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Error loading market prices:', error);
@@ -338,12 +157,38 @@ export default function MarketRealPrices() {
           showsVerticalScrollIndicator={false}
         >
           {filteredCrops.map((crop) => (
-            <View
+            <TouchableOpacity
               key={crop.id}
               className="bg-white rounded-xl p-4 mb-4 shadow-sm flex-row items-center"
+              style={{
+                shadowColor: '#7C8B3A',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 4,
+                borderWidth: 1,
+                borderColor: '#7C8B3A10'
+              }}
+              onPress={() => router.push({
+                pathname: "/market-price-details",
+                params: {
+                  commodity: crop.commodity,
+                  market: crop.market,
+                  state: crop.state,
+                  district: crop.district,
+                  minPrice: crop.minPrice.toString(),
+                  maxPrice: crop.maxPrice.toString(),
+                  modalPrice: crop.modalPrice.toString(),
+                  unit: crop.unit,
+                  date: crop.priceDate,
+                  image: typeof crop.image === 'string' ? crop.image : Image.resolveAssetSource(crop.image).uri,
+                  trend: crop.trend,
+                  priceChange: crop.priceChange?.toString()
+                }
+              })}
             >
               <Image
-                source={crop.image}
+                source={typeof crop.image === 'string' ? { uri: crop.image } : crop.image}
                 className="w-16 h-16 rounded-lg"
               />
               <View className="flex-1 ml-4">
@@ -389,7 +234,7 @@ export default function MarketRealPrices() {
                   </View>
                 )}
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       )}

@@ -158,7 +158,7 @@ export default function NearbyCrops() {
         ) : (
           <View className="space-y-4">
             {filteredCrops.map((crop) => (
-              <View
+              <TouchableOpacity
                 key={crop.id}
                 className="bg-white rounded-xl shadow-sm overflow-hidden"
                 style={{
@@ -170,6 +170,26 @@ export default function NearbyCrops() {
                   borderWidth: 1,
                   borderColor: '#B27E4C10'
                 }}
+                onPress={() => router.push({
+                  pathname: "/buyer-crop-details",
+                  params: {
+                    id: crop.id,
+                    name: crop.name,
+                    price: `₹${crop.price_per_unit}/${crop.unit}`,
+                    quantity: `${crop.quantity} ${crop.unit}`,
+                    farmerName: crop.farmer?.full_name,
+                    farmerId: crop.farmer?.id,
+                    farmerImage: crop.farmer?.profile_image_url,
+                    farmerPhone: crop.farmer?.phone,
+                    farmerLocation: crop.location,
+                    image: crop.image_url,
+                    description: crop.description || "No description available.",
+                    quality: "Standard", // Assuming standard if not provided
+                    rating: 4.5, // Mock rating if not in API
+                    reviewCount: 10,
+                    location: crop.location
+                  }
+                })}
               >
                 {crop.image_url && (
                   <Image
@@ -210,7 +230,10 @@ export default function NearbyCrops() {
                   {crop.farmer && (
                     <View className="flex-row gap-2 mt-3">
                       <TouchableOpacity
-                        onPress={() => handleCall(crop.farmer!.phone)}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleCall(crop.farmer!.phone);
+                        }}
                         className="flex-1 flex-row items-center justify-center rounded-full py-3 bg-green-600"
                       >
                         <Phone size={18} color="white" />
@@ -219,12 +242,15 @@ export default function NearbyCrops() {
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        onPress={() => handleMessage(
-                          crop.farmer!.id,
-                          crop.farmer!.full_name,
-                          crop.farmer!.profile_image_url,
-                          crop.name
-                        )}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleMessage(
+                            crop.farmer!.id,
+                            crop.farmer!.full_name,
+                            crop.farmer!.profile_image_url,
+                            crop.name
+                          );
+                        }}
                         className="flex-1 flex-row items-center justify-center rounded-full py-3"
                         style={{ backgroundColor: '#B27E4C' }}
                       >
@@ -236,7 +262,7 @@ export default function NearbyCrops() {
                     </View>
                   )}
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}

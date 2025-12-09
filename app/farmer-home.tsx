@@ -413,7 +413,23 @@ function FarmerHomeContent() {
               {marketPrices.map((item, index) => (
                 <TouchableOpacity
                   key={index}
-                  onPress={() => router.push("/market-real-prices")}
+                  onPress={() => router.push({
+                    pathname: "/market-price-details",
+                    params: {
+                      commodity: item.commodity,
+                      market: item.market,
+                      state: item.state,
+                      district: item.district,
+                      minPrice: item.minPrice.toString(),
+                      maxPrice: item.maxPrice.toString(),
+                      modalPrice: item.modalPrice.toString(),
+                      unit: item.unit,
+                      date: item.priceDate,
+                      image: typeof item.image === 'string' ? item.image : Image.resolveAssetSource(item.image).uri,
+                      trend: item.trend,
+                      priceChange: item.priceChange?.toString()
+                    }
+                  })}
                   className="mr-4 bg-white rounded-3xl p-5 items-center shadow-lg"
                   style={{
                     width: screenWidth * 0.32,

@@ -16,7 +16,7 @@ import {
   Search,
   Sun
 } from "lucide-react-native";
-import React, { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -151,6 +151,27 @@ export default function MyFarms() {
         }
       ]
     );
+  };
+
+  const handlePreviewCrop = (crop: Crop) => {
+    router.push({
+      pathname: "/buyer-crop-details",
+      params: {
+        id: crop.id,
+        name: crop.name,
+        price: `₹${crop.price_per_unit}/${crop.unit}`,
+        quantity: `${crop.quantity} ${crop.unit}`,
+        farmerName: user?.name || "Me",
+        farmerId: user?.id,
+        farmerImage: user?.profileImage,
+        image: crop.image_url,
+        description: `Type: ${crop.crop_type}. Harvest Date: ${new Date(crop.expected_harvest_date).toLocaleDateString()}`,
+        quality: "Standard",
+        rating: 0,
+        reviewCount: 0,
+        location: "My Farm"
+      }
+    });
   };
 
   return (
@@ -301,8 +322,10 @@ export default function MyFarms() {
           /* Crops Cards */
           <View className="px-6">
             {filteredCrops.map((crop) => (
-              <View
+              <TouchableOpacity
                 key={crop.id}
+                onPress={() => handlePreviewCrop(crop)}
+                activeOpacity={0.9}
                 className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg"
                 style={{
                   shadowColor: '#000',
@@ -346,7 +369,10 @@ export default function MyFarms() {
                         </Text>
                       </View>
                     </View>
-                    <TouchableOpacity className="p-2" onPress={() => handleDeleteCrop(crop.id)}>
+                    <TouchableOpacity className="p-2" onPress={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCrop(crop.id);
+                    }}>
                       <MoreHorizontal size={20} color="#6B7280" />
                     </TouchableOpacity>
                   </View>
@@ -362,16 +388,20 @@ export default function MyFarms() {
                   {/* Action Buttons */}
                   <View className="flex-row mt-4 gap-3">
                     <TouchableOpacity
-                      onPress={() => router.push({
-                        pathname: "/edit-crop",
-                        params: { cropId: crop.id }
-                      })}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        router.push({
+                          pathname: "/edit-crop",
+                          params: { cropId: crop.id }
+                        });
+                      }}
                       className="flex-1 flex-row items-center justify-center bg-emerald-600 rounded-xl py-3.5 shadow-sm"
                     >
                       <Leaf size={18} color="#FFFFFF" />
                       <Text className="text-white font-semibold ml-2">{t('common.edit')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
+                      onPress={() => handlePreviewCrop(crop)}
                       className="flex-1 flex-row items-center justify-center bg-emerald-50 rounded-xl py-3.5 shadow-sm"
                     >
                       <MessageSquare size={18} color="#059669" />
@@ -381,7 +411,7 @@ export default function MyFarms() {
                     </TouchableOpacity>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}
