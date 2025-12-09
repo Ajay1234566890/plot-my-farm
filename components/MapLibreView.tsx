@@ -1,7 +1,7 @@
 import MapLibreGL from "@maplibre/maplibre-react-native";
 import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator, Text, Platform } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 
 interface MapLibreViewProps {
   showFarmers?: boolean;
@@ -11,7 +11,7 @@ interface MapLibreViewProps {
 }
 
 // ? Your STYLE_URL constant
-const STYLE_URL = "https://api.maptiler.com/maps/streets-v4/style.json?key=8MaoCcKOtQUbnHCNOBQn";
+const STYLE_URL = "https://api.maptiler.com/maps/streets-v2/style.json?key=8MaoCcKOtQUbnHCNOBQn";
 
 MapLibreGL.setAccessToken(null);
 MapLibreGL.setConnected(true);
@@ -39,7 +39,7 @@ export default function MapLibreView(props: MapLibreViewProps) {
         logoEnabled={false}
         attributionEnabled={true}
         attributionPosition={{ bottom: 8, left: 8 }}
-        
+
         //  Your MapLibre transformRequest
         transformRequest={(url) => {
           if (url.startsWith("https://api.maptiler.com")) {

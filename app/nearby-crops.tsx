@@ -1,6 +1,7 @@
 import BuyerBottomNav from '@/app/components/BuyerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
 import { Crop, cropService } from '@/services/crop-service';
+import { locationService } from '@/services/location-service';
 import { useRouter } from 'expo-router';
 import { MessageCircle, Phone, Search } from "lucide-react-native";
 import { useEffect, useState } from "react";
@@ -24,6 +25,7 @@ export default function NearbyCrops() {
   const [crops, setCrops] = useState<Crop[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userLocation, setUserLocation] = useState<any>(null);
 
   // Fetch crops on mount and when user changes
   useEffect(() => {
@@ -35,20 +37,33 @@ export default function NearbyCrops() {
       setLoading(true);
       console.log('🌾 [NEARBY-CROPS] Fetching location-based crops...');
 
-      // Get user location from user metadata
-      const userLocation = user?.user_metadata?.latitude && user?.user_metadata?.longitude
-        ? {
-          latitude: user.user_metadata.latitude,
-          longitude: user.user_metadata.longitude
+      // Get real-time user location
+      let currentLocation = null;
+      try {
+        const locationData = await locationService.getCurrentLocation(true); // useCache=true is fine for speed
+        if (locationData) {
+          currentLocation = locationData.coordinates;
         }
-        : null;
+      } catch (err) {
+        console.log('⚠️ [NEARBY-CROPS] Could not get real-time location, checking metadata...');
+      }
+
+      // Fallback to metadata if service fails
+      if (!currentLocation && (user as any)?.user_metadata?.latitude && (user as any)?.user_metadata?.longitude) {
+        currentLocation = {
+          latitude: (user as any).user_metadata.latitude,
+          longitude: (user as any).user_metadata.longitude
+        };
+      }
+
+      setUserLocation(currentLocation);
 
       let fetchedCrops: Crop[];
 
-      if (userLocation) {
+      if (currentLocation) {
         // Fetch nearby crops based on user location (50km radius)
-        console.log('📍 [NEARBY-CROPS] Using user location:', userLocation);
-        fetchedCrops = await cropService.getNearbyCrops(userLocation, 50000);
+        console.log('📍 [NEARBY-CROPS] Using user location:', currentLocation);
+        fetchedCrops = await cropService.getNearbyCrops(currentLocation, 50000);
       } else {
         // Fallback to all crops if no location available
         console.log('⚠️ [NEARBY-CROPS] No user location, fetching all crops');

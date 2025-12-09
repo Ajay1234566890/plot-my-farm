@@ -1,106 +1,69 @@
 import BuyerBottomNav from '@/app/components/BuyerBottomNav';
+import { useAuth } from '@/contexts/auth-context';
+import { Crop, cropService } from '@/services/crop-service';
+import { locationService } from '@/services/location-service';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Heart, Search, Star } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export default function FeaturedCropsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [crops, setCrops] = useState<Crop[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for featured/popular crops
-  const featuredCrops = [
-    {
-      id: 1,
-      name: "Organic Tomatoes",
-      farmer: "Rajesh Kumar",
-      location: "Punjab, India",
-      price: "₹45/kg",
-      quantity: "50 kg available",
-      image: "https://images.unsplash.com/photo-1518972559376-f5f715166441?w=800",
-      rating: 4.8,
-      reviews: 125,
-      quality: "Grade A",
-      harvestDate: "2 days ago"
-    },
-    {
-      id: 2,
-      name: "Fresh Carrots",
-      farmer: "Priya Sharma",
-      location: "Haryana, India",
-      price: "₹30/kg",
-      quantity: "30 kg available",
-      image: "https://images.unsplash.com/photo-1598453400264-46d90d1a7ea7?w=800",
-      rating: 4.9,
-      reviews: 98,
-      quality: "Premium",
-      harvestDate: "1 day ago"
-    },
-    {
-      id: 3,
-      name: "Premium Wheat",
-      farmer: "Suresh Patel",
-      location: "Madhya Pradesh, India",
-      price: "₹25/kg",
-      quantity: "100 kg available",
-      image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800",
-      rating: 4.7,
-      reviews: 87,
-      quality: "Grade A",
-      harvestDate: "3 days ago"
-    },
-    {
-      id: 4,
-      name: "Organic Potatoes",
-      farmer: "Amit Singh",
-      location: "Uttar Pradesh, India",
-      price: "₹35/kg",
-      quantity: "40 kg available",
-      image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800",
-      rating: 4.6,
-      reviews: 76,
-      quality: "Grade A",
-      harvestDate: "1 day ago"
-    },
-    {
-      id: 5,
-      name: "Fresh Onions",
-      farmer: "Deepak Verma",
-      location: "Maharashtra, India",
-      price: "₹40/kg",
-      quantity: "60 kg available",
-      image: "https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?w=800",
-      rating: 4.5,
-      reviews: 65,
-      quality: "Premium",
-      harvestDate: "2 days ago"
-    },
-    {
-      id: 6,
-      name: "Organic Rice",
-      farmer: "Ramesh Reddy",
-      location: "Andhra Pradesh, India",
-      price: "₹50/kg",
-      quantity: "80 kg available",
-      image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800",
-      rating: 4.9,
-      reviews: 142,
-      quality: "Premium",
-      harvestDate: "1 week ago"
-    },
-  ];
+  const loadFeaturedCrops = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log('🌾 [FEATURED] Loading featured crops...');
 
-  const filteredCrops = featuredCrops.filter(crop =>
-    crop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    crop.farmer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    crop.location.toLowerCase().includes(searchQuery.toLowerCase())
+      let fetchedCrops: Crop[] = [];
+
+      try {
+        // Try to get location for nearby crops
+        const location = await locationService.getCurrentLocation(true);
+        if (location) {
+          fetchedCrops = await cropService.getNearbyCrops(location.coordinates);
+        }
+      } catch (locError) {
+        console.warn('⚠️ [FEATURED] Could not get location, fetching all crops instead:', locError);
+        // Fallback to all crops
+        fetchedCrops = await cropService.getAllCrops();
+      }
+
+      // If no crops found via nearby (or location failed/denied), ensure we have something
+      if (fetchedCrops.length === 0) {
+        fetchedCrops = await cropService.getAllCrops();
+      }
+
+      setCrops(fetchedCrops);
+    } catch (error) {
+      console.error('❌ [FEATURED] Error loading crops:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadFeaturedCrops();
+    }, [loadFeaturedCrops])
   );
 
-  const renderCropCard = ({ item }: { item: typeof featuredCrops[0] }) => (
+  const filteredCrops = crops.filter(crop =>
+    crop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    crop.farmer?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    crop.location?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const renderCropCard = ({ item }: { item: Crop }) => (
     <TouchableOpacity
       className="bg-white rounded-2xl p-4 mb-4"
       style={{
@@ -114,15 +77,29 @@ export default function FeaturedCropsScreen() {
       }}
       onPress={() => router.push({
         pathname: "/buyer-crop-details",
-        params: { cropId: item.id.toString() }
+        params: {
+          cropId: item.id,
+          id: item.id
+        }
       })}
     >
       <View className="relative">
-        <Image
-          source={{ uri: item.image }}
-          className="w-full h-48 rounded-xl mb-3"
-        />
-        <TouchableOpacity 
+        {item.image_url ? (
+          <Image
+            source={{ uri: item.image_url }}
+            className="w-full h-48 rounded-xl mb-3"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="w-full h-48 rounded-xl mb-3 bg-gray-200 items-center justify-center">
+            <Image
+              source={require('@/assets/images/placeholder.png')} // Fallback if available, or just icon
+              style={{ width: 64, height: 64, opacity: 0.3 }}
+            />
+          </View>
+        )}
+
+        <TouchableOpacity
           className="absolute top-2 right-2 bg-white rounded-full p-2 shadow"
           onPress={(e) => {
             e.stopPropagation();
@@ -131,27 +108,37 @@ export default function FeaturedCropsScreen() {
         >
           <Heart size={20} color="#B27E4C" fill="white" />
         </TouchableOpacity>
-        <View className="absolute bottom-5 left-2 bg-green-500 px-3 py-1 rounded-full">
-          <Text className="text-white text-xs font-semibold">{item.quality}</Text>
-        </View>
+        {item.certification && (
+          <View className="absolute bottom-5 left-2 bg-green-500 px-3 py-1 rounded-full">
+            <Text className="text-white text-xs font-semibold">{item.certification}</Text>
+          </View>
+        )}
       </View>
 
       <Text className="text-xl font-bold text-gray-900 mb-1">{item.name}</Text>
-      <Text className="text-gray-600 text-sm mb-2">{item.farmer} • {item.location}</Text>
+      <Text className="text-gray-600 text-sm mb-2">
+        {item.farmer?.full_name || 'Unknown Farmer'} • {item.location || 'Unknown Location'}
+      </Text>
 
       <View className="flex-row items-center mb-2">
         <View className="flex-row items-center mr-3">
           <Star size={16} color="#FFA500" fill="#FFA500" />
-          <Text className="text-gray-700 ml-1 font-semibold">{item.rating}</Text>
-          <Text className="text-gray-500 text-xs ml-1">({item.reviews})</Text>
+          <Text className="text-gray-700 ml-1 font-semibold">4.8</Text>
+          <Text className="text-gray-500 text-xs ml-1">(12)</Text>
         </View>
-        <Text className="text-gray-500 text-sm">{item.harvestDate}</Text>
+        <Text className="text-gray-500 text-sm">
+          {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
+        </Text>
       </View>
 
       <View className="flex-row justify-between items-center">
         <View>
-          <Text className="text-2xl font-bold" style={{ color: '#B27E4C' }}>{item.price}</Text>
-          <Text className="text-gray-500 text-sm">{item.quantity}</Text>
+          <Text className="text-2xl font-bold" style={{ color: '#B27E4C' }}>
+            ₹{item.price_per_unit}/{item.unit}
+          </Text>
+          <Text className="text-gray-500 text-sm">
+            {item.quantity} {item.unit} available
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -176,7 +163,7 @@ export default function FeaturedCropsScreen() {
             <ArrowLeft size={24} color="white" />
           </TouchableOpacity>
           <Text className="text-2xl font-bold text-white">
-            Featured Crops
+            {t('featured.title') || 'Featured Crops'}
           </Text>
         </View>
 
@@ -185,7 +172,7 @@ export default function FeaturedCropsScreen() {
           <Search size={20} color="#B27E4C" />
           <TextInput
             className="flex-1 ml-3 text-gray-800"
-            placeholder="Search crops, farmers, location..."
+            placeholder={t('common.searchPlaceholder') || "Search crops, farmers, location..."}
             placeholderTextColor="#999"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -194,29 +181,34 @@ export default function FeaturedCropsScreen() {
       </View>
 
       {/* Crops List */}
-      <FlatList
-        data={filteredCrops}
-        renderItem={renderCropCard}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{
-          padding: 16,
-          paddingBottom: 100,
-        }}
-        ListEmptyComponent={
-          <View className="items-center justify-center py-20">
-            <Text className="text-gray-600 text-center text-lg">
-              No crops found
-            </Text>
-            <Text className="text-gray-500 text-center mt-2">
-              Try adjusting your search
-            </Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#B27E4C" />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredCrops}
+          renderItem={renderCropCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: 100,
+          }}
+          ListEmptyComponent={
+            <View className="items-center justify-center py-20">
+              <Text className="text-gray-600 text-center text-lg">
+                {t('featured.noCrops') || 'No crops found'}
+              </Text>
+              <Text className="text-gray-500 text-center mt-2">
+                {t('featured.tryAdjusting') || 'Try adjusting your search'}
+              </Text>
+            </View>
+          }
+        />
+      )}
 
       {/* Bottom Navigation */}
       <BuyerBottomNav activeTab="home" />
     </View>
   );
 }
-

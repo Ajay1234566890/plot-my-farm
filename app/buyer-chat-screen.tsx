@@ -1,13 +1,17 @@
 import { useAuth } from '@/contexts/auth-context';
 import {
+  createOrGetChat,
   getMessages,
   Message,
   sendMessage,
   subscribeMessages,
   unsubscribe,
+  upsertUser,
 } from '@/services/chat-service';
+import { imageUploadService } from '@/services/image-upload-service';
 import { supabase } from '@/utils/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Paperclip, Phone, Send } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -48,23 +52,45 @@ export default function BuyerChatScreen() {
     (params.userAvatar as string) || 'https://randomuser.me/api/portraits/men/32.jpg';
   const userRole = (params.userRole as string) || t('chatScreen.farmer');
 
-  useEffect(() => {
-    if (chatId && user?.id) {
-      loadMessages();
-      setupRealtimeSubscription();
-      fetchPhoneNumber();
-    }
+  const [currentChatId, setCurrentChatId] = useState<string | null>(params.chatId as string);
 
-    return () => {
-      if (subscription) {
-        unsubscribe(subscription);
-      }
-    };
-  }, [chatId, user?.id]);
-
-  const loadMessages = async () => {
+  const initializeChat = async () => {
     try {
-      const { data, error } = await getMessages(chatId);
+      if (user) {
+        await upsertUser({
+          id: user.id,
+          name: (user as any).user_metadata?.full_name || 'Buyer',
+          role: 'buyer',
+          phone: user.phone || undefined,
+          avatar: (user as any).user_metadata?.avatar_url || undefined,
+        });
+      }
+
+      await upsertUser({
+        id: userId,
+        name: userName,
+        role: 'farmer',
+        avatar: userAvatar,
+      });
+
+      const { data, error } = await createOrGetChat(userId, user!.id);
+
+      if (error) {
+        console.error('Error initializing chat:', error);
+        Alert.alert(t('common.error'), t('chatScreen.initError'));
+      }
+
+      if (data) {
+        setCurrentChatId(data.id);
+      }
+    } catch (error) {
+      console.error('Exception initializing chat:', error);
+    }
+  };
+
+  const loadMessages = async (id: string) => {
+    try {
+      const { data, error } = await getMessages(id);
       if (error) {
         console.error('Error loading messages:', error);
       } else if (data) {
@@ -78,8 +104,8 @@ export default function BuyerChatScreen() {
     }
   };
 
-  const setupRealtimeSubscription = () => {
-    const channel = subscribeMessages(chatId, (newMessage) => {
+  const setupRealtimeSubscription = (id: string) => {
+    const channel = subscribeMessages(id, (newMessage) => {
       setMessages((prev) => [...prev, newMessage]);
       setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
     });
@@ -99,15 +125,33 @@ export default function BuyerChatScreen() {
     }
   };
 
+  useEffect(() => {
+    if (user?.id) {
+      if (currentChatId) {
+        loadMessages(currentChatId);
+        setupRealtimeSubscription(currentChatId);
+      } else if (userId) {
+        initializeChat();
+      }
+      fetchPhoneNumber();
+    }
+
+    return () => {
+      if (subscription) {
+        unsubscribe(subscription);
+      }
+    };
+  }, [currentChatId, user?.id, userId]);
+
   const handleSendMessage = async () => {
-    if (!message.trim() || !user?.id || sending) return;
+    if (!message.trim() || !user?.id || sending || !currentChatId) return;
 
     const msgContent = message.trim();
     setMessage('');
     setSending(true);
 
     try {
-      const { error } = await sendMessage(chatId, user.id, msgContent);
+      const { error } = await sendMessage(currentChatId, user.id, msgContent);
 
       if (error) {
         console.error('Error sending message:', error);
@@ -131,11 +175,98 @@ export default function BuyerChatScreen() {
     }
   };
 
-
-
   const formatMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleAttachment = () => {
+    Alert.alert(
+      t('chatScreen.attachImage'),
+      t('chatScreen.chooseSource'),
+      [
+        {
+          text: t('chatScreen.camera'),
+          onPress: takePhoto,
+        },
+        {
+          text: t('chatScreen.gallery'),
+          onPress: pickImage,
+        },
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.5,
+      });
+
+      if (!result.canceled) {
+        await sendImageMessage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert(t('common.error'), t('errors.imagePickerError'));
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (permission.status !== 'granted') {
+        Alert.alert(t('common.error'), t('errors.cameraPermission'));
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.5,
+      });
+
+      if (!result.canceled) {
+        await sendImageMessage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert(t('common.error'), t('errors.cameraError'));
+    }
+  };
+
+  const sendImageMessage = async (uri: string) => {
+    if (!user?.id || !currentChatId) return;
+
+    setSending(true);
+    try {
+      // 1. Upload Image
+      const imageUrl = await imageUploadService.uploadChatImage(uri);
+
+      if (!imageUrl) {
+        throw new Error('Image upload failed');
+      }
+
+      // 2. Send Message with Image URL
+      const { error } = await sendMessage(currentChatId, user.id, '', imageUrl);
+
+      if (error) {
+        console.error('Error sending message:', error);
+        Alert.alert(t('common.error'), t('chatScreen.sendError'));
+      }
+    } catch (error) {
+      console.error('Exception sending image message:', error);
+      Alert.alert(t('common.error'), t('chatScreen.sendError'));
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -216,9 +347,18 @@ export default function BuyerChatScreen() {
                       elevation: 3,
                     }}
                   >
-                    <Text className={`text-base ${isMe ? 'text-white' : 'text-gray-900'}`}>
-                      {msg.text}
-                    </Text>
+                    {msg.image_url && (
+                      <Image
+                        source={{ uri: msg.image_url }}
+                        style={{ width: 200, height: 150, borderRadius: 8, marginBottom: msg.text ? 8 : 0 }}
+                        resizeMode="cover"
+                      />
+                    )}
+                    {msg.text ? (
+                      <Text className={`text-base ${isMe ? 'text-white' : 'text-gray-900'}`}>
+                        {msg.text}
+                      </Text>
+                    ) : null}
                     <Text className={`text-xs mt-1 ${isMe ? 'text-white/70' : 'text-gray-500'}`}>
                       {formatMessageTime(msg.created_at)}
                     </Text>
@@ -242,7 +382,7 @@ export default function BuyerChatScreen() {
             elevation: 8,
           }}
         >
-          <TouchableOpacity className="p-2 mr-2">
+          <TouchableOpacity className="p-2 mr-2" onPress={handleAttachment}>
             <Paperclip size={24} color="#6B7280" />
           </TouchableOpacity>
           <TextInput

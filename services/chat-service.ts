@@ -28,6 +28,7 @@ export interface Message {
   chat_id: string;
   sender_id: string;
   text: string;
+  image_url?: string;
   created_at: string;
 }
 
@@ -135,7 +136,7 @@ export function subscribeChatList(
               farmer:users!chats_farmer_id_fkey(id, name, role, phone, avatar),
               buyer:users!chats_buyer_id_fkey(id, name, role, phone, avatar)
             `)
-            .eq('id', payload.new.id)
+            .eq('id', (payload.new as any).id)
             .single();
 
           if (data) {
@@ -165,7 +166,7 @@ export function subscribeChatList(
               farmer:users!chats_farmer_id_fkey(id, name, role, phone, avatar),
               buyer:users!chats_buyer_id_fkey(id, name, role, phone, avatar)
             `)
-            .eq('id', payload.new.id)
+            .eq('id', (payload.new as any).id)
             .single();
 
           if (data) {
@@ -213,7 +214,8 @@ export async function getMessages(chatId: string): Promise<{ data: Message[] | n
 export async function sendMessage(
   chatId: string,
   senderId: string,
-  text: string
+  text: string,
+  imageUrl?: string
 ): Promise<{ data: Message | null; error: any }> {
   try {
     // Insert message
@@ -223,6 +225,7 @@ export async function sendMessage(
         chat_id: chatId,
         sender_id: senderId,
         text: text,
+        image_url: imageUrl,
       })
       .select()
       .single();
@@ -232,10 +235,11 @@ export async function sendMessage(
     }
 
     // Update chat's last_message and updated_at
+    const lastMessageText = imageUrl ? (text ? `📷 ${text}` : '📷 Image') : text;
     const { error: updateError } = await supabase
       .from('chats')
       .update({
-        last_message: text,
+        last_message: lastMessageText,
         updated_at: new Date().toISOString(),
       })
       .eq('id', chatId);

@@ -43,8 +43,12 @@ export default function NearbyFarmers() {
 
   const handleMessage = (farmerName: string, farmerId: number) => {
     router.push({
-      pathname: '/chat-screen',
-      params: { userId: farmerId, userName: farmerName, userType: 'farmer' }
+      pathname: '/buyer-chat-screen',
+      params: {
+        userId: farmerId.toString(),
+        userName: farmerName,
+        userRole: 'farmer'
+      }
     });
   };
 

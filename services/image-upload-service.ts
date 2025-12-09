@@ -1,6 +1,6 @@
 import { supabase } from '@/utils/supabase';
-import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
+import * as FileSystem from 'expo-file-system';
 
 /**
  * Image Upload Service
@@ -10,13 +10,13 @@ class ImageUploadService {
   /**
    * Upload an image to Supabase Storage
    * @param uri - Local file URI from image picker
-   * @param bucket - Storage bucket name (crop-images, profile-images, offer-images)
+   * @param bucket - Storage bucket name (crop-images, profile-images, offer-images, chat-images)
    * @param folder - Optional folder path within bucket
    * @returns Public URL of uploaded image or null if failed
    */
   async uploadImage(
     uri: string,
-    bucket: 'crop-images' | 'profile-images' | 'offer-images',
+    bucket: 'crop-images' | 'profile-images' | 'offer-images' | 'chat-images',
     folder?: string
   ): Promise<string | null> {
     try {
@@ -136,6 +136,15 @@ class ImageUploadService {
       webp: 'image/webp',
     };
     return types[ext.toLowerCase()] || 'image/jpeg';
+  }
+  /**
+   * Upload chat image
+   * @param uri - Local file URI
+   * @param chatId - Chat ID for folder organization (optional, using general folder 'shared' or per chat)
+   * @returns Public URL or null
+   */
+  async uploadChatImage(uri: string): Promise<string | null> {
+    return this.uploadImage(uri, 'chat-images');
   }
 }
 
