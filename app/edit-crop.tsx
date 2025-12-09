@@ -1,18 +1,21 @@
 import FarmerBottomNav from '@/app/components/FarmerBottomNav';
 import { useAuth } from '@/contexts/auth-context';
+import { cropService } from '@/services/crop-service';
 import { speechToTextService } from '@/services/speech-to-text-service';
-import { supabase } from '@/utils/supabase';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Calendar, ChevronDown, Mic, Upload } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function EditCrop() {
   const router = useRouter();
+  const { cropId } = useLocalSearchParams<{ cropId: string }>();
   const { t } = useTranslation();
   const { user } = useAuth();
+
+  const [loading, setLoading] = useState(!!cropId);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     image: '',
@@ -34,6 +37,41 @@ export default function EditCrop() {
 
   const units = ['kg', 'quintal', 'ton', 'bag', 'bunch'];
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+
+  // Fetch crop details if in edit mode
+  useEffect(() => {
+    if (cropId) {
+      loadCropDetails();
+    }
+  }, [cropId]);
+
+  const loadCropDetails = async () => {
+    if (!cropId) return;
+
+    try {
+      setLoading(true);
+      const crop = await cropService.getCropById(cropId);
+
+      if (crop) {
+        setFormData({
+          image: crop.image_url || '',
+          cropName: crop.name || '',
+          quantity: crop.quantity?.toString() || '',
+          unit: crop.unit || 'kg',
+          price: crop.price_per_unit?.toString() || '',
+          harvestDate: crop.expected_harvest_date || ''
+        });
+      } else {
+        Alert.alert(t('common.error'), t('errors.cropNotFound'));
+        router.back();
+      }
+    } catch (error) {
+      console.error('Error loading crop:', error);
+      Alert.alert(t('common.error'), t('errors.loadFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Image picker function
   const handleImagePick = async () => {
@@ -61,9 +99,9 @@ export default function EditCrop() {
     }
   };
 
-  // Date picker function (simplified - you can use a proper date picker library)
+  // Date picker function
   const handleDatePick = () => {
-    // For now, just set today's date
+    // For now, just set today's date if empty, or keep existing
     const today = new Date();
     const dateString = today.toISOString().split('T')[0];
     setFormData({ ...formData, harvestDate: dateString });
@@ -79,11 +117,9 @@ export default function EditCrop() {
         setRecordingField(null);
 
         if (uri) {
-          // Show loading indicator or toast? For now just wait
-          const text = await speechToTextService.transcribeAudio(uri, 'en'); // Default to English for now
+          const text = await speechToTextService.transcribeAudio(uri, 'en');
           if (text) {
             console.log('✅ Transcribed text:', text);
-            // Clean up text if needed (e.g. remove trailing periods)
             const cleanText = text.replace(/\.$/, '');
             setFormData(prev => ({ ...prev, [field]: cleanText }));
           }
@@ -91,7 +127,6 @@ export default function EditCrop() {
       } else {
         // Start recording
         if (recordingField) {
-          // Stop previous if any
           await speechToTextService.stopRecording();
         }
         console.log('🎤 Starting voice recording for field:', field);
@@ -122,7 +157,6 @@ export default function EditCrop() {
 
     // Validate and format date
     let formattedDate = formData.harvestDate;
-    // Check if date is in DD/MM/YYYY format
     const ddmmyyyyPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
     const match = formData.harvestDate.match(ddmmyyyyPattern);
 
@@ -131,71 +165,68 @@ export default function EditCrop() {
       const month = parseInt(match[2], 10);
       const year = parseInt(match[3], 10);
 
-      // Basic validation
       if (month < 1 || month > 12 || day < 1 || day > 31) {
         Alert.alert(t('common.error'), 'Invalid date. Please check the day and month.');
         return;
       }
 
-      // Check for days in month (simple check)
       const daysInMonth = new Date(year, month, 0).getDate();
       if (day > daysInMonth) {
         Alert.alert(t('common.error'), `Invalid date. ${month}/${year} only has ${daysInMonth} days.`);
         return;
       }
 
-      // Convert to YYYY-MM-DD
       formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     } else {
-      // If not DD/MM/YYYY, check if it's already YYYY-MM-DD or valid ISO
       const dateObj = new Date(formData.harvestDate);
       if (isNaN(dateObj.getTime())) {
-        Alert.alert(t('common.error'), 'Invalid date format. Please use DD/MM/YYYY.');
+        Alert.alert(t('common.error'), 'Invalid date format. Please use DD/MM/YYYY or YYYY-MM-DD.');
         return;
       }
-      // Ensure it is YYYY-MM-DD
       formattedDate = dateObj.toISOString().split('T')[0];
     }
 
     setIsSaving(true);
 
     try {
-      // Save to Supabase
-      const { data, error } = await supabase
-        .from('farmer_crops')
-        .insert([
-          {
-            farmer_id: user?.id,
-            name: formData.cropName,
-            crop_type: formData.cropName, // Add crop type
-            quantity: parseFloat(formData.quantity),
-            unit: formData.unit,
-            price_per_unit: parseFloat(formData.price),
-            expected_harvest_date: formattedDate,
-            image_url: formData.image,
-            status: 'growing',
-            created_at: new Date().toISOString()
-          }
-        ])
-        .select();
+      const isNewImage = formData.image && !formData.image.startsWith('http');
 
-      if (error) {
-        console.error('Error saving crop:', error);
-        Alert.alert(t('common.error'), 'Failed to save crop: ' + error.message);
-        return;
+      const cropData = {
+        farmer_id: user?.id || '',
+        name: formData.cropName,
+        crop_type: formData.cropName,
+        quantity: parseFloat(formData.quantity),
+        unit: formData.unit,
+        price_per_unit: parseFloat(formData.price),
+        expected_harvest_date: formattedDate,
+        image_uri: isNewImage ? formData.image : undefined,
+        certification: 'Organic', // Default or add field
+      };
+
+      let result;
+      if (cropId) {
+        // Update existing crop
+        result = await cropService.updateCrop(cropId, cropData);
+      } else {
+        // Create new crop
+        result = await cropService.createCrop(cropData);
       }
 
-      console.log('✅ Crop saved successfully:', data);
-      Alert.alert(
-        t('common.success'),
-        t('success.cropUpdated'),
-        [
-          {
-            text: t('common.ok'),
-            onPress: () => router.back()
-          }
-        ]
-      );
+      if (result) {
+        console.log('✅ Crop saved successfully:', result.id);
+        Alert.alert(
+          t('common.success'),
+          cropId ? t('success.cropUpdated') : t('success.cropAdded'),
+          [
+            {
+              text: t('common.ok'),
+              onPress: () => router.back()
+            }
+          ]
+        );
+      } else {
+        throw new Error('Save failed');
+      }
     } catch (error) {
       console.error('Error saving crop:', error);
       Alert.alert(t('common.error'), 'Failed to save crop');
@@ -213,9 +244,17 @@ export default function EditCrop() {
       price: '',
       harvestDate: ''
     });
-    // Navigation would go here in a real app
     router.back();
   };
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-[#F5F3F0]">
+        <ActivityIndicator size="large" color="#7C8B3A" />
+        <Text className="text-gray-500 mt-4">Loading crop details...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F3F0' }}>
@@ -236,10 +275,12 @@ export default function EditCrop() {
           >
             <ArrowLeft size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">{t('crops.editCrop')}</Text>
+          <Text className="text-xl font-bold text-white">
+            {cropId ? t('crops.editCrop') : t('crops.addNewCrop')}
+          </Text>
         </View>
         <Text className="text-white/80">
-          {t('crops.updateCropInfo')}
+          {cropId ? t('crops.updateCropInfo') : t('crops.addCropDetailsToSell')}
         </Text>
       </View>
 
