@@ -11,7 +11,7 @@ interface MapLibreViewProps {
 }
 
 // ? Your STYLE_URL constant
-const STYLE_URL = "https://api.maptiler.com/maps/streets-v2/style.json?key=8MaoCcKOtQUbnHCNOBQn";
+const STYLE_URL = "https://api.maptiler.com/maps/streets-v2/style.json?key=8MaoCcKOtQUbnHcNOBQn";
 
 MapLibreGL.setAccessToken(null);
 MapLibreGL.setConnected(true);
@@ -32,25 +32,25 @@ export default function MapLibreView(props: MapLibreViewProps) {
   if (!coords) return <View style={styles.center}><ActivityIndicator size="large" /><Text>Loading map</Text></View>;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} renderToHardwareTextureAndroid={true}>
       <MapLibreGL.MapView
         style={styles.map}
         styleURL={STYLE_URL}
         logoEnabled={false}
         attributionEnabled={true}
         attributionPosition={{ bottom: 8, left: 8 }}
-
-        //  Your MapLibre transformRequest
         transformRequest={(url) => {
           if (url.startsWith("https://api.maptiler.com")) {
             const u = new URL(url);
-            u.searchParams.set("key", "8MaoCcKOtQUbnHCNOBQn");
+            if (!u.searchParams.has("key")) {
+              u.searchParams.append("key", "8MaoCcKOtQUbnHcNOBQn");
+            }
             return { url: u.toString() };
           }
           return { url };
         }}
       >
-        <MapLibreGL.UserLocation visible={true} androidRenderMode="gps" />
+        <MapLibreGL.UserLocation visible={true} androidRenderMode="normal" />
         <MapLibreGL.Camera zoomLevel={14} centerCoordinate={coords} followUserLocation={true} />
       </MapLibreGL.MapView>
     </View>

@@ -56,6 +56,17 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "@maplibre/maplibre-react-native",
+        {
+          "android": {
+            "useLegacyRenderer": false
+          },
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
       ]
     ],
     "experiments": {
