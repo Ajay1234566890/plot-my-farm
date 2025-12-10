@@ -61,7 +61,7 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true,
+            "usesCleartextTraffic": false,
             "packagingOptions": {
               "pickFirst": [
                 "lib/x86/libc++_shared.so",
@@ -77,7 +77,7 @@
         "@maplibre/maplibre-react-native",
         {
           "android": {
-            "useLegacyRenderer": false
+            "useLegacyRenderer": true
           },
           "ios": {
             "useFrameworks": "static"

@@ -93,7 +93,7 @@ export default function FeaturedCropsScreen() {
         ) : (
           <View className="w-full h-48 rounded-xl mb-3 bg-gray-200 items-center justify-center">
             <Image
-              source={require('@/assets/images/placeholder.png')} // Fallback if available, or just icon
+              source={require('@/assets/images/icon.png')} // Fallback if available, or just icon
               style={{ width: 64, height: 64, opacity: 0.3 }}
             />
           </View>
